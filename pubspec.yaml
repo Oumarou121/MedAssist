@@ -1,6 +1,6 @@
 name: med_assist
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
@@ -13,6 +13,7 @@ dependencies:
   firebase_auth: ^5.5.1
   flutter:
     sdk: flutter
+  intl: ^0.17.0
   fluttertoast: ^8.2.12
   google_fonts: ^6.2.1
   iconsax: ^0.0.8
@@ -20,6 +21,7 @@ dependencies:
   local_auth: ^2.3.0
   persistent_bottom_nav_bar: ^6.2.1
   flutter_svg: ^2.0.9
+  smooth_page_indicator: ^1.2.1
 
 dev_dependencies:
   flutter_test:

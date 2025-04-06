@@ -5,27 +5,15 @@ import 'package:med_assist/Models/user.dart';
 class AuthenticationService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // AppUser? _userFromFirebaseUser(User? user) {
-  //   initUser(user);
-  //   return user != null ? AppUser(user.uid) : null;
-  // }
 
-  // Convertir un User? Firebase en AppUser?
   AppUser? _userFromFirebase(User? user) {
     return user != null ? AppUser(user.uid) : null;
   }
 
-  // Stream<AppUser?> get user {
-  //   return _auth.authStateChanges().map(_userFromFirebaseUser);
-  // }
 
   Stream<AppUser?> get user {
     return _auth.authStateChanges().map(_userFromFirebase);
   }
-
-  // void initUser(User? user) async {
-  //   if (user == null) return;
-  // }
 
   Future signInWithEmailAndPassword({
     required String email,
