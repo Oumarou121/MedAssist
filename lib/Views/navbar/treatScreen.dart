@@ -17,72 +17,88 @@ class _TreatScreenState extends State<TreatScreen> {
     Treat(
       authorUid: 'Users0001',
       authorName: "Dr John",
+      count: 3,
       code: 'T1',
       title: "Traitement Hypertension",
       createdAt: DateTime.now().subtract(Duration(days: 3)),
       medicines: [
         Medicine(
           name: "Amlodipine",
-          dose: "5mg",
-          frequency: "1x/jour",
           duration: 11,
+          count: 1,
+          dose: "5mg",
+          frequencyType: FrequencyType.daily,
+          frequency: 1,
         ),
         Medicine(
           name: "Amlodipine",
-          dose: "5mg",
-          frequency: "1x/jour",
           duration: 4,
+          count: 2,
+          dose: "5mg",
+          frequencyType: FrequencyType.daily,
+          frequency: 1,
         ),
         Medicine(
           name: "Amlodipine",
-          dose: "5mg",
-          frequency: "1x/jour",
           duration: 3,
+          count: 3,
+          dose: "5mg",
+          frequencyType: FrequencyType.daily,
+          frequency: 2,
         ),
       ],
     ),
     Treat(
       authorUid: 'Users0001',
       authorName: "Dr John",
+      count: 0,
       code: 'T2',
       title: "Diabète Type 2",
       createdAt: DateTime.now(),
       medicines: [
         Medicine(
           name: "Metformine",
-          dose: "500mg",
-          frequency: "2x/jour",
           duration: 5,
+          count: 0,
+          dose: "500mg",
+          frequencyType: FrequencyType.daily,
+          frequency: 2,
         ),
       ],
     ),
     Treat(
       authorUid: '0Z6Hs2zgCzXqzTztrvaf1y3X5wL2',
       authorName: "Dr John",
+      count: 0,
       code: 'T3',
       title: "Asthme",
       createdAt: DateTime.now().subtract(Duration(days: 2)),
       medicines: [
         Medicine(
           name: "Ventoline",
-          dose: "2 bouffées",
-          frequency: "3x/jour",
           duration: 5,
+          count: 0,
+          dose: "2 bouffées",
+          frequencyType: FrequencyType.daily,
+          frequency: 3,
         ),
       ],
     ),
     Treat(
       authorUid: 'Users0001',
       authorName: "Dr Souleymane",
+      count: 0,
       code: 'T4',
       title: "Douleur chronique",
       createdAt: DateTime.now().subtract(Duration(days: 6)),
       medicines: [
         Medicine(
           name: "Paracétamol",
-          dose: "1g",
-          frequency: "3x/jour",
           duration: 2,
+          count: 0,
+          dose: "1g",
+          frequencyType: FrequencyType.monthly,
+          frequency: 3,
         ),
       ],
     ),
@@ -97,7 +113,7 @@ class _TreatScreenState extends State<TreatScreen> {
 
   @override
   void initState() {
-    treatments = [...defaultTreatments];
+    // treatments = [...defaultTreatments];
     super.initState();
   }
 
@@ -179,7 +195,16 @@ class _TreatScreenState extends State<TreatScreen> {
 
   void _addMedicine() {
     setState(() {
-      medicines.add(Medicine(name: "", duration: 0, dose: "", frequency: ""));
+      medicines.add(
+        Medicine(
+          name: "",
+          duration: 0,
+          count: 0,
+          dose: "",
+          frequencyType: FrequencyType.daily,
+          frequency: 0,
+        ),
+      );
       nameControllers.add(TextEditingController());
       durationControllers.add(TextEditingController());
       doseControllers.add(TextEditingController());
@@ -295,6 +320,10 @@ class _TreatScreenState extends State<TreatScreen> {
                           _buildInfoRow('Code', treat.code),
                           _buildInfoRow('Durée', '${treat.duration} jours'),
                           _buildInfoRow(
+                            'Durée restante',
+                            '${treat.duration - treat.count} jours',
+                          ),
+                          _buildInfoRow(
                             'Date de début',
                             formatDate(treat.createdAt),
                             style: TextStyle(fontStyle: FontStyle.italic),
@@ -347,9 +376,24 @@ class _TreatScreenState extends State<TreatScreen> {
                                 ),
                               ),
                               SizedBox(height: 5),
-                              _buildInfoRow('Durée', '${treat.duration} jours'),
+                              _buildInfoRow(
+                                'Durée',
+                                '${medicine.duration} jours',
+                              ),
+
+                              _buildInfoRow(
+                                'Durée restante',
+                                (medicine.duration - medicine.count == 0)
+                                    ? 'Complete'
+                                    : ('${medicine.duration - medicine.count} jours'),
+                                style: TextStyle(color: Colors.green),
+                              ),
+
                               _buildInfoRow('Dose', medicine.dose),
-                              _buildInfoRow('Fréquence', medicine.frequency),
+                              _buildInfoRow(
+                                'Fréquence',
+                                medicine.formattedFrequency,
+                              ),
                             ],
                           ),
                         ),
@@ -473,7 +517,23 @@ class _TreatScreenState extends State<TreatScreen> {
 
                         Navigator.pop(context);
                         setState(() {
-                          treatments.add(treatment);
+                          List<Medicine> ms = [];
+
+                          Treat t = new Treat(
+                            authorName: treatment.authorName,
+                            authorUid: treatment.authorName,
+                            code: treatment.code,
+                            title: treatment.title,
+                            medicines: ms,
+                            count: 0,
+                            createdAt: DateTime.now(),
+                          );
+
+                          for (Medicine m in treatment.medicines) {
+                            t.addMedicine(m);
+                          }
+
+                          treatments.add(t);
                         });
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -525,7 +585,24 @@ class _TreatScreenState extends State<TreatScreen> {
                                       ); // Ferme le dialogue
                                       Navigator.pop(context); // Ferme le modal
                                       setState(() {
-                                        treatments.add(selected);
+                                        List<Medicine> ms = [];
+
+                                        Treat t = new Treat(
+                                          authorName: selected.authorName,
+                                          authorUid: selected.authorName,
+                                          code: selected.code,
+                                          title: selected.title,
+                                          medicines: ms,
+                                          count: 0,
+                                          createdAt: DateTime.now(),
+                                        );
+
+                                        for (Medicine m in selected.medicines) {
+                                          t.addMedicine(m);
+                                        }
+
+                                        treatments.add(t);
+                                        // treatments.add(selected);
                                       });
                                       ScaffoldMessenger.of(
                                         context,
@@ -574,88 +651,168 @@ class _TreatScreenState extends State<TreatScreen> {
     int index,
     StateSetter setModalState,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(
-              "Médicament ${index + 1}",
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
+    return Form(
+      key:
+          medicine
+              .formKey, // Chaque instance de `Medicine` doit avoir un `GlobalKey<FormState>()`
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                "Médicament ${index + 1}",
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  setModalState(() {
+                    medicines.removeAt(index);
+                    nameControllers.removeAt(index);
+                    durationControllers.removeAt(index);
+                    doseControllers.removeAt(index);
+                    frequencyControllers.removeAt(index);
+                  });
+                },
+                icon: Icon(Iconsax.note_remove),
+                color: Colors.red,
+              ),
+            ],
+          ),
+          SizedBox(height: 10),
+
+          // Nom
+          TextFormField(
+            controller: nameControllers[index],
+            decoration: InputDecoration(
+              labelText: "Nom du médicament",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
-            IconButton(
-              onPressed: () {
-                setModalState(() {
-                  medicines.removeAt(index);
-                  nameControllers.removeAt(index);
-                  durationControllers.removeAt(index);
-                  doseControllers.removeAt(index);
-                  frequencyControllers.removeAt(index);
-                });
-              },
-              icon: Icon(Iconsax.note_remove),
-              color: Colors.red,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Le nom est requis';
+              }
+              return null;
+            },
+            onChanged: (value) {
+              setModalState(() {
+                medicine.name = value;
+              });
+            },
+          ),
+          SizedBox(height: 10),
+
+          // Dose
+          TextFormField(
+            controller: doseControllers[index],
+            decoration: InputDecoration(
+              labelText: "Dose",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-          ],
-        ),
-        SizedBox(height: 10),
-        TextField(
-          controller: nameControllers[index],
-          decoration: InputDecoration(
-            labelText: "Nom du médicament",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'La dose est requise';
+              }
+              return null;
+            },
+            onChanged: (value) {
+              setModalState(() {
+                medicine.dose = value;
+              });
+            },
           ),
-          onChanged: (value) {
-            setModalState(() {
-              medicines[index].name = value;
-            });
-          },
-        ),
-        SizedBox(height: 10),
-        TextField(
-          controller: doseControllers[index],
-          decoration: InputDecoration(
-            labelText: "Dose",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          SizedBox(height: 10),
+
+          // Fréquence (nombre)
+          TextFormField(
+            controller: frequencyControllers[index],
+            decoration: InputDecoration(
+              labelText: "Fréquence (nombre de fois)",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            keyboardType: TextInputType.number,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'La fréquence est requise';
+              }
+              final parsed = int.tryParse(value.trim());
+              if (parsed == null || parsed <= 0) {
+                return 'Valeur invalide';
+              }
+              return null;
+            },
+            onChanged: (value) {
+              setModalState(() {
+                medicine.frequency = int.tryParse(value) ?? 1;
+              });
+            },
           ),
-          onChanged: (value) {
-            setModalState(() {
-              medicines[index].dose = value;
-            });
-          },
-        ),
-        SizedBox(height: 10),
-        TextField(
-          controller: frequencyControllers[index],
-          decoration: InputDecoration(
-            labelText: "Fréquence",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          SizedBox(height: 10),
+
+          // Type de fréquence
+          DropdownButtonFormField<FrequencyType>(
+            value: medicine.frequencyType,
+            decoration: InputDecoration(
+              labelText: "Type de fréquence",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            items:
+                FrequencyType.values.map((type) {
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text(type.unitLabel),
+                  );
+                }).toList(),
+            onChanged: (value) {
+              if (value != null) {
+                setModalState(() {
+                  medicine.frequencyType = value;
+                });
+              }
+            },
           ),
-          onChanged: (value) {
-            setModalState(() {
-              medicines[index].frequency = value;
-            });
-          },
-        ),
-        SizedBox(height: 10),
-        TextField(
-          controller: durationControllers[index],
-          decoration: InputDecoration(
-            labelText: "Durée (jours)",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          SizedBox(height: 10),
+
+          // Durée
+          TextFormField(
+            controller: durationControllers[index],
+            decoration: InputDecoration(
+              labelText: "Durée (jours)",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            keyboardType: TextInputType.number,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'La durée est requise';
+              }
+              final parsed = int.tryParse(value.trim());
+              if (parsed == null || parsed <= 0) {
+                return 'Entrez un nombre valide';
+              }
+              return null;
+            },
+            onChanged: (value) {
+              setModalState(() {
+                medicine.duration = int.tryParse(value) ?? 1;
+              });
+            },
           ),
-          keyboardType: TextInputType.number,
-          onChanged: (value) {
-            setModalState(() {
-              medicines[index].duration = int.parse(value);
-            });
-          },
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -665,6 +822,8 @@ class _TreatScreenState extends State<TreatScreen> {
     durationControllers = [];
     doseControllers = [];
     frequencyControllers = [];
+    String error = "";
+    bool isError = false;
     showDialog(
       context: context,
       builder: (context) {
@@ -707,6 +866,7 @@ class _TreatScreenState extends State<TreatScreen> {
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
+                                  errorText: isError ? error : null,
                                 ),
                               ),
                               SizedBox(height: 20),
@@ -744,72 +904,103 @@ class _TreatScreenState extends State<TreatScreen> {
                       ElevatedButton(
                         onPressed: () {
                           if (titleController.text.isNotEmpty) {
-                            // Ajout du traitement avec les informations saisies
-                            List<Medicine> meds = [];
+                            bool allValid = true;
 
-                            for (int i = 0; i < nameControllers.length; i++) {
-                              final name = nameControllers[i].text.trim();
-                              final duration = int.parse(
-                                durationControllers[i].text.trim(),
-                              );
-                              final dose = doseControllers[i].text.trim();
-                              final frequency =
-                                  frequencyControllers[i].text.trim();
+                            // Valider tous les formulaires de médicaments
+                            for (var medicine in medicines) {
+                              final isValid =
+                                  medicine.formKey.currentState?.validate() ??
+                                  false;
+                              if (!isValid) {
+                                allValid = false;
+                              }
+                            }
 
-                              // Vérifie que les champs ne sont pas vides
-                              if (name.isNotEmpty &&
-                                  dose.isNotEmpty &&
-                                  frequency.isNotEmpty) {
-                                meds.add(
-                                  Medicine(
-                                    name: name,
-                                    duration: duration,
-                                    dose: dose,
-                                    frequency: frequency,
+                            if (allValid) {
+                              List<Medicine> meds = [];
+
+                              for (int i = 0; i < nameControllers.length; i++) {
+                                final name = nameControllers[i].text.trim();
+                                final durationText =
+                                    durationControllers[i].text.trim();
+                                final dose = doseControllers[i].text.trim();
+                                final frequencyText =
+                                    frequencyControllers[i].text.trim();
+
+                                final duration = int.tryParse(durationText);
+                                final frequency = int.tryParse(frequencyText);
+
+                                if (name.isNotEmpty &&
+                                    dose.isNotEmpty &&
+                                    duration != null &&
+                                    frequency != null) {
+                                  meds.add(
+                                    Medicine(
+                                      name: name,
+                                      duration: duration,
+                                      count: 0,
+                                      dose: dose,
+                                      frequency: frequency,
+                                      frequencyType: medicines[i].frequencyType,
+                                    ),
+                                  );
+                                }
+                              }
+
+                              if (meds.isNotEmpty) {
+                                Treat newTreatment = Treat(
+                                  authorUid: widget.userData.uid,
+                                  authorName: 'Mr/Mm ${widget.userData.name}',
+                                  code:
+                                      'TREAT-${DateTime.now().millisecondsSinceEpoch}',
+                                  title: titleController.text.trim(),
+                                  medicines: meds,
+                                  count: 0,
+                                  createdAt: DateTime.now(),
+                                );
+
+                                Navigator.pop(context);
+                                setState(() {
+                                  treatments.add(newTreatment);
+                                  titleController.clear();
+                                  medicines.clear();
+                                  nameControllers.clear();
+                                  durationControllers.clear();
+                                  doseControllers.clear();
+                                  frequencyControllers.clear();
+                                });
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      "Traitement ajouté avec succès !",
+                                    ),
+                                    backgroundColor: Colors.green,
                                   ),
                                 );
                               }
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Veuillez remplir tous les champs correctement.",
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              setModalState(() {
+                                isError = false;
+                                error = "";
+                              });
                             }
-                            Treat newTreatment = Treat(
-                              authorUid: widget.userData.uid,
-                              authorName: 'Mr/Mm ${widget.userData.name}',
-                              code:
-                                  'TREAT-${DateTime.now().millisecondsSinceEpoch}',
-                              title: titleController.text.trim(),
-                              medicines: meds,
-                              createdAt: DateTime.now(),
-                            );
-
-                            Navigator.pop(context);
-                            setState(() {
-                              treatments.add(newTreatment);
-                              titleController.clear();
-                              medicines.clear();
-                              nameControllers.clear();
-                              durationControllers.clear();
-                              doseControllers.clear();
-                              frequencyControllers.clear();
-                            });
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  "Traitement ajouté avec succès !",
-                                ),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
                           } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  "Veuillez remplir tous les champs.",
-                                ),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
+                            setModalState(() {
+                              isError = true;
+                              error = "Veuillez remplir tous les champs.";
+                            });
                           }
                         },
+
                         child: Text("Créer le traitement"),
                       ),
                     ],
@@ -944,7 +1135,9 @@ class _TreatScreenState extends State<TreatScreen> {
                       return ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(med.name),
-                        subtitle: Text("${med.dose} - ${med.frequency}"),
+                        subtitle: Text(
+                          "${med.dose} - ${med.formattedFrequency}",
+                        ),
                         trailing:
                             index == 0 && treat.authorUid == widget.userData.uid
                                 ? IconButton(
