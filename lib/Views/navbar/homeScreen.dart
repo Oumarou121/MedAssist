@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Models/appointment.dart';
 import 'package:med_assist/Models/doctor.dart';
+import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
 import 'package:med_assist/Views/components/myMedications.dart';
 import 'package:med_assist/Views/components/myAppointments.dart';
@@ -56,6 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
     Medication(name: "Vitamine C", time: "06:00 PM"),
   ];
 
+  late final ManagersTreats _managersTreats;
+
   @override
   void initState() {
     super.initState();
@@ -81,6 +84,112 @@ class _HomeScreenState extends State<HomeScreen> {
         endTime: DateTime.now(),
       ),
     ];
+
+    _managersTreats = ManagersTreats(
+      uid: 'user_uid',
+      name: widget.userData.name,
+      treats: [
+        // Cas 1 : Médicament quotidien, 3 prises par jour, durée 2 jours
+        Treat(
+          authorUid: 'user1',
+          authorName: 'Dr. Jean',
+          code: 'T001',
+          title: 'Traitement CO2 quotidien',
+          createdAt: DateTime.now(),
+          medicines: [
+            Medicine(
+              name: 'CO2',
+              dose: '1g',
+              frequency: 3,
+              intervale: 3,
+              duration: 7,
+              frequencyType: FrequencyType.daily,
+              createAt: DateTime.now(),
+            ),
+          ],
+        ),
+
+        // Cas 2 : Médicament hebdomadaire, 2 prises par jour, durée 10 jours
+        Treat(
+          authorUid: 'user2',
+          authorName: 'Dr. Alice',
+          code: 'T002',
+          title: 'Vitamine hebdomadaire',
+          createdAt: DateTime(2025, 4, 7, 10, 0),
+          medicines: [
+            Medicine(
+              name: 'Vitamine C',
+              dose: '500mg',
+              frequency: 2,
+              intervale: 8,
+              duration: 10,
+              frequencyType: FrequencyType.weekly,
+              createAt: DateTime(2025, 4, 7, 10, 0),
+            ),
+          ],
+        ),
+
+        // Cas 3 : Médicament bihebdomadaire, 1 prise par jour, durée 30 jours
+        Treat(
+          authorUid: 'user3',
+          authorName: 'Dr. Karim',
+          code: 'T003',
+          title: 'Antibiotique long terme',
+          createdAt: DateTime(2025, 4, 1),
+          medicines: [
+            Medicine(
+              name: 'Antibiotique',
+              dose: '250mg',
+              frequency: 1,
+              intervale: 24,
+              duration: 30,
+              frequencyType: FrequencyType.biweekly,
+              createAt: DateTime(2025, 4, 1, 7, 0),
+            ),
+          ],
+        ),
+
+        // Cas 4 : Médicament mensuel, 1 prise, durée 60 jours
+        Treat(
+          authorUid: 'user4',
+          authorName: 'Dr. Leïla',
+          code: 'T004',
+          title: 'Injection mensuelle B12',
+          createdAt: DateTime(2025, 4, 1),
+          medicines: [
+            Medicine(
+              name: 'Injection B12',
+              dose: '1ml',
+              frequency: 1,
+              intervale: 24,
+              duration: 60,
+              frequencyType: FrequencyType.monthly,
+              createAt: DateTime(2025, 4, 1, 9, 0),
+            ),
+          ],
+        ),
+
+        // Cas 5 : Médicament trimestriel, 1 prise, durée 100 jours
+        Treat(
+          authorUid: 'user5',
+          authorName: 'Dr. Nadir',
+          code: 'T005',
+          title: 'Vaccination préventive',
+          createdAt: DateTime(2025, 3, 20),
+          medicines: [
+            Medicine(
+              name: 'Vaccin',
+              dose: '5ml',
+              frequency: 1,
+              intervale: 24,
+              duration: 100,
+              frequencyType: FrequencyType.quarterly,
+              createAt: DateTime(2025, 3, 20, 14, 0),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   @override
@@ -88,6 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final Size size = MediaQuery.of(context).size;
     final mediaQuery = MediaQuery.of(context);
     final bottomPadding = mediaQuery.viewInsets.bottom;
+    final schedule = _managersTreats.generateSchedule();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -102,7 +212,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(height: size.height * 0.03),
                   _searchBar(),
                   SizedBox(height: size.height * 0.03),
-                  MedicationList(medications: _medication),
+                  // MedicationList(medications: _medication),
+                  _treatmentSchedule(schedule),
                   SizedBox(height: size.height * 0.03),
                   MyAppointmentsList(appointments: _appointments),
                   SizedBox(height: size.height * 0.03),
@@ -202,5 +313,78 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Widget _treatmentSchedule(ManagersSchedule schedule) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children:
+          schedule.schedules.map((scheduleItem) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 5,
+                color: Colors.blue[50],
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Date d'affichage
+                      Text(
+                        'Date: ${_formatDate(scheduleItem.date)}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[800],
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Divider(),
+                      SizedBox(height: 8),
+                      // Médicaments et horaires associés
+                      ...scheduleItem.scheduleItems.map((item) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${item.name} - ${item.dose}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.blue[700],
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            ...item.times.map((time) {
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: Text(
+                                  'À: $time',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.blueGrey,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            SizedBox(height: 10),
+                          ],
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
