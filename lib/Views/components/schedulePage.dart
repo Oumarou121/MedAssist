@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:med_assist/Models/treat.dart';
-import 'package:med_assist/Views/components/DailyScheduleView.dart';
 import 'package:med_assist/Views/components/SchedulesView.dart';
 
 class SchedulePage extends StatefulWidget {

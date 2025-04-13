@@ -1,30 +1,45 @@
+import 'dart:async';
+
+import 'package:alarm/alarm.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:med_assist/Controllers/authentication.dart';
 import 'package:med_assist/Models/user.dart';
+import 'package:med_assist/Views/components/noti_service.dart';
 import 'package:med_assist/Views/splash.dart';
 import 'package:provider/provider.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      tz.initializeTimeZones();
+      await Alarm.init();
+      NotiService().initNotification();
 
-  // Initialisez Firebase
-  // await Firebase.initializeApp();
+      // Initialisez Firebase
+      // await Firebase.initializeApp();
 
-  await Firebase.initializeApp(
-    options: FirebaseOptions(
-      apiKey: "AIzaSyAsWLuoq_8-46L8hFGhzXrJp7qRv9qCffI",
-      authDomain: "med-assist-53cba.firebaseapp.com",
-      projectId: "med-assist-53cba",
-      storageBucket: "med-assist-53cba.firebasestorage.app",
-      messagingSenderId: "441831269862",
-      appId: "1:441831269862:web:2145e79e8b05be0d4e6227",
-      measurementId: "G-X3DPNG80D1",
-    ),
+      await Firebase.initializeApp(
+        options: FirebaseOptions(
+          apiKey: "AIzaSyAsWLuoq_8-46L8hFGhzXrJp7qRv9qCffI",
+          authDomain: "med-assist-53cba.firebaseapp.com",
+          projectId: "med-assist-53cba",
+          storageBucket: "med-assist-53cba.firebasestorage.app",
+          messagingSenderId: "441831269862",
+          appId: "1:441831269862:web:2145e79e8b05be0d4e6227",
+          measurementId: "G-X3DPNG80D1",
+        ),
+      );
+
+      runApp(const MyApp());
+    },
+    (error, stackTrace) {
+      print('Caught error: $error');
+    },
   );
-
-  runApp(const MyApp());
 }
 
 class ItemsNumber with ChangeNotifier {

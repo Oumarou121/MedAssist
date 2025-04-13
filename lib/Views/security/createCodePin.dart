@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Views/Auth/loginScreen.dart';
+import 'package:med_assist/Views/components/noti_service.dart';
 import 'package:med_assist/Views/mainScreen.dart';
 
 class CreateCodePin extends StatefulWidget {
@@ -72,8 +73,12 @@ class _CreateCodePinState extends State<CreateCodePin> {
             });
           } else {
             if (_codePin == v) {
-              final DatabaseService _db = DatabaseService(widget.uid);
-              _db.updataDataOfValue("pinCode", v);
+              final DatabaseService db = DatabaseService(widget.uid);
+              db.updateDataOfValue("pinCode", v);
+
+              //Cancel All Notification && Alarm
+              NotiService().cancelAllAlarm();
+              
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const MainScreen()),

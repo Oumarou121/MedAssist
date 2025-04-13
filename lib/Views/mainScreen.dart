@@ -1,8 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:med_assist/Views/navbar/appointmentScreen.dart';
 import 'package:med_assist/Views/navbar/homeScreen.dart';
-import 'package:med_assist/Views/navbar/medicineScreen.dart';
+import 'package:med_assist/Views/navbar/doctorsScreen.dart';
 import 'package:med_assist/Views/navbar/settingsScreen.dart';
 import 'package:med_assist/Views/navbar/treatScreen.dart';
 import 'package:provider/provider.dart';
@@ -90,9 +89,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
   List<Widget> _buildScreens({required AppUserData userData}) {
     return [
-      HomeScreen(userData: userData),
-      TreatScreen(userData: userData),
-      MedicineScreen(),
+      HomeScreen(),
+      TreatScreen(),
+      DoctorsScreen(),
       AppointmentScreen(),
       SettingsScreen(),
     ];

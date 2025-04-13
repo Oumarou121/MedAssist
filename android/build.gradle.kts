@@ -4,9 +4,10 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.2.0")  // Vérifiez la version compatible
+        classpath("com.android.tools.build:gradle:8.6.0")  // Vérifiez la version compatible
         classpath("com.google.gms:google-services:4.3.10") // Plugin Firebase
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.20") // Version stable recommandée
+        classpath("com.android.tools.build:gradle:")
     }
 }
 

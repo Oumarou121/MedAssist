@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:med_assist/Controllers/database.dart';
+import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
 import 'package:med_assist/Views/Auth/forgotPinCodeScreen.dart';
 import 'package:med_assist/Views/Auth/loginScreen.dart';
@@ -25,13 +26,12 @@ class _CodePinState extends State<CodePin> {
   @override
   void initState() {
     super.initState();
-    _authenticateWithBiometrics();
   }
 
   Future<void> _authenticateWithBiometrics() async {
     try {
       bool isAuthenticated = await _localAuth.authenticate(
-        localizedReason: 'Scan your fingerprint to continue',
+        localizedReason: 'Scan your fingerprint or use Face ID to continue',
         options: const AuthenticationOptions(
           biometricOnly: true,
           stickyAuth: true,
@@ -71,6 +71,15 @@ class _CodePinState extends State<CodePin> {
         if (snapshot.hasData) {
           AppUserData? userData = snapshot.data;
           if (userData == null) return const LoginScreen();
+
+          //Manager Notification && Alarm
+          ManagersTreats managersTreats = ManagersTreats(
+            uid: userData.uid,
+            name: userData.name,
+            treats: userData.treatments,
+          );
+          managersTreats.checkAlarm();
+
           return Scaffold(
             backgroundColor: Colors.white,
             body: _content(userData),

@@ -1,3 +1,5 @@
+import 'package:med_assist/Models/treat.dart';
+
 class AppUser {
   final String uid;
 
@@ -10,6 +12,7 @@ class AppUserData {
   final String password;
   final String phoneNumber;
   final String pinCode;
+  final List<Treat> treatments;
 
   AppUserData({
     required this.uid,
@@ -17,5 +20,6 @@ class AppUserData {
     required this.password,
     required this.phoneNumber,
     required this.pinCode,
+    required this.treatments,
   });
 }
