@@ -239,7 +239,7 @@ class _TreatScreenState extends State<TreatScreen> {
     required ManagersTreats managersTreats,
     bool isTop = false,
   }) {
-    if (treatments.isEmpty) return const SizedBox.shrink();
+    if (treatments.isEmpty && !isTop) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -735,7 +735,7 @@ class _TreatScreenState extends State<TreatScreen> {
                 // Header
                 Row(
                   children: [
-                    Icon(Iconsax.health, color: Color(0xFF3366FF), size: 28),
+                    Icon(Iconsax.health, color: Color(0xFF00C853), size: 28),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Row(
@@ -1177,6 +1177,7 @@ class _TreatScreenState extends State<TreatScreen> {
                     ),
                     style: GoogleFonts.poppins(),
                   ),
+
                   const SizedBox(height: 16),
 
                   // Bouton Rejoindre

@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Models/MedicationSchedule.dart';
-import 'package:med_assist/Models/appointment.dart';
 import 'package:med_assist/Models/doctor.dart';
 import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
@@ -35,7 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
       availableHours: ['09:00', '14:00'],
       bio: 'Spécialiste des maladies cardiovasculaires.',
       languages: ['Français', 'Anglais'],
-      isOnline: true,
       gender: 'Femme',
       licenseNumber: 'CD123456',
       hospital: 'Clinique du Coeur',
@@ -54,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
       availableHours: ['10:00', '16:00'],
       bio: 'Expert en maladies de la peau.',
       languages: ['Français', 'Espagnol'],
-      isOnline: false,
       gender: 'Homme',
       licenseNumber: 'DL654321',
       hospital: 'Hôpital Saint-Louis',
@@ -73,7 +70,6 @@ class _HomeScreenState extends State<HomeScreen> {
       availableHours: ['08:30', '13:30'],
       bio: 'Pédiatre passionnée par le bien-être des enfants.',
       languages: ['Français', 'Anglais'],
-      isOnline: true,
       gender: 'Femme',
       licenseNumber: 'PD456789',
       hospital: 'Centre Médical Enfants Santé',

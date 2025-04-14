@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:med_assist/Models/appointment.dart';
+import 'package:med_assist/Models/doctor.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class MyAppointmentsList extends StatelessWidget {
