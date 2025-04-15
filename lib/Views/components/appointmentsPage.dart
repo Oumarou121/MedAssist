@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:med_assist/Models/doctor.dart';
-import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Views/components/AppointmentsView.dart';
-import 'package:med_assist/Views/components/SchedulesView.dart';
 
 class AppointmentsPage extends StatefulWidget {
   final ManagersDoctors manager;

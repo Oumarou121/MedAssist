@@ -86,7 +86,6 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
 
   @override
   Widget build(BuildContext context) {
-    // double maxHeight = schedules.isEmpty || _allTaken() ? 80 : 300;
     final activeConfirmItems =
         confirmItems.where((item) => item.isActive).toList();
 
@@ -112,35 +111,9 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
                       .toList(),
 
                 schedules.isEmpty
-                    ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Text(
-                          "Aucun médicament prévu pour aujourd'hui.",
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            color: Colors.black54,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    )
+                    ? _buildEmptyState()
                     : _allTaken()
-                    ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Text(
-                          "🎉 Tous les médicaments ont été pris pour aujourd'hui !",
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            color: Colors.green,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    )
+                    ? _buildFinishState()
                     : ListView.builder(
                       itemCount: schedules.length,
                       shrinkWrap: true,
@@ -155,6 +128,68 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      height: 120,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey[50],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.medication_liquid,
+              size: 40,
+              color: Colors.blueGrey[200],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No medication planned for today.',
+              style: GoogleFonts.poppins(
+                color: Colors.blueGrey[300],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFinishState() {
+    return Container(
+      height: 120,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey[50],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.medication_liquid,
+              size: 40,
+              color: Colors.blueGrey[200],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'All medications have been taken for today!',
+              style: GoogleFonts.poppins(
+                color: Colors.blueGrey[300],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

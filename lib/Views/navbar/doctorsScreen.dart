@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:intl/intl.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Models/doctor.dart';
 import 'package:med_assist/Models/user.dart';
@@ -104,6 +103,16 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
         doctor: doctors[1],
         startTime: DateTime.now().add(const Duration(days: 2, hours: 14)),
         endTime: DateTime.now().add(const Duration(days: 2, hours: 15)),
+      ),
+      Appointment(
+        doctor: doctors[2],
+        startTime: DateTime.now().add(const Duration(days: 3, hours: 8)),
+        endTime: DateTime.now().add(const Duration(days: 3, hours: 9)),
+      ),
+      Appointment(
+        doctor: doctors[0],
+        startTime: DateTime.now().add(const Duration(days: 5, hours: 11)),
+        endTime: DateTime.now().add(const Duration(days: 5, hours: 12)),
       ),
       Appointment(
         doctor: doctors[2],
@@ -368,14 +377,20 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
         scrollDirection: Axis.horizontal,
         itemCount: _doctors.length,
         separatorBuilder: (_, __) => const SizedBox(width: 16),
-        itemBuilder: (context, index) => _buildDoctorCard(_doctors[index]),
+        itemBuilder:
+            (context, index) =>
+                _buildDoctorCard(_doctors[index], managersDoctors),
       ),
     );
   }
 
-  Widget _buildDoctorCard(Doctor doctor) {
+  Widget _buildDoctorCard(Doctor doctor, ManagersDoctors managersDoctors) {
     return GestureDetector(
-      onTap: () => _showDoctorInfosModal(doctor: doctor),
+      onTap:
+          () => _showDoctorInfosModal(
+            doctor: doctor,
+            managersDoctors: managersDoctors,
+          ),
       child: Container(
         width: 160,
         decoration: BoxDecoration(
@@ -479,7 +494,10 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     );
   }
 
-  void _showDoctorInfosModal({required Doctor doctor}) {
+  void _showDoctorInfosModal({
+    required Doctor doctor,
+    required ManagersDoctors managersDoctors,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -606,14 +624,32 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                 showDoctorAppointmentModal(
                                   context: context,
                                   doctor: doctor,
+                                  managersDoctors: managersDoctors,
                                   onConfirm: (
-                                    DateTime date,
-                                    TimeOfDay time,
-                                    String reason,
-                                  ) {
+                                    appointmentStart,
+                                    appointmentEnd,
+                                    appointmentReason,
+                                  ) async {
+                                    Navigator.pop(context);
                                     print(
-                                      'Rendez-vous confirmé le $date à $time - Motif: $reason',
+                                      "Start : $appointmentStart, End : $appointmentEnd, Reason : $appointmentReason",
                                     );
+                                    await managersDoctors.sendAppointRequest(
+                                      doctor,
+                                      appointmentStart,
+                                      appointmentEnd,
+                                      appointmentReason,
+                                    );
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Demande envoyée avec succès !",
+                                        ),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                    setState(() {});
                                   },
                                 );
                               },
@@ -832,7 +868,8 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
   }
 
   Widget _buildAppointmentsList({required ManagersDoctors managersDoctors}) {
-    final requests = managersDoctors.requests;
+    final requests = [...managersDoctors.requests]
+      ..sort((a, b) => b.id.compareTo(a.id));
     return Column(
       children:
           requests
@@ -900,8 +937,8 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
               ),
               subtitle: Text(
                 request.requestType == RequestType.doctor
-                    ? 'Demande de consultation'
-                    : 'Rendez-vous programmé',
+                    ? 'Demande de suivie ${request.isFromMe ? "envoyée" : "reçue"}'
+                    : 'Rendez-vous programmé ${request.isFromMe ? "envoyé" : "reçu"}',
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
               ),
             ),
@@ -1013,7 +1050,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                       ),
                     ],
                   ),
-                  if (request.isFromMe &&
+                  if (!request.isFromMe &&
                       request.agreed == RequestStatus.pending) ...[
                     TextButton(
                       onPressed:
@@ -1308,12 +1345,19 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
   void showDoctorAppointmentModal({
     required BuildContext context,
     required Doctor doctor,
-    required Function(DateTime, TimeOfDay, String) onConfirm,
+    required ManagersDoctors managersDoctors,
+    required Function(DateTime, DateTime, String) onConfirm,
   }) {
     DateTime selectedDate = DateTime.now();
-    TimeOfDay selectedTime = const TimeOfDay(hour: 9, minute: 0);
     String appointmentReason = '';
     List<DateTime> availableDates = doctor.getAvailableDates();
+    final parts = doctor.availableHours[0].split(':');
+    TimeOfDay selectedTime = TimeOfDay(
+      hour: int.parse(parts[0]),
+      minute: int.parse(parts[1]),
+    );
+    String error = "";
+    bool isError = false;
 
     showModalBottomSheet(
       context: context,
@@ -1536,6 +1580,8 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(color: Colors.grey.shade300),
                         ),
+                        errorText: isError ? error : null,
+                        errorStyle: GoogleFonts.poppins(color: Colors.red),
                         // style: GoogleFonts.poppins(),
                       ),
                     ),
@@ -1563,20 +1609,133 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                             borderRadius: BorderRadius.circular(15),
                           ),
                         ),
-                        onPressed: () {
-                          final appointmentDateTime = DateTime(
+                        onPressed: () async {
+                          if (appointmentReason.isEmpty) {
+                            setState(() {
+                              error = "Veuillez entrer un motif.";
+                              isError = true;
+                            });
+                            return;
+                          }
+
+                          setState(() {
+                            isError = false;
+                            error = '';
+                          });
+
+                          final appointmentStart = DateTime(
                             selectedDate.year,
                             selectedDate.month,
                             selectedDate.day,
                             selectedTime.hour,
                             selectedTime.minute,
                           );
-                          onConfirm(
-                            appointmentDateTime,
-                            selectedTime,
-                            appointmentReason,
+
+                          final appointmentEnd = appointmentStart.add(
+                            const Duration(hours: 1),
                           );
-                          Navigator.pop(context);
+
+                          final result = await managersDoctors
+                              .checkSendAppointRequest(
+                                doctor,
+                                appointmentStart,
+                                appointmentEnd,
+                              );
+
+                          if (result == "Success") {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext dialogContext) {
+                                return Dialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(24),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      gradient: const LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Color(0xFFF5F7FB),
+                                          Colors.white,
+                                        ],
+                                      ),
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Iconsax.info_circle,
+                                          size: 40,
+                                          color: Color(0xFF00C853),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          "Confirmer la demande de Rendez-vous",
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          "Voulez-vous vraiment envoyer cette demande ?",
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.poppins(),
+                                        ),
+                                        const SizedBox(height: 24),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: TextButton(
+                                                onPressed:
+                                                    () => Navigator.pop(
+                                                      dialogContext,
+                                                    ),
+                                                child: const Text("Annuler"),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: const Color(
+                                                    0xFF00C853,
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.pop(dialogContext);
+                                                  onConfirm(
+                                                    appointmentStart,
+                                                    appointmentEnd,
+                                                    appointmentReason,
+                                                  );
+                                                  Navigator.pop(context);
+                                                },
+                                                child: const Text(
+                                                  "Confirmer",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          } else {
+                            setState(() {
+                              error = result;
+                              isError = true;
+                            });
+                          }
                         },
                       ),
                     ),
@@ -1699,91 +1858,85 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                           });
                           return;
                         }
-                        bool isLoading = false;
+                        String result = await managersDoctors
+                            .checkSendJoinDoctorRequest(code);
 
-                        showDialog(
-                          context: context,
-                          builder:
-                              (context) => Dialog(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Container(
-                                  padding: const EdgeInsets.all(24),
-                                  decoration: BoxDecoration(
+                        if (result == "Success") {
+                          showDialog(
+                            context: context,
+                            builder:
+                                (context) => Dialog(
+                                  shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [Color(0xFFF5F7FB), Colors.white],
-                                    ),
                                   ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Iconsax.info_circle,
-                                        size: 40,
-                                        color: Color(0xFF3366FF),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(24),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Color(0xFFF5F7FB),
+                                          Colors.white,
+                                        ],
                                       ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        "Confirmer l'ajout",
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Iconsax.info_circle,
+                                          size: 40,
+                                          color: Color(0xFF3366FF),
                                         ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        "Ajouter le docteur ID : $code ?",
-                                        textAlign: TextAlign.center,
-                                        style: GoogleFonts.poppins(),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: TextButton(
-                                              child: const Text("Annuler"),
-                                              onPressed:
-                                                  () => Navigator.pop(context),
-                                            ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          "Confirmer l'ajout",
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
                                           ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: const Color(
-                                                  0xFF3366FF,
-                                                ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          "Ajouter le docteur ID : $code ?",
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.poppins(),
+                                        ),
+                                        const SizedBox(height: 24),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: TextButton(
+                                                child: const Text("Annuler"),
+                                                onPressed:
+                                                    () =>
+                                                        Navigator.pop(context),
                                               ),
-                                              child: const Text(
-                                                "Confirmer",
-                                                style: TextStyle(
-                                                  color: Colors.white,
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: const Color(
+                                                    0xFF3366FF,
+                                                  ),
                                                 ),
-                                              ),
-                                              onPressed: () async {
-                                                if (isLoading) return;
-                                                setModalState(
-                                                  () => isLoading = true,
-                                                );
+                                                child: const Text(
+                                                  "Confirmer",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                                onPressed: () async {
+                                                  await managersDoctors
+                                                      .sendJoinDoctorRequest(
+                                                        code,
+                                                      );
 
-                                                String
-                                                result = await managersDoctors
-                                                    .checkSendJoinDoctorRequest(
-                                                      code,
-                                                    );
-
-                                                if (result != "Success") {
                                                   Navigator.pop(context);
-                                                  setModalState(() {
-                                                    error1 = result;
-                                                    isError1 = true;
-                                                    isLoading = false;
-                                                  });
-                                                } else {
+                                                  Navigator.pop(contextParent);
                                                   ScaffoldMessenger.of(
                                                     context,
                                                   ).showSnackBar(
@@ -1795,19 +1948,22 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                                           Colors.green,
                                                     ),
                                                   );
-                                                  Navigator.pop(context);
-                                                  Navigator.pop(contextParent);
-                                                }
-                                              },
+                                                },
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                        );
+                          );
+                        } else {
+                          setModalState(() {
+                            error1 = result;
+                            isError1 = true;
+                          });
+                        }
                       },
                     ),
                   ),
@@ -1841,7 +1997,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
           ),
           child: Padding(
             padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 35,
               top: 24, // Ajouté pour l'espace du handle
             ),
             child: SizedBox(

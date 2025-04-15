@@ -1257,7 +1257,7 @@ class _TreatScreenState extends State<TreatScreen> {
                                       const Icon(
                                         Iconsax.info_circle,
                                         size: 40,
-                                        color: Color(0xFF3366FF),
+                                        color: Color(0xFF00C853),
                                       ),
                                       const SizedBox(height: 16),
                                       Text(
@@ -1288,7 +1288,7 @@ class _TreatScreenState extends State<TreatScreen> {
                                             child: ElevatedButton(
                                               style: ElevatedButton.styleFrom(
                                                 backgroundColor: const Color(
-                                                  0xFF3366FF,
+                                                  0xFF00C853,
                                                 ),
                                               ),
                                               child: const Text(
@@ -1430,7 +1430,7 @@ class _TreatScreenState extends State<TreatScreen> {
                                       const Icon(
                                         Iconsax.info_circle,
                                         size: 40,
-                                        color: Color(0xFF3366FF),
+                                        color: Color(0xFF00C853),
                                       ),
                                       const SizedBox(height: 16),
                                       Text(
@@ -1461,7 +1461,7 @@ class _TreatScreenState extends State<TreatScreen> {
                                             child: ElevatedButton(
                                               style: ElevatedButton.styleFrom(
                                                 backgroundColor: const Color(
-                                                  0xFF3366FF,
+                                                  0xFF00C853,
                                                 ),
                                               ),
                                               child: const Text(

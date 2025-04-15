@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:med_assist/Views/navbar/appointmentScreen.dart';
 import 'package:med_assist/Views/navbar/homeScreen.dart';
 import 'package:med_assist/Views/navbar/doctorsScreen.dart';
+import 'package:med_assist/Views/navbar/medicalRecordsSreen.dart';
 import 'package:med_assist/Views/navbar/settingsScreen.dart';
 import 'package:med_assist/Views/navbar/treatScreen.dart';
 import 'package:provider/provider.dart';
@@ -89,10 +89,10 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
   List<Widget> _buildScreens({required AppUserData userData}) {
     return [
-      HomeScreen(),
+      HomeScreen(persistentTabController: _controller),
       TreatScreen(),
       DoctorsScreen(),
-      AppointmentScreen(),
+      MedicalRecordsScreen(),
       SettingsScreen(),
     ];
   }
@@ -157,7 +157,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         inactiveColorPrimary: Colors.grey,
       ),
       PersistentBottomNavBarItem(
-        inactiveIcon: Icon(Iconsax.calendar),
+        inactiveIcon: Icon(Iconsax.document),
         icon: AnimatedBuilder(
           animation: _animationController,
           builder: (context, child) {
@@ -170,7 +170,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           },
         ),
         iconAnimationController: _animationController,
-        title: "Appointment",
+        title: "Medical Records",
         activeColorPrimary: Colors.green,
         activeColorSecondary: Colors.white,
         inactiveColorPrimary: Colors.grey,

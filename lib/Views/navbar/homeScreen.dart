@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:local_auth/error_codes.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Models/MedicationSchedule.dart';
 import 'package:med_assist/Models/doctor.dart';
@@ -9,10 +10,16 @@ import 'package:med_assist/Models/user.dart';
 import 'package:med_assist/Views/Auth/loginScreen.dart';
 import 'package:med_assist/Views/components/myAppointments.dart';
 import 'package:med_assist/Views/components/myDoctors.dart';
+import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final PersistentTabController persistentTabController;
+
+  const HomeScreen({
+    super.key,
+    required PersistentTabController this.persistentTabController,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -22,7 +29,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Doctor> doctors = [
     Doctor(
       id: 'doc1',
-      imageUrl: 'https://i.pravatar.cc/150?img=3',
+      imageUrl:
+          "https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvMzQwLXBhaTI1MzAuanBn.jpg",
       name: 'Dr. Sophie Durand',
       specialty: 'Cardiologue',
       experience: '10 ans',
@@ -40,7 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
     Doctor(
       id: 'doc2',
-      imageUrl: 'https://i.pravatar.cc/150?img=5',
+      imageUrl:
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSuuglfNWvcq31xl6m59EILUlrc8vmav-d3UQ&s",
       name: 'Dr. Marc Lefevre',
       specialty: 'Dermatologue',
       experience: '7 ans',
@@ -58,7 +67,8 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
     Doctor(
       id: 'doc3',
-      imageUrl: 'https://i.pravatar.cc/150?img=8',
+      imageUrl:
+          "https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvMzQwLXBhaTI1MzAuanBn.jpg",
       name: 'Dr. Amélie Martin',
       specialty: 'Pédiatre',
       experience: '12 ans',
@@ -149,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Scaffold(
               body: Padding(
-                padding: EdgeInsets.only(bottom: bottomPadding + 60),
+                padding: EdgeInsets.only(bottom: bottomPadding + 40),
                 child: SafeArea(
                   child: SingleChildScrollView(
                     child: Column(
@@ -162,7 +172,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(height: size.height * 0.03),
                         MyAppointmentsList(appointments: appointments),
                         SizedBox(height: size.height * 0.03),
-                        MyDoctorsList(doctors: doctors),
+                        MyDoctorsList(
+                          doctors: doctors,
+                          persistentTabController:
+                              widget.persistentTabController,
+                        ),
                       ],
                     ),
                   ),

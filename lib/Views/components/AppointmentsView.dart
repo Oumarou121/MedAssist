@@ -10,7 +10,9 @@ class AppointmentsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final allAppointments = appointments.toList();
+    final allAppointments =
+        appointments.toList()
+          ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
     if (allAppointments.isEmpty) {
       return Center(
@@ -48,7 +50,8 @@ class DailyAppointmentsView extends StatelessWidget {
                   a.startTime.month == now.month &&
                   a.startTime.day == now.day,
             )
-            .toList();
+            .toList()
+          ..sort((a, b) => a.startTime.compareTo(b.startTime));
 
     if (todayAppointments.isEmpty) {
       return Center(
@@ -128,33 +131,3 @@ Widget _buildAppointmentItem({required Appointment appointment}) {
     ),
   );
 }
-
-// String _formatDate(DateTime date) {
-//   final days = [
-//     'Lundi',
-//     'Mardi',
-//     'Mercredi',
-//     'Jeudi',
-//     'Vendredi',
-//     'Samedi',
-//     'Dimanche',
-//   ];
-//   final months = [
-//     'Janvier',
-//     'Février',
-//     'Mars',
-//     'Avril',
-//     'Mai',
-//     'Juin',
-//     'Juillet',
-//     'Août',
-//     'Septembre',
-//     'Octobre',
-//     'Novembre',
-//     'Décembre',
-//   ];
-
-//   final dayName = days[date.weekday - 1];
-//   final monthName = months[date.month - 1];
-//   return '$dayName ${date.day} $monthName ${date.year}';
-// }
