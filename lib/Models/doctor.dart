@@ -15,7 +15,7 @@ class ManagersDoctors {
     required this.appointments,
   });
 
-  Future<String> sendJoinDoctorRequest(String doctorID) async {
+  Future<String> checkSendJoinDoctorRequest(String doctorID) async {
     //Recuperation de la liste des doctors sur Firebase
     List<Doctor> docs = [];
 
@@ -27,7 +27,7 @@ class ManagersDoctors {
 
     bool alreadyRequest = requests.any(
       (req) =>
-          req.doctorID == doctorID &&
+          req.doctor!.id == doctorID &&
           req.requestType == RequestType.doctor &&
           req.agreed == RequestStatus.pending,
     );
@@ -35,9 +35,45 @@ class ManagersDoctors {
       return "You already send a request please wait until the doctor give a answer";
     }
 
+    return "Success";
+  }
+
+  // Future<void> sendJoinDoctorRequest(String doctorID) {
+  //   Doctor doctor = docs.firstWhere((doc) => doc.id == doctorID);
+  //   Request request = Request(
+  //     id: requests.length,
+  //     requestType: RequestType.doctor,
+  //     doctor: doctor,
+  //     isFromMe: true,
+  //     agreed: RequestStatus.pending,
+  //   );
+  //   requests.add(request);
+  //   //Firebase
+  // }
+
+  Future<String> sendAppointRequest(
+    Doctor doctor,
+    DateTime startTime,
+    DateTime endTime,
+  ) async {
+    bool alreadyRequest = requests.any(
+      (req) =>
+          req.appointment!.doctor.id == doctor.id &&
+          req.requestType == RequestType.appointment &&
+          req.agreed == RequestStatus.pending,
+    );
+    if (alreadyRequest) {
+      return "You already send a request please wait until the doctor give a answer";
+    }
+
     Request request = Request(
+      id: requests.length,
       requestType: RequestType.doctor,
-      doctorID: doctorID,
+      appointment: Appointment(
+        doctor: doctor,
+        startTime: startTime,
+        endTime: endTime,
+      ),
       isFromMe: true,
       agreed: RequestStatus.pending,
     );
@@ -46,11 +82,36 @@ class ManagersDoctors {
     return "Success";
   }
 
-  void sendAppointRequest(
-    Doctor doctor,
-    DateTime startTime,
-    DateTime endTime,
-  ) {}
+  Future<void> removeRequest(Request request) async {
+    requests.remove(request);
+    print(requests.length);
+    //Firebase
+  }
+
+  Future<void> updateRequestStatus(
+    Request request,
+    RequestStatus newStatus,
+  ) async {
+    if (newStatus == RequestStatus.agreed) {
+      if (request.requestType == RequestType.doctor) {
+        final doctor = request.doctor;
+        if (doctor != null) {
+          doctors.add(doctor);
+        }
+      } else {
+        final appointment = request.appointment;
+        if (appointment != null) {
+          appointments.add(appointment);
+        }
+      }
+
+      await removeRequest(request);
+    } else {
+      request.updateStatus(newStatus);
+    }
+
+    //Firebase
+  }
 }
 
 class Doctor {
@@ -148,21 +209,34 @@ class Appointment {
 }
 
 class Request {
+  final int id;
   final RequestType requestType;
-  final String? doctorID;
-  final DateTime? startTime;
-  final DateTime? endTime;
-  final RequestStatus agreed;
+  final Doctor? doctor;
+  final Appointment? appointment;
+  RequestStatus agreed;
   final bool isFromMe;
 
   Request({
+    required this.id,
     required this.requestType,
-    this.doctorID,
-    this.startTime,
-    this.endTime,
+    this.doctor,
+    this.appointment,
     required this.isFromMe,
     required this.agreed,
   });
+
+  Doctor? getDoctor() {
+    if (doctor != null && doctor!.name.isNotEmpty) {
+      return doctor;
+    } else if (appointment != null) {
+      return appointment!.doctor;
+    }
+    return null;
+  }
+
+  void updateStatus(RequestStatus status) {
+    agreed = status;
+  }
 }
 
 enum RequestType { doctor, appointment }
