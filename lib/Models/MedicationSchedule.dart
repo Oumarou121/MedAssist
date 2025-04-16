@@ -92,124 +92,152 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Daily Medicine",
-          style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: 300,
-            maxWidth: MediaQuery.of(context).size.width,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                if (activeConfirmItems.isNotEmpty)
-                  ...activeConfirmItems
-                      .map((item) => _buildConfirmRow(item))
-                      .toList(),
-
-                schedules.isEmpty
-                    ? _buildEmptyState()
-                    : _allTaken()
-                    ? _buildFinishState()
-                    : ListView.builder(
-                      itemCount: schedules.length,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(12),
-                      itemBuilder: (context, index) {
-                        return _buildMedicationCard(schedules[index]);
-                      },
-                    ),
-              ],
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            "Planning Médical",
+            style: GoogleFonts.poppins(
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              color: Colors.blueGrey[800],
             ),
           ),
         ),
+        const SizedBox(height: 16),
+        if (activeConfirmItems.isNotEmpty)
+          ...activeConfirmItems.map((item) => _buildConfirmCard(item)).toList(),
+
+        if (schedules.isEmpty)
+          _buildEmptyState()
+        else if (_allTaken())
+          _buildFinishState()
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: schedules.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder:
+                (context, index) => _buildMedicationCard(schedules[index]),
+          ),
       ],
     );
   }
 
   Widget _buildEmptyState() {
     return Container(
-      height: 120,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.blueGrey[50],
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.medication_liquid,
-              size: 40,
-              color: Colors.blueGrey[200],
+      child: Column(
+        children: [
+          Icon(Icons.health_and_safety, size: 48, color: Colors.blueGrey[300]),
+          const SizedBox(height: 12),
+          Text(
+            'Aucun traitement prévu aujourd\'hui',
+            style: GoogleFonts.poppins(
+              color: Colors.blueGrey[400],
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(height: 8),
-            Text(
-              'No medication planned for today.',
-              style: GoogleFonts.poppins(
-                color: Colors.blueGrey[300],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildFinishState() {
     return Container(
-      height: 120,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.blueGrey[50],
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: [Colors.green[50]!, Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.medication_liquid,
-              size: 40,
-              color: Colors.blueGrey[200],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'All medications have been taken for today!',
+      child: Row(
+        children: [
+          Icon(Icons.check_circle, size: 40, color: Colors.green[600]),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              'Toutes les prises sont effectuées !',
               style: GoogleFonts.poppins(
-                color: Colors.blueGrey[300],
+                color: Colors.green[800],
                 fontWeight: FontWeight.w500,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildConfirmRow(ConfirmItem item) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
+  Widget _buildConfirmCard(ConfirmItem item) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.orange[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.orange[100]!),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: Text(
-              'Confirmer la ${item.medicine.count + 1}ᵉ prise de ${item.medicine.dose} de ${item.medicine.name} ?',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Prise à confirmer',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.orange[800],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${item.medicine.name} • ${item.medicine.dose}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  'Prise n°${item.medicine.count + 1}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.blueGrey[400],
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 8),
-          ElevatedButton.icon(
+          const SizedBox(width: 12),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.check, size: 18),
+            label: const Text('Confirmer'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.green[800],
+              side: BorderSide(color: Colors.green[800]!),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
             onPressed: () {
               setState(() {
                 item.medicine.updateMedicine(
@@ -220,20 +248,6 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
                 _updateSchedules();
               });
             },
-            icon: const Icon(Icons.check_circle, size: 16),
-            label: const Text("Confirmer"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              textStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
           ),
         ],
       ),
@@ -241,60 +255,68 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
   }
 
   Widget _buildMedicationCard(MedicationSchedule schedule) {
-    return Card(
-      color: Colors.green.shade400,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          // colors: [Colors.blue[50]!, Colors.white],
+          colors: [
+            Color(0xFF00C853).withOpacity(0.4),
+            Color(0xFFB2FF59).withOpacity(0.4),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Titre + statut
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.medication_liquid,
-                      color: Colors.white54,
-                      size: 32,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      '${schedule.medicine.name} (${schedule.medicine.dose})',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: _statusColor(schedule.status),
-                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white,
+                    shape: BoxShape.circle,
                   ),
-                  child: Text(
-                    schedule.status,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Icon(Icons.medication, color: Colors.green[800]),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        schedule.medicine.name,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        schedule.medicine.dose,
+                        style: GoogleFonts.poppins(
+                          color: Colors.blueGrey[400],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                _buildStatusIndicator(schedule.status),
               ],
             ),
-            const SizedBox(height: 12),
-
-            // Heures de prise
+            const SizedBox(height: 16),
             ValueListenableBuilder<DateTime>(
               valueListenable: _timeNotifier,
               builder: (context, currentDateTime, _) {
@@ -303,25 +325,47 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
                   runSpacing: 8,
                   children:
                       schedule.times.map((medTime) {
-                        return Chip(
-                          avatar: Icon(
-                            medTime.isTaken
-                                ? Icons.check_circle
-                                : Icons.access_time,
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
                             color:
-                                medTime.isTaken ? Colors.green : Colors.orange,
-                            size: 18,
+                                medTime.isTaken
+                                    ? Colors.green[50]
+                                    : Colors.orange[50],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color:
+                                  medTime.isTaken
+                                      ? Colors.green[100]!
+                                      : Colors.orange[100]!,
+                            ),
                           ),
-                          label: Text(
-                            formatTime(medTime.time),
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                          backgroundColor:
-                              medTime.isTaken
-                                  ? Colors.green.shade50
-                                  : Colors.orange.shade50,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                medTime.isTaken
+                                    ? Icons.check_circle
+                                    : Icons.access_time,
+                                color:
+                                    medTime.isTaken
+                                        ? Colors.green[600]
+                                        : Colors.orange[600],
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                formatTime(medTime.time),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.blueGrey[700],
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       }).toList(),
@@ -330,6 +374,36 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatusIndicator(String status) {
+    final color = _statusColor(status);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            status.toUpperCase(),
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
