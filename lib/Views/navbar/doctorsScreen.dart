@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Controllers/database.dart';
+import 'package:med_assist/Controllers/databaseDoctors.dart';
 import 'package:med_assist/Models/doctor.dart';
+import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
 import 'package:med_assist/Views/Auth/loginScreen.dart';
 import 'package:med_assist/Views/components/appointmentsPage.dart';
@@ -27,193 +29,6 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     'Dim',
   ];
 
-  List<Doctor> doctors = [
-    Doctor(
-      id: 'doc1',
-      imageUrl:
-          "https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvMzQwLXBhaTI1MzAuanBn.jpg",
-      name: 'Dr. Sophie Durand',
-      specialty: 'Cardiologue',
-      experience: '10 ans',
-      phoneNumber: '0600000001',
-      email: 'sophie.durand@mail.com',
-      address: 'Clinique du Coeur, Paris',
-      rating: 4.8,
-      availableDays: ['Lundi', 'Mercredi', 'Vendredi'],
-      availableHours: ['09:00', '14:00'],
-      bio: 'Spécialiste des maladies cardiovasculaires.',
-      languages: ['Français', 'Anglais'],
-      gender: 'Femme',
-      licenseNumber: 'CD123456',
-      hospital: 'Clinique du Coeur',
-    ),
-    Doctor(
-      id: 'doc2',
-      imageUrl:
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSuuglfNWvcq31xl6m59EILUlrc8vmav-d3UQ&s",
-      name: 'Dr. Marc Lefevre',
-      specialty: 'Dermatologue',
-      experience: '7 ans',
-      phoneNumber: '0600000002',
-      email: 'marc.lefevre@mail.com',
-      address: 'Hôpital Saint-Louis, Paris',
-      rating: 4.6,
-      availableDays: ['Mardi', 'Jeudi'],
-      availableHours: ['10:00', '16:00'],
-      bio: 'Expert en maladies de la peau.',
-      languages: ['Français', 'Espagnol'],
-      gender: 'Homme',
-      licenseNumber: 'DL654321',
-      hospital: 'Hôpital Saint-Louis',
-    ),
-    Doctor(
-      id: 'doc3',
-      imageUrl:
-          "https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvMzQwLXBhaTI1MzAuanBn.jpg",
-      name: 'Dr. Amélie Martin',
-      specialty: 'Pédiatre',
-      experience: '12 ans',
-      phoneNumber: '0600000003',
-      email: 'amelie.martin@mail.com',
-      address: 'Centre Médical Enfants Santé, Lyon',
-      rating: 4.9,
-      availableDays: ['Lundi', 'Mardi', 'Jeudi'],
-      availableHours: ['08:30', '13:30'],
-      bio: 'Pédiatre passionnée par le bien-être des enfants.',
-      languages: ['Français', 'Anglais'],
-      gender: 'Femme',
-      licenseNumber: 'PD456789',
-      hospital: 'Centre Médical Enfants Santé',
-    ),
-  ];
-
-  late List<Appointment> appointments;
-  late List<Request> requests;
-
-  @override
-  void initState() {
-    super.initState();
-    appointments = [
-      Appointment(
-        doctor: doctors[0],
-        startTime: DateTime.now().add(const Duration(hours: 9)),
-        endTime: DateTime.now().add(const Duration(hours: 10)),
-      ),
-      Appointment(
-        doctor: doctors[1],
-        startTime: DateTime.now().add(const Duration(days: 2, hours: 14)),
-        endTime: DateTime.now().add(const Duration(days: 2, hours: 15)),
-      ),
-      Appointment(
-        doctor: doctors[2],
-        startTime: DateTime.now().add(const Duration(days: 3, hours: 8)),
-        endTime: DateTime.now().add(const Duration(days: 3, hours: 9)),
-      ),
-      Appointment(
-        doctor: doctors[0],
-        startTime: DateTime.now().add(const Duration(days: 5, hours: 11)),
-        endTime: DateTime.now().add(const Duration(days: 5, hours: 12)),
-      ),
-      Appointment(
-        doctor: doctors[2],
-        startTime: DateTime.now().add(const Duration(days: 3, hours: 8)),
-        endTime: DateTime.now().add(const Duration(days: 3, hours: 9)),
-      ),
-      Appointment(
-        doctor: doctors[0],
-        startTime: DateTime.now().add(const Duration(days: 5, hours: 11)),
-        endTime: DateTime.now().add(const Duration(days: 5, hours: 12)),
-      ),
-    ];
-
-    requests = [
-      Request(
-        id: 0,
-        requestType: RequestType.doctor,
-        isFromMe: true,
-        agreed: RequestStatus.pending,
-        doctor: doctors[0],
-      ),
-      Request(
-        id: 1,
-        requestType: RequestType.doctor,
-        isFromMe: true,
-        agreed: RequestStatus.disagreed,
-        doctor: doctors[1],
-      ),
-      Request(
-        id: 2,
-        requestType: RequestType.doctor,
-        isFromMe: true,
-        agreed: RequestStatus.agreed,
-        doctor: doctors[2],
-      ),
-      Request(
-        id: 3,
-        requestType: RequestType.appointment,
-        isFromMe: true,
-        agreed: RequestStatus.pending,
-        appointment: appointments[0],
-      ),
-      Request(
-        id: 4,
-        requestType: RequestType.appointment,
-        isFromMe: true,
-        agreed: RequestStatus.disagreed,
-        appointment: appointments[1],
-      ),
-      Request(
-        id: 5,
-        requestType: RequestType.appointment,
-        isFromMe: true,
-        agreed: RequestStatus.agreed,
-        appointment: appointments[2],
-      ),
-      Request(
-        id: 6,
-        requestType: RequestType.doctor,
-        isFromMe: false,
-        agreed: RequestStatus.pending,
-        doctor: doctors[0],
-      ),
-      Request(
-        id: 7,
-        requestType: RequestType.doctor,
-        isFromMe: false,
-        agreed: RequestStatus.disagreed,
-        doctor: doctors[1],
-      ),
-      Request(
-        id: 8,
-        requestType: RequestType.doctor,
-        isFromMe: false,
-        agreed: RequestStatus.agreed,
-        doctor: doctors[2],
-      ),
-      Request(
-        id: 9,
-        requestType: RequestType.appointment,
-        isFromMe: false,
-        agreed: RequestStatus.pending,
-        appointment: appointments[0],
-      ),
-      Request(
-        id: 10,
-        requestType: RequestType.appointment,
-        isFromMe: false,
-        agreed: RequestStatus.disagreed,
-        appointment: appointments[1],
-      ),
-      Request(
-        id: 11,
-        requestType: RequestType.appointment,
-        isFromMe: false,
-        agreed: RequestStatus.agreed,
-        appointment: appointments[2],
-      ),
-    ];
-  }
-
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -237,9 +52,14 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
           ManagersDoctors managersDoctors = ManagersDoctors(
             uid: userData.uid,
             name: userData.name,
-            doctors: doctors,
-            appointments: appointments,
-            requests: requests,
+            doctors: userData.doctors,
+            appointments: userData.appointments,
+            requests: userData.requests,
+          );
+          ManagersTreats managersTreats = ManagersTreats(
+            uid: userData.uid,
+            name: userData.name,
+            treats: userData.treatments,
           );
           return Padding(
             padding: EdgeInsets.only(bottom: bottomPadding + 60),
@@ -293,8 +113,9 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                             context,
                             managersDoctors,
                           ),
-                          _buildAppointmentsList(
+                          _buildQueriesList(
                             managersDoctors: managersDoctors,
+                            managersTreats: managersTreats,
                           ),
                         ],
                       ),
@@ -369,18 +190,90 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     );
   }
 
-  Widget _buildDoctorsList({required ManagersDoctors managersDoctors}) {
-    final _doctors = managersDoctors.doctors;
-    return SizedBox(
-      height: 200,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: _doctors.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
-        itemBuilder:
-            (context, index) =>
-                _buildDoctorCard(_doctors[index], managersDoctors),
+  Widget _buildEmptyStateDoctors() {
+    return Container(
+      height: 120,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey[50],
+        borderRadius: BorderRadius.circular(16),
       ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Iconsax.user_cirlce_add,
+              size: 40,
+              color: Colors.blueGrey[200],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No doctor is following you.',
+              style: GoogleFonts.poppins(
+                color: Colors.blueGrey[300],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateQueries() {
+    return Container(
+      height: 120,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey[50],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Iconsax.archive, size: 40, color: Colors.blueGrey[200]),
+            const SizedBox(height: 8),
+            Text(
+              'No Queries.',
+              style: GoogleFonts.poppins(
+                color: Colors.blueGrey[300],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDoctorsList({required ManagersDoctors managersDoctors}) {
+    return FutureBuilder<List<Doctor>>(
+      future: managersDoctors.getDoctors(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Erreur: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return _buildEmptyStateDoctors();
+        }
+
+        final doctors = snapshot.data!;
+
+        return SizedBox(
+          height: 200,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: doctors.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemBuilder:
+                (context, index) =>
+                    _buildDoctorCard(doctors[index], managersDoctors),
+          ),
+        );
+      },
     );
   }
 
@@ -617,55 +510,53 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                               ),
                             ],
                           ),
-                          if (doctor.isAvailable()) const SizedBox(height: 10),
-                          if (doctor.isAvailable())
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                showDoctorAppointmentModal(
-                                  context: context,
-                                  doctor: doctor,
-                                  managersDoctors: managersDoctors,
-                                  onConfirm: (
-                                    appointmentStart,
-                                    appointmentEnd,
-                                    appointmentReason,
-                                  ) async {
-                                    Navigator.pop(context);
-                                    print(
-                                      "Start : $appointmentStart, End : $appointmentEnd, Reason : $appointmentReason",
-                                    );
-                                    await managersDoctors.sendAppointRequest(
-                                      doctor,
-                                      appointmentStart,
-                                      appointmentEnd,
-                                      appointmentReason,
-                                    );
 
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "Demande envoyée avec succès !",
-                                        ),
-                                        backgroundColor: Colors.green,
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              showDoctorAppointmentModal(
+                                context: context,
+                                doctor: doctor,
+                                managersDoctors: managersDoctors,
+                                onConfirm: (
+                                  appointmentStart,
+                                  appointmentEnd,
+                                  appointmentReason,
+                                ) async {
+                                  Navigator.pop(context);
+                                  print(
+                                    "Start : $appointmentStart, End : $appointmentEnd, Reason : $appointmentReason",
+                                  );
+                                  await managersDoctors.sendAppointRequest(
+                                    doctor.id,
+                                    appointmentStart,
+                                    appointmentReason,
+                                  );
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Demande envoyée avec succès !",
                                       ),
-                                    );
-                                    setState(() {});
-                                  },
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              icon: const Icon(Iconsax.calendar_add, size: 16),
-                              label: Text(
-                                "Reservation Now",
-                                style: GoogleFonts.poppins(fontSize: 12),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                  setState(() {});
+                                },
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
+                            icon: const Icon(Iconsax.calendar_add, size: 16),
+                            label: Text(
+                              "Reservation Now",
+                              style: GoogleFonts.poppins(fontSize: 12),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -867,17 +758,38 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     );
   }
 
-  Widget _buildAppointmentsList({required ManagersDoctors managersDoctors}) {
-    final requests = [...managersDoctors.requests]
-      ..sort((a, b) => b.id.compareTo(a.id));
-    return Column(
-      children:
-          requests
-              .map(
-                (request) =>
-                    _buildRequestCard(context, request, managersDoctors),
-              )
-              .toList(),
+  Widget _buildQueriesList({
+    required ManagersDoctors managersDoctors,
+    required ManagersTreats managersTreats,
+  }) {
+    return FutureBuilder<List<Request>>(
+      future: managersDoctors.getRequests(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Erreur: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return _buildEmptyStateQueries();
+        }
+
+        final requests = [...snapshot.data!]
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+        return Column(
+          children:
+              requests
+                  .map(
+                    (request) => _buildRequestCard(
+                      context,
+                      request,
+                      managersDoctors,
+                      managersTreats,
+                    ),
+                  )
+                  .toList(),
+        );
+      },
     );
   }
 
@@ -885,266 +797,293 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     BuildContext context,
     Request request,
     ManagersDoctors managersDoctors,
+    ManagersTreats managersTreats,
   ) {
-    final doctor = request.getDoctor();
-    if (doctor == null) return const SizedBox.shrink();
-
     // Couleur et texte du statut
     final statusColor =
         {
           RequestStatus.agreed: Colors.green,
           RequestStatus.pending: Colors.orange,
           RequestStatus.disagreed: Colors.red,
-        }[request.agreed]!;
+        }[request.status]!;
 
     final statusText =
         {
-          RequestStatus.agreed: 'Confirmé',
+          RequestStatus.agreed: 'Accepté',
           RequestStatus.pending: 'En attente',
           RequestStatus.disagreed: 'Refusé',
-        }[request.agreed]!;
+        }[request.status]!;
 
-    return GestureDetector(
-      onTap: () => _showDetailsModal(context, request),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            // En-tête
-            ListTile(
-              contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              leading: CircleAvatar(
-                radius: 28,
-                backgroundImage: NetworkImage(doctor.imageUrl),
-              ),
-              title: Text(
-                doctor.name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 18,
+    return FutureBuilder<Doctor?>(
+      future: DoctorService().getDoctorById(request.doctorUid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Text('Erreur : ${snapshot.error}');
+        } else if (!snapshot.hasData || snapshot.data == null) {
+          return const Text('Médecin non trouvé');
+        }
+
+        final doctor = snapshot.data!;
+
+        return GestureDetector(
+          onTap: () => _showDetailsModal(context, request),
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
                 ),
-              ),
-              subtitle: Text(
-                request.requestType == RequestType.doctor
-                    ? 'Demande de suivie ${request.isFromMe ? "envoyée" : "reçue"}'
-                    : 'Rendez-vous programmé ${request.isFromMe ? "envoyé" : "reçu"}',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-              ),
+              ],
             ),
+            child: Column(
+              children: [
+                // En-tête
+                ListTile(
+                  contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  leading: CircleAvatar(
+                    radius: 28,
+                    backgroundImage: NetworkImage(doctor.imageUrl),
+                  ),
+                  title: Text(
+                    doctor.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18,
+                    ),
+                  ),
+                  subtitle: Text(
+                    request.requestType == RequestType.doctor
+                        ? 'Demande de suivie ${request.senderType == SenderType.patient ? "envoyée" : "reçue"}'
+                        : request.requestType == RequestType.appointment
+                        ? 'Demande de rendez-vous programmé ${request.senderType == SenderType.patient ? "envoyé" : "reçu"}'
+                        : 'Traitement : ${request.treatCode} reçu',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                  ),
+                ),
 
-            // Détails
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (request.appointment != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
+                // Détails
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (request.requestType == RequestType.appointment)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today,
+                                size: 20,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${Appointment.formattedDateStatic(request.startTime!)} • '
+                                '${Appointment.formattedTimeStatic(request.startTime!)}',
+                                style: TextStyle(
+                                  color: Colors.grey.shade700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.local_hospital,
+                              size: 20,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              doctor.hospital,
+                              style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.medical_services,
+                              size: 20,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              doctor.specialty,
+                              style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Pied de carte
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.05),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(15),
+                      bottomRight: Radius.circular(15),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
                         children: [
-                          const Icon(
-                            Icons.calendar_today,
+                          Icon(
+                            {
+                              RequestStatus.agreed: Icons.check_circle,
+                              RequestStatus.pending: Icons.access_time,
+                              RequestStatus.disagreed: Icons.cancel,
+                            }[request.status],
+                            color: statusColor,
                             size: 20,
-                            color: Colors.grey,
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '${request.appointment!.formattedDate} • '
-                            '${request.appointment!.formattedTime}',
+                            statusText,
                             style: TextStyle(
-                              color: Colors.grey.shade700,
+                              color: statusColor,
+                              fontWeight: FontWeight.w500,
                               fontSize: 14,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.local_hospital,
-                          size: 20,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          doctor.hospital,
-                          style: TextStyle(
-                            color: Colors.grey.shade700,
-                            fontSize: 14,
+                      if (request.senderType == SenderType.doctor &&
+                          request.status == RequestStatus.pending) ...[
+                        TextButton(
+                          onPressed:
+                              () => _showStatusDialog(
+                                context,
+                                request,
+                                managersDoctors,
+                                managersTreats,
+                              ),
+                          child: const Text(
+                            'Confirmation',
+                            style: TextStyle(color: Colors.blue),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.medical_services,
-                          size: 20,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          doctor.specialty,
-                          style: TextStyle(
-                            color: Colors.grey.shade700,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Pied de carte
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.05),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(15),
-                  bottomRight: Radius.circular(15),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        {
-                          RequestStatus.agreed: Icons.check_circle,
-                          RequestStatus.pending: Icons.access_time,
-                          RequestStatus.disagreed: Icons.cancel,
-                        }[request.agreed],
-                        color: statusColor,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        statusText,
-                        style: TextStyle(
-                          color: statusColor,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (!request.isFromMe &&
-                      request.agreed == RequestStatus.pending) ...[
-                    TextButton(
-                      onPressed:
-                          () => _showStatusDialog(
-                            context,
-                            request,
-                            managersDoctors,
-                          ),
-                      child: const Text('Modifier'),
-                    ),
-                  ] else if (request.agreed != RequestStatus.pending) ...[
-                    TextButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder:
-                              (context) => Dialog(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Container(
-                                  padding: const EdgeInsets.all(24),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [Color(0xFFF5F7FB), Colors.white],
+                      ] else if (request.status != RequestStatus.pending) ...[
+                        TextButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder:
+                                  (context) => Dialog(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Iconsax.info_circle,
-                                        size: 40,
-                                        color: Colors.red,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(24),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Color(0xFFF5F7FB),
+                                            Colors.white,
+                                          ],
+                                        ),
                                       ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        "Do you want to delete this query ?",
-                                      ),
-
-                                      const SizedBox(height: 24),
-                                      Row(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Expanded(
-                                            child: TextButton(
-                                              child: const Text("Annuler"),
-                                              onPressed:
-                                                  () => Navigator.pop(context),
-                                            ),
+                                          const Icon(
+                                            Iconsax.info_circle,
+                                            size: 40,
+                                            color: Colors.red,
                                           ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.red,
-                                              ),
-                                              child: const Text(
-                                                "Confirmer",
-                                                style: TextStyle(
-                                                  color: Colors.white,
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            "Do you want to delete this query ?",
+                                          ),
+
+                                          const SizedBox(height: 24),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: TextButton(
+                                                  child: const Text("Annuler"),
+                                                  onPressed:
+                                                      () => Navigator.pop(
+                                                        context,
+                                                      ),
                                                 ),
                                               ),
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                                setState(() async {
-                                                  await managersDoctors
-                                                      .removeRequest(request);
-                                                });
-                                              },
-                                            ),
+                                              const SizedBox(width: 16),
+                                              Expanded(
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                        backgroundColor:
+                                                            Colors.red,
+                                                      ),
+                                                  child: const Text(
+                                                    "Confirmer",
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    Navigator.pop(context);
+                                                    await managersDoctors
+                                                        .removeRequest(
+                                                          request.id,
+                                                        );
+                                                    setState(() {});
+                                                  },
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                        );
-                      },
-                      child: const Text(
-                        'Delete',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+                            );
+                          },
+                          child: const Text(
+                            'Delete',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -1161,42 +1100,64 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
   }
 
   Widget _buildModalContent(Request request) {
-    final doctor = request.getDoctor();
-    if (doctor == null) return const SizedBox.shrink();
     final statusColor =
         {
           RequestStatus.agreed: Colors.green,
           RequestStatus.pending: Colors.orange,
           RequestStatus.disagreed: Colors.red,
-        }[request.agreed]!;
+        }[request.status]!;
+
     final statusText =
         {
-          RequestStatus.agreed: 'Confirmé',
+          RequestStatus.agreed: 'Accepté',
           RequestStatus.pending: 'En attente',
           RequestStatus.disagreed: 'Refusé',
-        }[request.agreed]!;
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom + 75,
-        left: 20,
-        right: 20,
-        top: 20,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Center(child: Icon(Icons.drag_handle, color: Colors.grey)),
-          const SizedBox(height: 20),
-          if (request.appointment != null) ...[
-            _buildModalRow('Date', request.appointment!.formattedDate),
-            _buildModalRow('Heure', request.appointment!.formattedTime),
-          ],
-          _buildModalRow('Statut', statusText, color: statusColor),
-          _buildModalRow('Hôpital', doctor.hospital),
-          _buildModalRow('Spécialité', doctor.specialty),
-        ],
-      ),
+        }[request.status]!;
+
+    return FutureBuilder<Doctor?>(
+      future: DoctorService().getDoctorById(request.doctorUid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Erreur : ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data == null) {
+          return const Center(child: Text('Médecin non trouvé'));
+        }
+
+        final doctor = snapshot.data!;
+
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 75,
+            left: 20,
+            right: 20,
+            top: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Center(child: Icon(Icons.drag_handle, color: Colors.grey)),
+              const SizedBox(height: 20),
+              if (request.startTime != null) ...[
+                _buildModalRow(
+                  'Date',
+                  Appointment.formattedDateStatic(request.startTime!),
+                ),
+                _buildModalRow(
+                  'Heure',
+                  Appointment.formattedTimeStatic(request.startTime!),
+                ),
+              ],
+
+              _buildModalRow('Statut', statusText, color: statusColor),
+              _buildModalRow('Hôpital', doctor.hospital),
+              _buildModalRow('Spécialité', doctor.specialty),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -1224,6 +1185,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     BuildContext context,
     Request request,
     ManagersDoctors managersDoctors,
+    ManagersTreats managersTreats,
   ) {
     showDialog(
       context: context,
@@ -1244,18 +1206,18 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                     return ListTile(
                       title: Text(
                         {
-                          RequestStatus.agreed: 'Confirmé',
+                          RequestStatus.agreed: 'Accepté',
                           RequestStatus.pending: 'En attente',
                           RequestStatus.disagreed: 'Refusé',
                         }[status]!,
                         style: TextStyle(color: color),
                       ),
                       trailing:
-                          request.agreed == status
+                          request.status == status
                               ? Icon(Icons.check, color: color)
                               : null,
                       onTap: () {
-                        if (request.agreed != status) {
+                        if (request.status != status) {
                           showDialog(
                             context: context,
                             builder:
@@ -1282,7 +1244,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                         const Icon(
                                           Iconsax.info_circle,
                                           size: 40,
-                                          color: Colors.blue,
+                                          color: Color(0xFF00C853),
                                         ),
                                         const SizedBox(height: 16),
                                         Text(
@@ -1313,16 +1275,17 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                                   ),
                                                 ),
                                                 onPressed: () async {
-                                                  Navigator.pop(context);
-
                                                   await managersDoctors
                                                       .updateRequestStatus(
                                                         request,
                                                         status,
+                                                        managersTreats,
                                                       );
 
-                                                  setState(() {});
                                                   Navigator.pop(context);
+                                                  Navigator.pop(context);
+
+                                                  setState(() {});
                                                 },
                                               ),
                                             ),
@@ -1637,9 +1600,8 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
 
                           final result = await managersDoctors
                               .checkSendAppointRequest(
-                                doctor,
+                                doctor.id,
                                 appointmentStart,
-                                appointmentEnd,
                               );
 
                           if (result == "Success") {
@@ -1860,8 +1822,11 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                         }
                         String result = await managersDoctors
                             .checkSendJoinDoctorRequest(code);
+                        List<String> parts = result.split('/');
 
-                        if (result == "Success") {
+                        if (parts.isNotEmpty && parts[0] == "Success") {
+                          String doctorName =
+                              parts.length > 1 ? parts[1] : "Inconnu";
                           showDialog(
                             context: context,
                             builder:
@@ -1888,11 +1853,11 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                         const Icon(
                                           Iconsax.info_circle,
                                           size: 40,
-                                          color: Color(0xFF3366FF),
+                                          color: Color(0xFF00C853),
                                         ),
                                         const SizedBox(height: 16),
                                         Text(
-                                          "Confirmer l'ajout",
+                                          "Confirm sending tracking request to",
                                           style: GoogleFonts.poppins(
                                             fontSize: 18,
                                             fontWeight: FontWeight.w600,
@@ -1900,7 +1865,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          "Ajouter le docteur ID : $code ?",
+                                          "Docteur : $doctorName ?",
                                           textAlign: TextAlign.center,
                                           style: GoogleFonts.poppins(),
                                         ),
@@ -1909,7 +1874,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                           children: [
                                             Expanded(
                                               child: TextButton(
-                                                child: const Text("Annuler"),
+                                                child: const Text("Cancel"),
                                                 onPressed:
                                                     () =>
                                                         Navigator.pop(context),
@@ -1920,11 +1885,11 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                               child: ElevatedButton(
                                                 style: ElevatedButton.styleFrom(
                                                   backgroundColor: const Color(
-                                                    0xFF3366FF,
+                                                    0xFF00C853,
                                                   ),
                                                 ),
                                                 child: const Text(
-                                                  "Confirmer",
+                                                  "Confirm",
                                                   style: TextStyle(
                                                     color: Colors.white,
                                                   ),
@@ -1942,7 +1907,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                                   ).showSnackBar(
                                                     SnackBar(
                                                       content: Text(
-                                                        "Docteur ajouté avec succès !",
+                                                        "Request sent successfully!",
                                                       ),
                                                       backgroundColor:
                                                           Colors.green,

@@ -13,6 +13,9 @@ class AppUserData {
   final String phoneNumber;
   final String pinCode;
   final List<Treat> treatments;
+  final List<String> doctors;
+  final List<String> appointments;
+  final List<String> requests;
 
   AppUserData({
     required this.uid,
@@ -21,5 +24,8 @@ class AppUserData {
     required this.phoneNumber,
     required this.pinCode,
     required this.treatments,
+    required this.doctors,
+    required this.appointments,
+    required this.requests,
   });
 }

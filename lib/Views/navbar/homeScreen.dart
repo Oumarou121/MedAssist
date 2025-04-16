@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:local_auth/error_codes.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Models/MedicationSchedule.dart';
 import 'package:med_assist/Models/doctor.dart';
@@ -26,93 +25,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Doctor> doctors = [
-    Doctor(
-      id: 'doc1',
-      imageUrl:
-          "https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvMzQwLXBhaTI1MzAuanBn.jpg",
-      name: 'Dr. Sophie Durand',
-      specialty: 'Cardiologue',
-      experience: '10 ans',
-      phoneNumber: '0600000001',
-      email: 'sophie.durand@mail.com',
-      address: 'Clinique du Coeur, Paris',
-      rating: 4.8,
-      availableDays: ['Lundi', 'Mercredi', 'Vendredi'],
-      availableHours: ['09:00', '14:00'],
-      bio: 'Spécialiste des maladies cardiovasculaires.',
-      languages: ['Français', 'Anglais'],
-      gender: 'Femme',
-      licenseNumber: 'CD123456',
-      hospital: 'Clinique du Coeur',
-    ),
-    Doctor(
-      id: 'doc2',
-      imageUrl:
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSuuglfNWvcq31xl6m59EILUlrc8vmav-d3UQ&s",
-      name: 'Dr. Marc Lefevre',
-      specialty: 'Dermatologue',
-      experience: '7 ans',
-      phoneNumber: '0600000002',
-      email: 'marc.lefevre@mail.com',
-      address: 'Hôpital Saint-Louis, Paris',
-      rating: 4.6,
-      availableDays: ['Mardi', 'Jeudi'],
-      availableHours: ['10:00', '16:00'],
-      bio: 'Expert en maladies de la peau.',
-      languages: ['Français', 'Espagnol'],
-      gender: 'Homme',
-      licenseNumber: 'DL654321',
-      hospital: 'Hôpital Saint-Louis',
-    ),
-    Doctor(
-      id: 'doc3',
-      imageUrl:
-          "https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvMzQwLXBhaTI1MzAuanBn.jpg",
-      name: 'Dr. Amélie Martin',
-      specialty: 'Pédiatre',
-      experience: '12 ans',
-      phoneNumber: '0600000003',
-      email: 'amelie.martin@mail.com',
-      address: 'Centre Médical Enfants Santé, Lyon',
-      rating: 4.9,
-      availableDays: ['Lundi', 'Mardi', 'Jeudi'],
-      availableHours: ['08:30', '13:30'],
-      bio: 'Pédiatre passionnée par le bien-être des enfants.',
-      languages: ['Français', 'Anglais'],
-      gender: 'Femme',
-      licenseNumber: 'PD456789',
-      hospital: 'Centre Médical Enfants Santé',
-    ),
-  ];
-
-  late List<Appointment> appointments;
-
   @override
   void initState() {
     super.initState();
-    appointments = [
-      Appointment(
-        doctor: doctors[0],
-        startTime: DateTime.now().add(const Duration(days: 1, hours: 9)),
-        endTime: DateTime.now().add(const Duration(days: 1, hours: 10)),
-      ),
-      Appointment(
-        doctor: doctors[1],
-        startTime: DateTime.now().add(const Duration(days: 2, hours: 14)),
-        endTime: DateTime.now().add(const Duration(days: 2, hours: 15)),
-      ),
-      Appointment(
-        doctor: doctors[2],
-        startTime: DateTime.now().add(const Duration(days: 3, hours: 8)),
-        endTime: DateTime.now().add(const Duration(days: 3, hours: 9)),
-      ),
-      Appointment(
-        doctor: doctors[0],
-        startTime: DateTime.now().add(const Duration(days: 5, hours: 11)),
-        endTime: DateTime.now().add(const Duration(days: 5, hours: 12)),
-      ),
-    ];
 
     listenNotification();
   }
@@ -155,6 +70,14 @@ class _HomeScreenState extends State<HomeScreen> {
             treats: userData.treatments,
           );
 
+          ManagersDoctors managersDoctors = ManagersDoctors(
+            uid: userData.uid,
+            name: userData.name,
+            doctors: userData.doctors,
+            requests: userData.requests,
+            appointments: userData.appointments,
+          );
+
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Scaffold(
@@ -170,10 +93,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(height: size.height * 0.03),
                         MedicationScheduleList(managersTreats: managersTreats),
                         SizedBox(height: size.height * 0.03),
-                        MyAppointmentsList(appointments: appointments),
+                        MyAppointmentsList(managersDoctors: managersDoctors),
                         SizedBox(height: size.height * 0.03),
                         MyDoctorsList(
-                          doctors: doctors,
+                          managersDoctors: managersDoctors,
                           persistentTabController:
                               widget.persistentTabController,
                         ),

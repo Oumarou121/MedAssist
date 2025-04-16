@@ -13,6 +13,9 @@ class DatabaseService {
           .doc("patients")
           .collection("users");
 
+  final CollectionReference<Map<String, dynamic>> userCollectionConfig =
+      FirebaseFirestore.instance.collection("config");
+
   Future<void> saveUser(
     String name,
     String password,
@@ -26,6 +29,9 @@ class DatabaseService {
         'phoneNumber': phoneNumber,
         'pinCode': pinCode,
         'treatments': [],
+        'doctors': [],
+        'appointments': [],
+        'requests': [],
       });
     } catch (e) {
       throw Exception("Failed to save user: $e");
@@ -55,7 +61,6 @@ class DatabaseService {
   ) {
     var data = snapshot.data();
     if (data == null) throw Exception("User not found");
-
     return AppUserData(
       uid: snapshot.id,
       name: data['name'] ?? 'Unknown',
@@ -67,6 +72,18 @@ class DatabaseService {
               ? (data['treatments'] as List)
                   .map((treat) => Treat.fromMap(treat))
                   .toList()
+              : [],
+      doctors:
+          data['doctors'] != null
+              ? List<String>.from(data['doctors'].map((e) => e.toString()))
+              : [],
+      appointments:
+          data['appointments'] != null
+              ? List<String>.from(data['appointments'].map((e) => e.toString()))
+              : [],
+      requests:
+          data['requests'] != null
+              ? List<String>.from(data['requests'].map((e) => e.toString()))
               : [],
     );
   }

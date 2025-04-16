@@ -387,6 +387,8 @@ class Treat {
   final String title;
   final List<Medicine> medicines;
   final DateTime createdAt;
+  final bool isPublic;
+  final List<String> followers;
   bool isMissing;
 
   Treat({
@@ -396,6 +398,8 @@ class Treat {
     required this.title,
     required this.medicines,
     required this.createdAt,
+    required this.followers,
+    required this.isPublic,
     this.isMissing = false,
   });
 
@@ -470,23 +474,29 @@ class Treat {
       'medicines': medicines.map((m) => m.toMap()).toList(),
       'createdAt': createdAt.toIso8601String(),
       'isMissing': isMissing,
+      'isPublic': isPublic,
+      'followers': followers,
     };
   }
 
   factory Treat.fromMap(Map<String, dynamic> map) {
-    return Treat(
-      authorUid: map['authorUid'],
-      authorName: map['authorName'],
-      code: map['code'],
-      title: map['title'],
-      medicines:
-          (map['medicines'] as List)
-              .map((m) => Medicine.fromMap(m as Map<String, dynamic>))
-              .toList(),
-      createdAt: DateTime.parse(map['createdAt']),
-      isMissing: map['isMissing'] ?? false,
-    );
-  }
+  return Treat(
+    authorUid: map['authorUid'],
+    authorName: map['authorName'],
+    code: map['code'],
+    title: map['title'],
+    medicines: (map['medicines'] as List)
+        .map((m) => Medicine.fromMap(m as Map<String, dynamic>))
+        .toList(),
+    createdAt: DateTime.parse(map['createdAt']),
+    isMissing: map['isMissing'] ?? false,
+    isPublic: map['isPublic'] ?? false,
+    followers: map['followers'] != null
+        ? List<String>.from(map['followers'].map((f) => f.toString())) // Conversion explicite
+        : [],
+  );
+}
+
 
   double progressValue() {
     int maxCount = 0;

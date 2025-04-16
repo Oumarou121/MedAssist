@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Controllers/database.dart';
+import 'package:med_assist/Controllers/databaseTreatments.dart';
 import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
 import 'package:med_assist/Views/Auth/loginScreen.dart';
@@ -15,110 +16,7 @@ class TreatScreen extends StatefulWidget {
 }
 
 class _TreatScreenState extends State<TreatScreen> {
-  final List<Treat> defaultTreatments = [
-    // Cas 1 : Médicament quotidien, 3 prises par jour, durée 2 jours
-    Treat(
-      authorUid: 'user1',
-      authorName: 'Dr. Jean',
-      code: 'T001',
-      title: 'Traitement CO2 quotidien',
-      createdAt: DateTime.now(),
-      isMissing: true,
-      medicines: [
-        Medicine(
-          name: 'CO2',
-          dose: '1g',
-          frequency: 3,
-          intervale: 3,
-          duration: 7,
-          frequencyType: FrequencyType.daily,
-          createAt: DateTime.now(),
-        ),
-      ],
-    ),
-
-    // Cas 2 : Médicament hebdomadaire, 2 prises par jour, durée 10 jours
-    Treat(
-      authorUid: 'user2',
-      authorName: 'Dr. Alice',
-      code: 'T002',
-      title: 'Vitamine hebdomadaire',
-      createdAt: DateTime(2025, 4, 7, 10, 0),
-
-      medicines: [
-        Medicine(
-          name: 'Vitamine C',
-          dose: '500mg',
-          frequency: 2,
-          intervale: 8,
-          duration: 10,
-          frequencyType: FrequencyType.weekly,
-          createAt: DateTime(2025, 4, 7, 10, 0),
-        ),
-      ],
-    ),
-
-    // Cas 3 : Médicament bihebdomadaire, 1 prise par jour, durée 30 jours
-    Treat(
-      authorUid: 'user3',
-      authorName: 'Dr. Karim',
-      code: 'T003',
-      title: 'Antibiotique long terme',
-      createdAt: DateTime(2025, 4, 1),
-      medicines: [
-        Medicine(
-          name: 'Antibiotique',
-          dose: '250mg',
-          frequency: 1,
-          intervale: 24,
-          duration: 30,
-          frequencyType: FrequencyType.biweekly,
-          createAt: DateTime(2025, 4, 1, 7, 0),
-        ),
-      ],
-    ),
-
-    // Cas 4 : Médicament mensuel, 1 prise, durée 60 jours
-    Treat(
-      authorUid: 'user4',
-      authorName: 'Dr. Leïla',
-      code: 'T004',
-      title: 'Injection mensuelle B12',
-      createdAt: DateTime(2025, 4, 1),
-      medicines: [
-        Medicine(
-          name: 'Injection B12',
-          dose: '1ml',
-          frequency: 1,
-          intervale: 24,
-          duration: 60,
-          frequencyType: FrequencyType.monthly,
-          createAt: DateTime(2025, 4, 1, 9, 0),
-        ),
-      ],
-    ),
-
-    // Cas 5 : Médicament trimestriel, 1 prise, durée 100 jours
-    Treat(
-      authorUid: 'user5',
-      authorName: 'Dr. Nadir',
-      code: 'T005',
-      title: 'Vaccination préventive',
-      createdAt: DateTime(2025, 3, 20),
-      medicines: [
-        Medicine(
-          name: 'Vaccin',
-          dose: '5ml',
-          frequency: 1,
-          intervale: 24,
-          duration: 100,
-          frequencyType: FrequencyType.quarterly,
-          createAt: DateTime(2025, 3, 20, 14, 0),
-        ),
-      ],
-    ),
-  ];
-  // late ManagersTreats managersTreats;
+  List<Treat> publicTreatments = [];
   List<Medicine> medicines = [];
   TextEditingController titleController = TextEditingController();
   List<TextEditingController> nameControllers = [];
@@ -126,6 +24,11 @@ class _TreatScreenState extends State<TreatScreen> {
   List<TextEditingController> doseControllers = [];
   List<TextEditingController> frequencyControllers = [];
   List<TextEditingController> intervaleControllers = [];
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,88 +48,139 @@ class _TreatScreenState extends State<TreatScreen> {
         }
 
         if (snapshot.hasData) {
-          AppUserData? userData = snapshot.data;
-          if (userData == null) return const LoginScreen();
-          ManagersTreats managersTreats = ManagersTreats(
+          final userData = snapshot.data!;
+          final managersTreats = ManagersTreats(
             uid: userData.uid,
             name: userData.name,
             treats: userData.treatments,
           );
 
-          return Padding(
-            padding: EdgeInsets.only(bottom: bottomPadding + 60),
-            child: Scaffold(
-              backgroundColor: const Color(0xFFF5F7FB),
-              body: CustomScrollView(
-                slivers: [
-                  SliverAppBar(
-                    expandedHeight: 80,
-                    flexibleSpace: FlexibleSpaceBar(
-                      title: Text(
-                        'My Treatments',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 18,
-                          color: Colors.white,
-                        ),
-                      ),
-                      background: Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFF00C853), Color(0xFFB2FF59)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+          return FutureBuilder<List<Treat>>(
+            future: TreatmentService().getPublicTreatments(),
+            builder: (context, treatSnapshot) {
+              if (treatSnapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              if (treatSnapshot.hasError) {
+                return Scaffold(
+                  body: Center(child: Text("Error: ${treatSnapshot.error}")),
+                );
+              }
+
+              publicTreatments = treatSnapshot.data ?? [];
+
+              return Padding(
+                padding: EdgeInsets.only(bottom: bottomPadding + 60),
+                child: Scaffold(
+                  backgroundColor: const Color(0xFFF5F7FB),
+                  body: CustomScrollView(
+                    slivers: [
+                      SliverAppBar(
+                        expandedHeight: 80,
+                        flexibleSpace: FlexibleSpaceBar(
+                          title: Text(
+                            'My Treatments',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 18,
+                              color: Colors.white,
+                            ),
+                          ),
+                          background: Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Color(0xFF00C853), Color(0xFFB2FF59)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
                           ),
                         ),
+                        actions: <Widget>[],
                       ),
-                    ),
-                    actions: <Widget>[],
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildTreatmentStatusSection(
+                                title: 'Active Treatments',
+                                icon: Iconsax.health,
+                                treatments: managersTreats.activeTreatments(),
+                                statusColor: const Color(0xFF00C853),
+                                userData: userData,
+                                managersTreats: managersTreats,
+                                isTop: true,
+                              ),
+                              _buildTreatmentStatusSection(
+                                title: 'Failed Treatments',
+                                icon: Iconsax.close_circle,
+                                treatments: managersTreats.failedTreatments(),
+                                statusColor: Colors.red,
+                                userData: userData,
+                                managersTreats: managersTreats,
+                              ),
+                              _buildTreatmentStatusSection(
+                                title: 'Treatments Completed',
+                                icon: Iconsax.tick_circle,
+                                treatments: managersTreats.finishedTreatments(),
+                                statusColor: Colors.grey,
+                                userData: userData,
+                                managersTreats: managersTreats,
+                              ),
+                              // Tu peux aussi afficher publicTreatments ici si tu veux
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildTreatmentStatusSection(
-                            title: 'Active Treatments',
-                            icon: Iconsax.health,
-                            treatments: managersTreats.activeTreatments(),
-                            statusColor: const Color(0xFF00C853),
-                            userData: userData,
-                            managersTreats: managersTreats,
-                            isTop: true,
-                          ),
-                          _buildTreatmentStatusSection(
-                            title: 'Failed Treatments',
-                            icon: Iconsax.close_circle,
-                            treatments: managersTreats.failedTreatments(),
-                            statusColor: Colors.red,
-                            userData: userData,
-                            managersTreats: managersTreats,
-                          ),
-                          _buildTreatmentStatusSection(
-                            title: 'Treatments Completed',
-                            icon: Iconsax.tick_circle,
-                            treatments: managersTreats.finishedTreatments(),
-                            statusColor: Colors.grey,
-                            userData: userData,
-                            managersTreats: managersTreats,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           );
         }
+
         return const LoginScreen();
       },
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      height: 120,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey[50],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.health_and_safety,
+              size: 40,
+              color: Colors.blueGrey[200],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No Treatment.',
+              style: GoogleFonts.poppins(
+                color: Colors.blueGrey[300],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -239,7 +193,8 @@ class _TreatScreenState extends State<TreatScreen> {
     required ManagersTreats managersTreats,
     bool isTop = false,
   }) {
-    if (treatments.isEmpty && !isTop) return const SizedBox.shrink();
+    // if (treatments.isEmpty && !isTop) return const SizedBox.shrink();
+    // if (treatments.isEmpty) return _buildEmptyState();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -275,21 +230,25 @@ class _TreatScreenState extends State<TreatScreen> {
           ),
         ),
 
-        SizedBox(
-          height: 240,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: treatments.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 16),
-            itemBuilder:
-                (context, index) => _buildTreatmentCard(
-                  treat: treatments[index],
-                  userData: userData,
-                  managersTreats: managersTreats,
-                ),
+        if (treatments.isEmpty) ...[
+          _buildEmptyState(),
+        ] else ...[
+          SizedBox(
+            height: 240,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: treatments.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 16),
+              itemBuilder:
+                  (context, index) => _buildTreatmentCard(
+                    treat: treatments[index],
+                    userData: userData,
+                    managersTreats: managersTreats,
+                  ),
+            ),
           ),
-        ),
-        const SizedBox(height: 24),
+          const SizedBox(height: 24),
+        ],
       ],
     );
   }
@@ -1190,7 +1149,7 @@ class _TreatScreenState extends State<TreatScreen> {
                         style: GoogleFonts.poppins(color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3366FF),
+                        backgroundColor: const Color(0xFF00C853),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
@@ -1200,7 +1159,7 @@ class _TreatScreenState extends State<TreatScreen> {
                         String code = _controller.text.trim();
                         if (code.isEmpty) {
                           setModalState(() {
-                            error1 = "Veuillez entrer un code.";
+                            error1 = "Please enter a code.";
                             isError1 = true;
                           });
                           return;
@@ -1208,19 +1167,19 @@ class _TreatScreenState extends State<TreatScreen> {
 
                         // TODO: vérifie l'existence du code / traitement
                         // setModalState pour update l'erreur si non trouvé
-                        bool exists = defaultTreatments.any(
+                        bool exists = publicTreatments.any(
                           (treat) => treat.code == code,
                         );
 
                         if (!exists) {
                           setModalState(() {
-                            error1 = "Traitement non trouvé";
+                            error1 = "No such public treatment.";
                             isError1 = true;
                           });
                           return;
                         }
 
-                        Treat treatment = defaultTreatments.firstWhere(
+                        Treat treatment = publicTreatments.firstWhere(
                           (treat) => treat.code == code,
                         );
 
@@ -1228,7 +1187,7 @@ class _TreatScreenState extends State<TreatScreen> {
 
                         if (alreadyExists) {
                           setModalState(() {
-                            error1 = "Ce traitement existe déjà";
+                            error1 = "This treatment is already added";
                             isError1 = true;
                           });
                           return;
@@ -1310,6 +1269,9 @@ class _TreatScreenState extends State<TreatScreen> {
                                                     title: treatment.title,
                                                     medicines: ms,
                                                     createdAt: DateTime.now(),
+                                                    isPublic:
+                                                        treatment.isPublic,
+                                                    followers: [],
                                                   );
 
                                                   for (Medicine m
@@ -1320,6 +1282,12 @@ class _TreatScreenState extends State<TreatScreen> {
                                                   managersTreats.addTreatment(
                                                     t,
                                                   );
+
+                                                  TreatmentService()
+                                                      .addFollowerToTreatment(
+                                                        treatment.code,
+                                                        managersTreats.uid,
+                                                      );
                                                 });
                                                 ScaffoldMessenger.of(
                                                   context,
@@ -1377,14 +1345,14 @@ class _TreatScreenState extends State<TreatScreen> {
                       ),
                       underline: const SizedBox(),
                       items:
-                          defaultTreatments.map((Treat treat) {
+                          publicTreatments.map((Treat treat) {
                             return DropdownMenuItem<Treat>(
                               value: treat,
                               child: ListTile(
                                 contentPadding: EdgeInsets.zero,
                                 leading: Icon(
                                   Iconsax.health,
-                                  color: const Color(0xFF00CCFF),
+                                  color: const Color(0xFF00C853),
                                 ),
                                 title: Text(
                                   treat.title,
@@ -1482,6 +1450,8 @@ class _TreatScreenState extends State<TreatScreen> {
                                                   title: selected.title,
                                                   medicines: ms,
                                                   createdAt: DateTime.now(),
+                                                  isPublic: selected.isPublic,
+                                                  followers: [],
                                                 );
 
                                                 for (Medicine m
@@ -1489,7 +1459,11 @@ class _TreatScreenState extends State<TreatScreen> {
                                                   t.addMedicineWithoutSave(m);
                                                 }
                                                 managersTreats.addTreatment(t);
-                                                // setState(() {});
+                                                TreatmentService()
+                                                    .addFollowerToTreatment(
+                                                      selected.code,
+                                                      managersTreats.uid,
+                                                    );
                                                 Navigator.pop(context);
                                                 Navigator.pop(contextParent);
                                               },
@@ -2019,6 +1993,8 @@ class _TreatScreenState extends State<TreatScreen> {
                                     title: titleController.text.trim(),
                                     medicines: meds,
                                     createdAt: DateTime.now(),
+                                    isPublic: false,
+                                    followers: [managersTreats.uid],
                                   );
 
                                   Navigator.pop(context);

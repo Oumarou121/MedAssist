@@ -14,13 +14,20 @@ class AppointmentsPage extends StatefulWidget {
 class _SchedulePageState extends State<AppointmentsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late List<Appointment> _appointments;
+  List<Appointment> _appointments = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _appointments = widget.manager.appointments;
+    _loadAppointments();
+  }
+
+  Future<void> _loadAppointments() async {
+    final appointments = await widget.manager.getAppointments();
+    setState(() {
+      _appointments = appointments;
+    });
   }
 
   @override
@@ -42,7 +49,10 @@ class _SchedulePageState extends State<AppointmentsPage>
         controller: _tabController,
         children: [
           DailyAppointmentsView(appointments: _appointments),
-          AppointmentsView(appointments: _appointments),
+          AppointmentsView(
+            appointments: _appointments,
+            managersDoctors: widget.manager,
+          ),
         ],
       ),
     );

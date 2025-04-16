@@ -5,12 +5,12 @@ import 'package:med_assist/Models/doctor.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
 class MyDoctorsList extends StatefulWidget {
-  final List<Doctor> doctors;
+  final ManagersDoctors managersDoctors;
   final PersistentTabController persistentTabController;
 
   const MyDoctorsList({
     super.key,
-    required List<Doctor> this.doctors,
+    required ManagersDoctors this.managersDoctors,
     required PersistentTabController this.persistentTabController,
   });
 
@@ -19,6 +19,19 @@ class MyDoctorsList extends StatefulWidget {
 }
 
 class _MyDoctorsListState extends State<MyDoctorsList> {
+  List<Doctor> doctors = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDoctors();
+  }
+
+  Future<void> _loadDoctors() async {
+    doctors = await widget.managersDoctors.getDoctors();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -49,7 +62,7 @@ class _MyDoctorsListState extends State<MyDoctorsList> {
           ),
         ),
         buildDoctorsList(
-          doctors: widget.doctors,
+          doctors: doctors,
           persistentTabController: widget.persistentTabController,
         ),
       ],

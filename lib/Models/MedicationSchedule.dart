@@ -49,7 +49,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
           now.month,
           now.day,
           time.time.hour,
-          time.time.minute,
+          time.time.minute + 1,
         );
         final diff = now.difference(scheduledTime).inMinutes;
         final isActive = !time.isTaken && diff >= 0 && diff <= 5;
@@ -93,13 +93,13 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 0),
           child: Text(
             "Planning Médical",
             style: GoogleFonts.poppins(
               fontSize: 22,
               fontWeight: FontWeight.w600,
-              color: Colors.blueGrey[800],
+              color: Colors.black,
             ),
           ),
         ),

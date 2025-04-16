@@ -1,11 +1,17 @@
 import 'package:intl/intl.dart';
+import 'package:med_assist/Controllers/database.dart';
+import 'package:med_assist/Controllers/databaseAppointments.dart';
+import 'package:med_assist/Controllers/databaseDoctors.dart';
+import 'package:med_assist/Controllers/databaseRequests.dart';
+import 'package:med_assist/Controllers/databaseTreatments.dart';
+import 'package:med_assist/Models/treat.dart';
 
 class ManagersDoctors {
   final String uid;
   final String name;
-  final List<Doctor> doctors;
-  final List<Request> requests;
-  final List<Appointment> appointments;
+  final List<String> doctors;
+  final List<String> requests;
+  final List<String> appointments;
 
   ManagersDoctors({
     required this.uid,
@@ -15,114 +21,173 @@ class ManagersDoctors {
     required this.appointments,
   });
 
+  Future<List<Doctor>> getDoctors() async {
+    return DoctorService().getDoctorsByIds(doctors);
+  }
+
+  Future<List<Appointment>> getAppointments() async {
+    return AppointmentService().getAppointmentsByIds(appointments);
+  }
+
+  Future<List<Request>> getRequests() async {
+    return RequestService().getRequestsByIds(requests);
+  }
+
   Future<String> checkSendJoinDoctorRequest(String doctorID) async {
-    //Recuperation de la liste des doctors sur Firebase
-    List<Doctor> docs = [];
+    List<Doctor> docs = await DoctorService().getAllDoctors();
+    if (docs.isEmpty) return "This Doctor ID is invalid";
 
     bool exists = docs.any((doc) => doc.id == doctorID);
     if (!exists) return "This Doctor ID is invalid";
 
-    bool alreadyExists = doctors.any((doc) => doc.id == doctorID);
+    bool alreadyExists = doctors.any((doc) => doc == doctorID);
     if (alreadyExists) return "This Doctor is already exist";
 
-    bool alreadyRequest = requests.any(
-      (req) =>
-          req.doctor!.id == doctorID &&
-          req.requestType == RequestType.doctor &&
-          req.agreed == RequestStatus.pending,
+    List<Request> myRequests = await RequestService().getRequestsByIds(
+      requests,
     );
+
+    bool alreadyRequest = myRequests.any(
+      (req) =>
+          req.doctorUid == doctorID &&
+          req.patientUid == uid &&
+          req.requestType == RequestType.doctor &&
+          req.status == RequestStatus.pending,
+    );
+
     if (alreadyRequest) {
       return "You already send a request please wait until the doctor give a answer";
     }
 
-    return "Success";
+    Doctor doctor = docs.firstWhere((doc) => doc.id == doctorID);
+    return "Success/${doctor.name}";
   }
 
   Future<void> sendJoinDoctorRequest(String doctorID) async {
-    //Recuperation de la liste des doctors sur Firebase
-    List<Doctor> docs = [];
-    Doctor doctor = docs.firstWhere((doc) => doc.id == doctorID);
     Request request = Request(
-      id: requests.length,
       requestType: RequestType.doctor,
-      doctor: doctor,
-      isFromMe: true,
-      agreed: RequestStatus.pending,
+      status: RequestStatus.pending,
+      doctorUid: doctorID,
+      patientUid: uid,
+      senderType: SenderType.patient,
     );
-    requests.add(request);
+
+    requests.add(request.id);
     //Firebase
+    final db = DatabaseService(uid);
+    await db.updateDataOfValue("requests", requests);
+    await RequestService().addRequest(request);
   }
 
   Future<String> checkSendAppointRequest(
-    Doctor doctor,
+    String doctorID,
     DateTime startTime,
-    DateTime endTime,
   ) async {
-    final alreadyRequested = requests.any(
+    List<Request> myRequests = await RequestService().getRequestsByIds(
+      requests,
+    );
+    bool alreadyRequested = myRequests.any(
       (req) =>
-          req.appointment?.doctor.id == doctor.id &&
+          req.doctorUid == doctorID &&
+          req.patientUid == uid &&
           req.requestType == RequestType.appointment &&
-          req.agreed == RequestStatus.pending,
+          req.status == RequestStatus.pending,
     );
 
     if (alreadyRequested) {
-      return "Vous avez déjà envoyé une demande. Veuillez attendre la réponse du docteur.";
+      return "You have already submitted a request. Please wait for the doctor's response.";
     }
 
     return "Success";
   }
 
   Future<void> sendAppointRequest(
-    Doctor doctor,
+    String doctorID,
     DateTime startTime,
-    DateTime endTime,
     String reason,
   ) async {
     Request request = Request(
-      id: requests.length,
       requestType: RequestType.appointment,
-      appointment: Appointment(
-        doctor: doctor,
-        startTime: startTime,
-        endTime: endTime,
-      ),
+      status: RequestStatus.pending,
+      doctorUid: doctorID,
+      patientUid: uid,
+      startTime: startTime,
       appointmentReason: reason,
-      isFromMe: true,
-      agreed: RequestStatus.pending,
+      senderType: SenderType.patient,
     );
-    requests.add(request);
+
+    requests.add(request.id);
     //Firebase
+    final db = DatabaseService(uid);
+    await db.updateDataOfValue("requests", requests);
+    await RequestService().addRequest(request);
   }
 
-  Future<void> removeRequest(Request request) async {
-    requests.remove(request);
-    print(requests.length);
+  Future<void> removeRequest(String requestId) async {
+    requests.remove(requestId);
     //Firebase
+    final db = DatabaseService(uid);
+    await db.updateDataOfValue("requests", requests);
+    await RequestService().deleteRequest(requestId);
   }
 
   Future<void> updateRequestStatus(
     Request request,
     RequestStatus newStatus,
+    ManagersTreats managersTreats,
   ) async {
     if (newStatus == RequestStatus.agreed) {
       if (request.requestType == RequestType.doctor) {
-        final doctor = request.doctor;
-        if (doctor != null) {
-          doctors.add(doctor);
-        }
+        doctors.add(request.doctorUid);
+        final db = DatabaseService(uid);
+        await db.updateDataOfValue("doctors", doctors);
+      } else if (request.requestType == RequestType.appointment) {
+        DateTime date = request.startTime!;
+        final appointment = Appointment(
+          doctorUid: request.doctorUid,
+          patientUid: request.patientUid,
+          startTime: date,
+        );
+        appointments.add(appointment.id);
+        //Firebase
+        final db = DatabaseService(uid);
+        await db.updateDataOfValue("appointments", appointments);
+        await AppointmentService().addAppointment(appointment);
       } else {
-        final appointment = request.appointment;
-        if (appointment != null) {
-          appointments.add(appointment);
+        //Recuperation de la list des treatments sur firebase
+        String code = request.treatCode!;
+
+        Treat treat = await TreatmentService().getTreatmentByCode(code);
+
+        List<Medicine> ms = [];
+
+        Treat t = Treat(
+          authorName: treat.authorName,
+          authorUid: treat.authorName,
+          code: treat.code,
+          title: treat.title,
+          medicines: ms,
+          createdAt: DateTime.now(),
+          isPublic: treat.isPublic,
+          followers: [],
+        );
+
+        for (Medicine m in treat.medicines) {
+          t.addMedicineWithoutSave(m);
         }
+        managersTreats.addTreatment(t);
       }
 
-      await removeRequest(request);
+      requests.remove(request.id);
+      //Firebase
+      final db = DatabaseService(uid);
+      await db.updateDataOfValue("requests", requests);
+      await RequestService().deleteRequest(request.id);
     } else {
       request.updateStatus(newStatus);
+      //Firebase
+      await RequestService().updateRequest(request);
     }
-
-    //Firebase
   }
 }
 
@@ -196,18 +261,89 @@ class Doctor {
 
     return dates;
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'imageUrl': imageUrl,
+      'name': name,
+      'specialty': specialty,
+      'experience': experience,
+      'phoneNumber': phoneNumber,
+      'email': email,
+      'address': address,
+      'rating': rating,
+      'availableDays': availableDays,
+      'availableHours': availableHours,
+      'bio': bio,
+      'languages': languages,
+      'gender': gender,
+      'licenseNumber': licenseNumber,
+      'hospital': hospital,
+    };
+  }
+
+  factory Doctor.fromMap(Map<String, dynamic> map) {
+    return Doctor(
+      id: map['id'],
+      imageUrl: map['imageUrl'],
+      name: map['name'],
+      specialty: map['specialty'],
+      experience: map['experience'],
+      phoneNumber: map['phoneNumber'],
+      email: map['email'],
+      address: map['address'],
+      rating: (map['rating'] ?? 0).toDouble(),
+      availableDays: List<String>.from(map['availableDays']),
+      availableHours: List<String>.from(map['availableHours']),
+      bio: map['bio'],
+      languages: List<String>.from(map['languages']),
+      gender: map['gender'],
+      licenseNumber: map['licenseNumber'],
+      hospital: map['hospital'],
+    );
+  }
 }
 
 class Appointment {
-  final Doctor doctor;
+  final String id;
+  final String doctorUid;
+  final String patientUid;
   final DateTime startTime;
-  final DateTime endTime;
 
   Appointment({
-    required this.doctor,
+    required this.doctorUid,
+    required this.patientUid,
     required this.startTime,
-    required this.endTime,
-  });
+  }) : id = generateAppointmentId(
+         doctorUid: doctorUid,
+         patientUid: patientUid,
+         startTime: startTime,
+       );
+
+  static String generateAppointmentId({
+    required String doctorUid,
+    required String patientUid,
+    required DateTime startTime,
+  }) {
+    return "${doctorUid}_${patientUid}_${startTime.toIso8601String()}";
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'doctorUid': doctorUid,
+      'patientUid': patientUid,
+      'startTime': startTime.toIso8601String(),
+    };
+  }
+
+  factory Appointment.fromMap(Map<String, dynamic> map) {
+    return Appointment(
+      doctorUid: map['doctorUid'],
+      patientUid: map['patientUid'],
+      startTime: DateTime.parse(map['startTime']),
+    );
+  }
 
   String get formattedDate {
     return DateFormat('EEE, d MMM yyyy').format(startTime);
@@ -215,44 +351,145 @@ class Appointment {
 
   String get formattedTime {
     String start = DateFormat('hh:mm a').format(startTime);
-    String end = DateFormat('hh:mm a').format(endTime);
-    return "$start - $end";
+    return start;
+  }
+
+  static String formattedDateStatic(startTime) {
+    return DateFormat('EEE, d MMM yyyy').format(startTime);
+  }
+
+  static String formattedTimeStatic(startTime) {
+    String start = DateFormat('hh:mm a').format(startTime);
+    return start;
   }
 }
 
 class Request {
-  final int id;
+  final String id;
   final RequestType requestType;
-  final Doctor? doctor;
-  final Appointment? appointment;
+  RequestStatus status;
+  final String doctorUid;
+  final String patientUid;
+  final String? treatCode;
   final String? appointmentReason;
-  RequestStatus agreed;
-  final bool isFromMe;
+  final DateTime? startTime;
+  final SenderType senderType;
+  final DateTime createdAt;
 
   Request({
+    required this.requestType,
+    required this.status,
+    required this.doctorUid,
+    required this.patientUid,
+    this.treatCode,
+    this.startTime,
+    this.appointmentReason,
+    required this.senderType,
+  }) : createdAt = DateTime.now(),
+       id =
+           (() {
+             final now = DateTime.now();
+             return generateRequestId(
+               requestType: requestType,
+               status: status,
+               doctorUid: doctorUid,
+               patientUid: patientUid,
+               senderType: senderType,
+               createdAt: now,
+             );
+           })();
+
+  Request._({
     required this.id,
     required this.requestType,
-    this.doctor,
-    this.appointment,
+    required this.status,
+    required this.doctorUid,
+    required this.patientUid,
+    this.treatCode,
+    this.startTime,
     this.appointmentReason,
-    required this.isFromMe,
-    required this.agreed,
+    required this.senderType,
+    required this.createdAt,
   });
 
-  Doctor? getDoctor() {
-    if (doctor != null && doctor!.name.isNotEmpty) {
-      return doctor;
-    } else if (appointment != null) {
-      return appointment!.doctor;
-    }
-    return null;
+  static String generateRequestId({
+    required RequestType requestType,
+    required RequestStatus status,
+    required String doctorUid,
+    required String patientUid,
+    required SenderType senderType,
+    required DateTime createdAt,
+  }) {
+    return "${requestType.name}_${doctorUid}_${patientUid}_${senderType.name}_${createdAt.toIso8601String()}";
   }
 
-  void updateStatus(RequestStatus status) {
-    agreed = status;
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'requestType': requestType.name,
+      'status': status.name,
+      'doctorUid': doctorUid,
+      'patientUid': patientUid,
+      'treatCode': treatCode,
+      'appointmentReason': appointmentReason,
+      'startTime': startTime?.toIso8601String(),
+      'senderType': senderType.name,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+
+  factory Request.fromMap(Map<String, dynamic> map) {
+    final createdAt = DateTime.parse(map['createdAt']);
+    final requestType = RequestType.values.firstWhere(
+      (e) => e.name == map['requestType'],
+    );
+    final status = RequestStatus.values.firstWhere(
+      (e) => e.name == map['status'],
+    );
+    final senderType = SenderType.values.firstWhere(
+      (e) => e.name == map['senderType'],
+    );
+
+    final id = generateRequestId(
+      requestType: requestType,
+      status: status,
+      doctorUid: map['doctorUid'],
+      patientUid: map['patientUid'],
+      senderType: senderType,
+      createdAt: createdAt,
+    );
+
+    return Request._(
+      id: id,
+      requestType: requestType,
+      status: status,
+      doctorUid: map['doctorUid'],
+      patientUid: map['patientUid'],
+      treatCode: map['treatCode'] is String ? map['treatCode'] : null,
+      appointmentReason:
+          map['appointmentReason'] is String ? map['appointmentReason'] : null,
+      startTime:
+          map['startTime'] is String
+              ? DateTime.tryParse(map['startTime'])
+              : null,
+      senderType: senderType,
+      createdAt: createdAt,
+    );
+  }
+
+  void updateStatus(RequestStatus newStatus) {
+    status = newStatus;
+  }
+
+  Future<Appointment> getAppointment() {
+    // String id =
+    //     "appointment_${doctorUid}_${patientUid}_${createdAt.toIso8601String()}";
+    return AppointmentService().getAppointment(id);
   }
 }
 
-enum RequestType { doctor, appointment }
+enum RequestType { doctor, appointment, treat }
 
 enum RequestStatus { pending, agreed, disagreed }
+
+enum SenderType { doctor, patient }
