@@ -26,6 +26,12 @@ dependencies:
   rxdart: ^0.28.0
   alarm: ^5.1.1
   uuid: ^4.5.1
+  share_plus: ^7.0.0
+  url_launcher: ^6.2.0
+  syncfusion_flutter_pdfviewer: ^23.1.36 # Pour les PDF
+  photo_view: ^0.14.0 # Pour les images
+  cached_network_image: ^3.3.0
+  file_picker: ^5.3.0
 
 dev_dependencies:
   flutter_test:

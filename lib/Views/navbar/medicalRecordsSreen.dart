@@ -359,6 +359,7 @@ class MedicalRecord {
   final String fileType;
   final String? downloadUrl; // Lien de téléchargement optionnel
   final int fileSize; // Taille en Ko
+  final String localPath;
 
   const MedicalRecord({
     required this.id,
@@ -368,6 +369,7 @@ class MedicalRecord {
     required this.fileType,
     this.downloadUrl,
     this.fileSize = 0,
+    this.localPath = '',
   });
 
   // Formatage de la date
