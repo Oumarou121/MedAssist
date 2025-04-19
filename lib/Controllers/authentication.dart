@@ -5,11 +5,9 @@ import 'package:med_assist/Models/user.dart';
 class AuthenticationService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-
   AppUser? _userFromFirebase(User? user) {
     return user != null ? AppUser(user.uid) : null;
   }
-
 
   Stream<AppUser?> get user {
     return _auth.authStateChanges().map(_userFromFirebase);

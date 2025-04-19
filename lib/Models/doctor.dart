@@ -22,15 +22,15 @@ class ManagersDoctors {
   });
 
   Future<List<Doctor>> getDoctors() async {
-    return DoctorService().getDoctorsByIds(doctors);
+    return await DoctorService().getDoctorsByIds(doctors);
   }
 
   Future<List<Appointment>> getAppointments() async {
-    return AppointmentService().getAppointmentsByIds(appointments);
+    return await AppointmentService().getAppointmentsByIds(appointments);
   }
 
   Future<List<Request>> getRequests() async {
-    return RequestService().getRequestsByIds(requests);
+    return await RequestService().getRequestsByIds(requests);
   }
 
   Future<String> checkSendJoinDoctorRequest(String doctorID) async {

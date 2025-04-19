@@ -73,6 +73,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                       title: Text(
                         'My Doctors & Appointments',
                         style: GoogleFonts.poppins(
+                          color: Colors.white,
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
                         ),
@@ -87,6 +88,12 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                         ),
                       ),
                     ),
+                    actions: [
+                      IconButton(
+                        onPressed: () {},
+                        icon: Icon(Iconsax.user_search, color: Colors.white),
+                      ),
+                    ],
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
@@ -510,6 +517,8 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                               ),
                             ],
                           ),
+
+                          const SizedBox(height: 10),
 
                           ElevatedButton.icon(
                             onPressed: () {

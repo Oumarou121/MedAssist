@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 class TreatScreen extends StatefulWidget {
   const TreatScreen({super.key});
   @override
+  // ignore: library_private_types_in_public_api
   _TreatScreenState createState() => _TreatScreenState();
 }
 
@@ -99,7 +100,15 @@ class _TreatScreenState extends State<TreatScreen> {
                             ),
                           ),
                         ),
-                        actions: <Widget>[],
+                        actions: [
+                          IconButton(
+                            onPressed: () {},
+                            icon: Icon(
+                              Iconsax.search_status_1,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                       SliverToBoxAdapter(
                         child: Padding(

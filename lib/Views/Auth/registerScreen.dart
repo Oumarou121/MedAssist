@@ -263,12 +263,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
           password: _password,
           phoneNumber: _phoneNumber.toString(),
         );
-
+        print(result);
         if (result != 'false') {
-          Navigator.pushReplacement(
+          Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => CreateCodePin(uid: result)),
           );
+          ;
         } else {
           Fluttertoast.showToast(
             msg: "Erreur lors de la création du compte",

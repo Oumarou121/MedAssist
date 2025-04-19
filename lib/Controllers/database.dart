@@ -13,9 +13,6 @@ class DatabaseService {
           .doc("patients")
           .collection("users");
 
-  final CollectionReference<Map<String, dynamic>> userCollectionConfig =
-      FirebaseFirestore.instance.collection("config");
-
   Future<void> saveUser(
     String name,
     String password,
@@ -32,6 +29,7 @@ class DatabaseService {
         'doctors': [],
         'appointments': [],
         'requests': [],
+        'medicalRecords': [],
       });
     } catch (e) {
       throw Exception("Failed to save user: $e");
@@ -84,6 +82,12 @@ class DatabaseService {
       requests:
           data['requests'] != null
               ? List<String>.from(data['requests'].map((e) => e.toString()))
+              : [],
+      medicalRecords:
+          data['medicalRecords'] != null
+              ? List<String>.from(
+                data['medicalRecords'].map((e) => e.toString()),
+              )
               : [],
     );
   }

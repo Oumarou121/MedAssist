@@ -22,6 +22,7 @@ class _CreateCodePinState extends State<CreateCodePin> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.uid);
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -73,12 +74,13 @@ class _CreateCodePinState extends State<CreateCodePin> {
             });
           } else {
             if (_codePin == v) {
-              final DatabaseService db = DatabaseService(widget.uid);
-              db.updateDataOfValue("pinCode", v);
+              String id = widget.uid;
+              print(id);
+              DatabaseService(id).updateDataOfValue("pinCode", v);
 
               //Cancel All Notification && Alarm
               NotiService().cancelAllAlarm();
-              
+
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const MainScreen()),

@@ -298,7 +298,6 @@ class ManagersTreats {
 
         int hour = int.parse(parts[0].trim());
         int minute = int.parse(parts[1].trim());
-
         final doseTime = DateTime(
           today.year,
           today.month,
@@ -314,16 +313,15 @@ class ManagersTreats {
         if (count >= item.minStepCount && count <= item.maxStepCount) {
           if (count >= currentStep) {
             isTakenByCount = true;
-          } else if (count == 0 &&
-              now.isAfter(
-                DateTime(
-                  doseTime.year,
-                  doseTime.month,
-                  doseTime.day,
-                  doseTime.hour,
-                  doseTime.minute + 5,
-                ),
-              )) {
+          } else if (now.isAfter(
+            DateTime(
+              doseTime.year,
+              doseTime.month,
+              doseTime.day,
+              doseTime.hour,
+              doseTime.minute + 5,
+            ),
+          )) {
             item.treat.updateStatus(uid, treats);
 
             //Alarm
@@ -480,23 +478,26 @@ class Treat {
   }
 
   factory Treat.fromMap(Map<String, dynamic> map) {
-  return Treat(
-    authorUid: map['authorUid'],
-    authorName: map['authorName'],
-    code: map['code'],
-    title: map['title'],
-    medicines: (map['medicines'] as List)
-        .map((m) => Medicine.fromMap(m as Map<String, dynamic>))
-        .toList(),
-    createdAt: DateTime.parse(map['createdAt']),
-    isMissing: map['isMissing'] ?? false,
-    isPublic: map['isPublic'] ?? false,
-    followers: map['followers'] != null
-        ? List<String>.from(map['followers'].map((f) => f.toString())) // Conversion explicite
-        : [],
-  );
-}
-
+    return Treat(
+      authorUid: map['authorUid'],
+      authorName: map['authorName'],
+      code: map['code'],
+      title: map['title'],
+      medicines:
+          (map['medicines'] as List)
+              .map((m) => Medicine.fromMap(m as Map<String, dynamic>))
+              .toList(),
+      createdAt: DateTime.parse(map['createdAt']),
+      isMissing: map['isMissing'] ?? false,
+      isPublic: map['isPublic'] ?? false,
+      followers:
+          map['followers'] != null
+              ? List<String>.from(
+                map['followers'].map((f) => f.toString()),
+              ) // Conversion explicite
+              : [],
+    );
+  }
 
   double progressValue() {
     int maxCount = 0;

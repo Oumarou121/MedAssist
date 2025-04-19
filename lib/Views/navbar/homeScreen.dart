@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:med_assist/Controllers/authentication.dart';
 import 'package:med_assist/Controllers/database.dart';
-import 'package:med_assist/Models/MedicationSchedule.dart';
+import 'package:med_assist/Views/components/MedicationSchedule.dart';
 import 'package:med_assist/Models/doctor.dart';
 import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
@@ -74,10 +75,9 @@ class _HomeScreenState extends State<HomeScreen> {
             uid: userData.uid,
             name: userData.name,
             doctors: userData.doctors,
-            requests: userData.requests,
             appointments: userData.appointments,
+            requests: userData.requests,
           );
-
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Scaffold(
@@ -147,7 +147,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Stack(
                 children: [
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      await AuthenticationService().signOut();
+                    },
                     icon: const Icon(Iconsax.notification, color: Colors.black),
                   ),
                   Positioned(

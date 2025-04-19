@@ -9,6 +9,7 @@ import 'package:med_assist/Models/user.dart';
 import 'package:med_assist/Views/components/noti_service.dart';
 import 'package:med_assist/Views/splash.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 void main() {
@@ -32,6 +33,12 @@ void main() {
           appId: "1:441831269862:web:2145e79e8b05be0d4e6227",
           measurementId: "G-X3DPNG80D1",
         ),
+      );
+
+      await Supabase.initialize(
+        url: 'https://fxwpdqnowtwmckklipve.supabase.co',
+        anonKey:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4d3BkcW5vd3R3bWNra2xpcHZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4ODUzNjIsImV4cCI6MjA2MDQ2MTM2Mn0.mHi3QlhxY0v6Y4LLpqydjLCt5dAfbRmcNcRPMR_iKRY',
       );
 
       runApp(const MyApp());

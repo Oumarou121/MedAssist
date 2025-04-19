@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:med_assist/Views/navbar/homeScreen.dart';
 import 'package:med_assist/Views/navbar/doctorsScreen.dart';
-import 'package:med_assist/Views/navbar/medicalRecordsSreen.dart';
+import 'package:med_assist/Views/navbar/medicalRecordsScreen.dart';
 import 'package:med_assist/Views/navbar/settingsScreen.dart';
 import 'package:med_assist/Views/navbar/treatScreen.dart';
 import 'package:provider/provider.dart';
@@ -92,7 +92,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       HomeScreen(persistentTabController: _controller),
       TreatScreen(),
       DoctorsScreen(),
-      MedicalRecordsScreen(),
+      MedicalRecordsScreen(userData: userData),
       SettingsScreen(),
     ];
   }
@@ -166,7 +166,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                   icon: AnimatedIcons.view_list,
                   progress: _animationValue,
                 )
-                : Icon(Iconsax.calendar);
+                : Icon(Iconsax.document);
           },
         ),
         iconAnimationController: _animationController,
