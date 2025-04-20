@@ -25,6 +25,7 @@ class DatabaseService {
         'password': password,
         'phoneNumber': phoneNumber,
         'pinCode': pinCode,
+        'profileUrl': '',
         'treatments': [],
         'doctors': [],
         'appointments': [],
@@ -65,6 +66,7 @@ class DatabaseService {
       password: data['password'] ?? 'Unknown',
       phoneNumber: data['phoneNumber'] ?? 'Unknown',
       pinCode: data['pinCode'] ?? 'Unknown',
+      profileUrl: data['profileUrl'] ?? 'Unknown',
       treatments:
           data['treatments'] != null
               ? (data['treatments'] as List)

@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:intl/intl.dart';
 import 'package:med_assist/Controllers/database.dart';
+import 'package:med_assist/Controllers/databaseDoctors.dart';
 import 'package:med_assist/Controllers/databaseMedicalRecords.dart';
 import 'package:med_assist/Controllers/storageService.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:med_assist/Models/doctor.dart';
 
 class ManagersMedicalRecord {
   final String uid;
@@ -38,11 +40,12 @@ class ManagersMedicalRecord {
 
   Future<void> addMedicalRecord(String title, String category) async {
     String medicalRecordId = await database.addMedicalRecord(
-      title,
-      category,
-      uid,
-      '',
-      true,
+      title: title,
+      category: category.toUpperCase(),
+      patientUid: uid,
+      doctorIDs: [],
+      creatorType: CreatorType.patient,
+      canBeShared: true,
     );
 
     medicalRecords.add(medicalRecordId);
@@ -52,7 +55,9 @@ class ManagersMedicalRecord {
   }
 
   Future<void> removeMedicalRecord(MedicalRecord medicalRecord) async {
-    await database.removeMedicalRecord(medicalRecord, uid);
+    if (medicalRecord.creatorType == CreatorType.patient) {
+      await database.removeMedicalRecord(medicalRecord, uid);
+    }
 
     medicalRecords.remove(medicalRecord.id);
     //Firebase
@@ -142,12 +147,22 @@ class ManagersMedicalRecord {
   }
 
   List<String> getAllCategories(List<MedicalRecord> medicalRecords) {
-    final categories = medicalRecords.map((r) => r.category).toSet().toList();
+    final categories =
+        medicalRecords.map((r) => r.category.toUpperCase()).toSet().toList();
     categories.sort();
 
-    categories.insert(0, 'All');
+    categories.insert(0, 'ALL');
 
     return categories;
+  }
+
+  Future<void> shareMedicalRecord(
+    String doctorID,
+    MedicalRecord medicalRecord,
+  ) async {
+    await database.shareMedicalRecord(medicalRecord.id, doctorID);
+
+    medicalRecord.doctorIDs.add(doctorID);
   }
 }
 
@@ -156,20 +171,22 @@ class MedicalRecord {
   final String title;
   final String category;
   final String patientUid;
-  final String doctorID;
+  final List<String> doctorIDs;
   final List<MedicalFile> medicalFiles;
   final DateTime createdAt;
   final bool canBeShared;
+  final CreatorType creatorType;
 
   const MedicalRecord({
     required this.id,
     required this.title,
     required this.category,
     required this.patientUid,
-    required this.doctorID,
+    required this.doctorIDs,
     required this.medicalFiles,
     required this.createdAt,
-    this.canBeShared = true,
+    required this.canBeShared,
+    required this.creatorType,
   });
 
   int get totalSizeInKo {
@@ -183,20 +200,24 @@ class MedicalRecord {
       'title': title,
       'category': category,
       'patientUid': patientUid,
-      'doctorID': doctorID,
+      'doctorIDs': doctorIDs,
       'medicalFiles': medicalFiles.map((file) => file.toMap()).toList(),
       'createdAt': createdAt.toIso8601String(),
       'canBeShared': canBeShared,
+      'creatorType': creatorType.name,
     };
   }
 
   factory MedicalRecord.fromMap(Map<String, dynamic> map) {
+    final creatorType = CreatorType.values.firstWhere(
+      (e) => e.name == map['creatorType'],
+    );
     return MedicalRecord(
       id: map['id'] ?? '',
       title: map['title'] ?? '',
       category: map['category'] ?? '',
       patientUid: map['patientUid'] ?? '',
-      doctorID: map['doctorID'] ?? '',
+      doctorIDs: List<String>.from(map['doctorIDs']),
       medicalFiles: List<MedicalFile>.from(
         (map['medicalFiles'] as List).map((item) => MedicalFile.fromMap(item)),
       ),
@@ -205,17 +226,21 @@ class MedicalRecord {
           map['canBeShared'] is bool
               ? map['canBeShared']
               : map['canBeShared'].toString().toLowerCase() == 'true',
+      creatorType: creatorType,
     );
   }
 
   String get formattedDate {
     return DateFormat('EEE, d MMM yyyy').format(createdAt);
   }
+
+  Future<List<Doctor>> getDoctors() async {
+    return await DoctorService().getDoctorsByIds(doctorIDs);
+  }
 }
 
 class MedicalFile {
   final String title;
-  // final String type;
   final String fileType;
   final String fileUrl;
   final int fileSize; //Bytes
@@ -223,7 +248,6 @@ class MedicalFile {
 
   const MedicalFile({
     required this.title,
-    // required this.type,
     required this.fileType,
     required this.fileUrl,
     required this.fileSize,
@@ -260,3 +284,5 @@ class MedicalFile {
     return DateFormat('EEE, d MMM yyyy').format(createdAt);
   }
 }
+
+enum CreatorType { doctor, patient }

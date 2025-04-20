@@ -8,13 +8,14 @@ class ServiceMedicalRecord {
       .collection("medical-records");
   final storage = StorageService();
 
-  Future<String> addMedicalRecord(
-    String title,
-    String category,
-    String patientUid,
-    String doctorID,
-    bool canBeShared,
-  ) async {
+  Future<String> addMedicalRecord({
+    required String title,
+    required String category,
+    required String patientUid,
+    required List<String> doctorIDs,
+    required bool canBeShared,
+    required CreatorType creatorType,
+  }) async {
     final docRef = collection.doc();
     final id = docRef.id;
 
@@ -23,10 +24,11 @@ class ServiceMedicalRecord {
       'title': title,
       'category': category,
       'patientUid': patientUid,
-      'doctorID': doctorID,
+      'doctorIDs': doctorIDs,
       'medicalFiles': [],
       'createdAt': DateTime.now().toIso8601String(),
       'canBeShared': canBeShared,
+      'creatorType': creatorType.name,
     });
 
     return id;
@@ -54,6 +56,19 @@ class ServiceMedicalRecord {
     try {
       await collection.doc(medicalRecordId).update({
         'medicalFiles': FieldValue.arrayUnion([medicalFile.toMap()]),
+      });
+    } catch (e) {
+      throw Exception("Failed to update data: $e");
+    }
+  }
+
+  Future<void> shareMedicalRecord(
+    String medicalRecordId,
+    String doctorID,
+  ) async {
+    try {
+      await collection.doc(medicalRecordId).update({
+        'doctorIDs': FieldValue.arrayUnion([doctorID]),
       });
     } catch (e) {
       throw Exception("Failed to update data: $e");

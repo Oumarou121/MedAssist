@@ -51,26 +51,26 @@ class NotiService {
   NotificationDetails notificationDetails() {
     return const NotificationDetails(
       android: AndroidNotificationDetails(
-        'channel Treat 0',
+        'channel 0',
         'Treat Notification',
         channelDescription: 'Treat Notification Channel',
         importance: Importance.max,
         priority: Priority.high,
         ticker: 'ticker',
-        actions: <AndroidNotificationAction>[
-          AndroidNotificationAction(
-            'id_1',
-            'Action 1',
-            icon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-            contextual: true,
-          ),
-          AndroidNotificationAction(
-            'id_2',
-            'Action 2',
-            titleColor: Color.fromARGB(255, 255, 0, 0),
-            icon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-          ),
-        ],
+        // actions: <AndroidNotificationAction>[
+        //   AndroidNotificationAction(
+        //     'id_1',
+        //     'Action 1',
+        //     icon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+        //     contextual: true,
+        //   ),
+        //   AndroidNotificationAction(
+        //     'id_2',
+        //     'Action 2',
+        //     titleColor: Color.fromARGB(255, 255, 0, 0),
+        //     icon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+        //   ),
+        // ],
       ),
       iOS: DarwinNotificationDetails(),
     );
@@ -125,7 +125,7 @@ class NotiService {
         volumeEnforced: false,
       ),
       notificationSettings: NotificationSettings(
-        title: title1,
+        title: title2,
         body: body2,
         stopButton: 'Stop the alarm',
         icon: 'notification_icon',
@@ -137,7 +137,7 @@ class NotiService {
     await notificationPlugin.zonedSchedule(
       id,
       title1,
-      body2,
+      body1,
       scheduledTime,
       notificationDetails(),
       androidScheduleMode: AndroidScheduleMode.alarmClock,

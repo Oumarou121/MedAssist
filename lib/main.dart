@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:med_assist/Controllers/authentication.dart';
 import 'package:med_assist/Models/user.dart';
-import 'package:med_assist/Views/components/noti_service.dart';
+import 'package:med_assist/Controllers/noti_service.dart';
 import 'package:med_assist/Views/splash.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -81,7 +81,7 @@ class MyApp extends StatelessWidget {
         title: 'Med Assist',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
           useMaterial3: true,
         ),
         home: const SplashScreen(),

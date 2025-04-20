@@ -4,7 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Views/Auth/loginScreen.dart';
-import 'package:med_assist/Views/components/noti_service.dart';
+import 'package:med_assist/Controllers/noti_service.dart';
 import 'package:med_assist/Views/mainScreen.dart';
 
 class CreateCodePin extends StatefulWidget {

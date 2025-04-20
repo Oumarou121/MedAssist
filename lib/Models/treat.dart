@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:med_assist/Controllers/database.dart';
-import 'package:med_assist/Views/components/noti_service.dart';
+import 'package:med_assist/Controllers/noti_service.dart';
 import 'package:uuid/uuid.dart';
 
 class ManagersTreats {

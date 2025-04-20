@@ -17,6 +17,7 @@ class AppUserData {
   final List<String> appointments;
   final List<String> requests;
   final List<String> medicalRecords;
+  final String profileUrl;
 
   AppUserData({
     required this.uid,
@@ -29,5 +30,6 @@ class AppUserData {
     required this.appointments,
     required this.requests,
     required this.medicalRecords,
+    required this.profileUrl,
   });
 }
