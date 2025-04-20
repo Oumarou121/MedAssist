@@ -85,10 +85,32 @@ class NotiService {
     required String payload,
     required DateTime time,
   }) async {
+    // Ne rien faire si l'heure choisie est déjà dépassée
+    if (time.isBefore(DateTime.now())) return;
+
+    // Initialisation des time zones
     tz.initializeTimeZones();
     final location = tz.getLocation('Africa/Tunis');
 
-    AlarmSettings alarmSettings = AlarmSettings(
+    // Calcul de l'heure de notification (5 minutes avant l'heure du réveil)
+    final scheduledTime = tz.TZDateTime(
+      location,
+      time.year,
+      time.month,
+      time.day,
+      time.hour,
+      time.minute - 5,
+      time.second,
+    );
+
+    // Si cette heure est déjà passée, on ne programme pas la notification
+    if (scheduledTime.isBefore(tz.TZDateTime.now(location))) {
+      print("⛔ Notification skipped: scheduled time is in the past.");
+      return;
+    }
+
+    // Configuration de l'alarme
+    final alarmSettings = AlarmSettings(
       id: id,
       payload: payload,
       dateTime: time,
@@ -111,27 +133,19 @@ class NotiService {
       ),
     );
 
-    notificationPlugin.getActiveNotifications();
-
+    // Planifie une notification 5 minutes avant l'heure de l'alarme
     await notificationPlugin.zonedSchedule(
       id,
       title1,
       body2,
-      tz.TZDateTime(
-        location,
-        time.year,
-        time.month,
-        time.day,
-        time.hour,
-        time.minute - 5,
-        time.second,
-      ),
+      scheduledTime,
       notificationDetails(),
       androidScheduleMode: AndroidScheduleMode.alarmClock,
       payload: payload,
       matchDateTimeComponents: null,
     );
 
+    // Planifie l'alarme
     await Alarm.set(alarmSettings: alarmSettings);
   }
 

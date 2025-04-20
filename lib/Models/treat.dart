@@ -202,7 +202,8 @@ class ManagersTreats {
 
           if (!shouldAdd) continue;
 
-          DateTime baseTime = med.createAt.add(Duration(days: i, minutes: 5));
+          // +10 minutes
+          DateTime baseTime = med.createAt.add(Duration(days: i, minutes: 10));
           for (int j = 0; j < med.frequency; j++) {
             DateTime doseTime = baseTime.add(
               med.frequencyType == FrequencyType.daily
@@ -319,7 +320,7 @@ class ManagersTreats {
               doseTime.month,
               doseTime.day,
               doseTime.hour,
-              doseTime.minute + 5,
+              doseTime.minute + 10,
             ),
           )) {
             item.treat.updateStatus(uid, treats);

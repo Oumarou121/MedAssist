@@ -1,13 +1,16 @@
 import 'dart:io';
-
-import 'package:advance_pdf_viewer/advance_pdf_viewer.dart';
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:intl/intl.dart';
 import 'package:med_assist/Models/medicalRecord.dart';
 import 'package:med_assist/Models/user.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 class MedicalRecordsScreen extends StatefulWidget {
   final AppUserData userData;
@@ -24,8 +27,11 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   List<String> categories = [];
   String selectedCategory = 'All';
   double usedStorage = 0;
-  double maxStorage = 50;
+  double maxStorage = 0;
   bool isLoading = true;
+  bool isPickingFile = false;
+  File? selectedFile;
+  String? fileType;
 
   void _loadMedicalRecords(ManagersMedicalRecord managersMedicalRecord) async {
     List<MedicalRecord> records =
@@ -38,7 +44,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
       categories = managersMedicalRecord.getAllCategories(myMedicalRecords);
       filteredRecords = _filterRecords(records, selectedCategory);
       usedStorage = totalMB;
-      maxStorage = ManagersMedicalRecord.maxMemory;
+      maxStorage = ManagersMedicalRecord.maxMemory / 1024;
       isLoading = false;
     });
   }
@@ -66,11 +72,11 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final size = MediaQuery.of(context).size;
-    ManagersMedicalRecord managersMedicalRecord = ManagersMedicalRecord(
-      uid: widget.userData.uid,
-      name: widget.userData.name,
-      medicalRecords: widget.userData.medicalRecords,
-    );
+    // ManagersMedicalRecord managersMedicalRecord = ManagersMedicalRecord(
+    //   uid: widget.userData.uid,
+    //   name: widget.userData.name,
+    //   medicalRecords: widget.userData.medicalRecords,
+    // );
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomPadding + 60),
@@ -131,7 +137,6 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: _buildStorageIndicator(
-                          managersMedicalRecord: managersMedicalRecord,
                           medicalRecords: myMedicalRecords,
                         ),
                       ),
@@ -225,6 +230,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     selectedCategory = categories[index];
                     _loadMedicalRecords(managersMedicalRecord);
                   }),
+              backgroundColor: Colors.white,
               selectedColor: Colors.green[100],
               labelStyle: TextStyle(
                 color:
@@ -237,13 +243,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     );
   }
 
-  Widget _buildStorageIndicator({
-    required ManagersMedicalRecord managersMedicalRecord,
-    required List<MedicalRecord> medicalRecords,
-  }) {
+  Widget _buildStorageIndicator({required List<MedicalRecord> medicalRecords}) {
     final double usedPercentage = usedStorage / maxStorage;
-    final double usedInMo = usedStorage / 1024;
-    final double maxInMo = maxStorage / 1024;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -291,7 +292,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       ),
                     ),
                     Text(
-                      '${usedInMo.toStringAsFixed(1)} Mo / ${maxInMo.toStringAsFixed(1)} Mo',
+                      '${usedStorage.toStringAsFixed(1)} Mo / ${maxStorage.toStringAsFixed(1)} Mo',
                       style: GoogleFonts.poppins(
                         color: Colors.green[800],
                         fontWeight: FontWeight.w600,
@@ -309,7 +310,6 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   child: IconButton(
                     onPressed: () {
                       _showAddMedicalRecordModal(
-                        managersMedicalRecord: managersMedicalRecord,
                         medicalRecords: medicalRecords,
                       );
                     },
@@ -386,7 +386,6 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   }
 
   void _showAddMedicalRecordModal({
-    required ManagersMedicalRecord managersMedicalRecord,
     required List<MedicalRecord> medicalRecords,
   }) {
     final titleController = TextEditingController();
@@ -394,6 +393,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     final formKey = GlobalKey<FormState>();
     bool isError = false;
     String error = '';
+    bool _isLoading = false;
 
     showModalBottomSheet(
       context: context,
@@ -483,21 +483,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                           )
                           : const SizedBox.shrink(),
                       const SizedBox(height: 10),
+
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton.icon(
-                          icon: const Icon(
-                            Iconsax.add,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                          label: Text(
-                            'Create the medical record',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
-                            ),
-                          ),
+                        child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF00C853),
                             padding: const EdgeInsets.symmetric(vertical: 20),
@@ -509,11 +498,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                             if (formKey.currentState!.validate()) {
                               String title = titleController.text.trim();
                               String category = categoryController.text.trim();
-
                               String exist = await managersMedicalRecord
-                                  .checkMedicalRecord(title, medicalRecords);
+                                  .checkCanAddMedicalRecord(
+                                    title,
+                                    medicalRecords,
+                                  );
                               if (exist == 'Success') {
                                 showDialog(
+                                  barrierDismissible: false,
                                   context: context,
                                   builder:
                                       (context) => Dialog(
@@ -522,93 +514,131 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                             20,
                                           ),
                                         ),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(24),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topCenter,
-                                              end: Alignment.bottomCenter,
-                                              colors: [
-                                                Color(0xFFF5F7FB),
-                                                Colors.white,
-                                              ],
-                                            ),
-                                          ),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                Iconsax.info_circle,
-                                                size: 40,
-                                                color: Color(0xFF00C853),
-                                              ),
-                                              const SizedBox(height: 16),
-                                              Text(
-                                                "Do you want to create the",
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.w600,
+                                        child: StatefulBuilder(
+                                          builder: (
+                                            BuildContext context,
+                                            StateSetter setModalStateDialog,
+                                          ) {
+                                            return Container(
+                                              padding: const EdgeInsets.all(24),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topCenter,
+                                                  end: Alignment.bottomCenter,
+                                                  colors: [
+                                                    Color(0xFFF5F7FB),
+                                                    Colors.white,
+                                                  ],
                                                 ),
                                               ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                "Medical Record: $title ?",
-                                                textAlign: TextAlign.center,
-                                                style: GoogleFonts.poppins(),
-                                              ),
-                                              const SizedBox(height: 24),
-                                              Row(
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  Expanded(
-                                                    child: TextButton(
-                                                      child: const Text(
-                                                        "Cancel",
-                                                      ),
-                                                      onPressed:
-                                                          () => Navigator.pop(
-                                                            context,
-                                                          ),
+                                                  const Icon(
+                                                    Iconsax.info_circle,
+                                                    size: 40,
+                                                    color: Color(0xFF00C853),
+                                                  ),
+                                                  const SizedBox(height: 16),
+                                                  Text(
+                                                    "Do you want to create the",
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                     ),
                                                   ),
-                                                  const SizedBox(width: 16),
-                                                  Expanded(
-                                                    child: ElevatedButton(
-                                                      style:
-                                                          ElevatedButton.styleFrom(
-                                                            backgroundColor:
-                                                                const Color(
-                                                                  0xFF00C853,
-                                                                ),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    "Medical Record: $title ?",
+                                                    textAlign: TextAlign.center,
+                                                    style:
+                                                        GoogleFonts.poppins(),
+                                                  ),
+                                                  const SizedBox(height: 24),
+                                                  Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: TextButton(
+                                                          child: const Text(
+                                                            "Cancel",
                                                           ),
-                                                      child: const Text(
-                                                        "Confirm",
-                                                        style: TextStyle(
-                                                          color: Colors.white,
+                                                          onPressed: () {
+                                                            if (!_isLoading) {
+                                                              Navigator.pop(
+                                                                context,
+                                                              );
+                                                            }
+                                                          },
                                                         ),
                                                       ),
-                                                      onPressed: () async {
-                                                        await managersMedicalRecord
-                                                            .addMedicalRecord(
-                                                              title,
-                                                              category,
+                                                      const SizedBox(width: 16),
+                                                      Expanded(
+                                                        child: ElevatedButton(
+                                                          style:
+                                                              ElevatedButton.styleFrom(
+                                                                backgroundColor:
+                                                                    const Color(
+                                                                      0xFF00C853,
+                                                                    ),
+                                                              ),
+                                                          child:
+                                                              _isLoading
+                                                                  ? const CircularProgressIndicator(
+                                                                    color:
+                                                                        Colors
+                                                                            .white,
+                                                                    strokeWidth:
+                                                                        2,
+                                                                  )
+                                                                  : const Text(
+                                                                    "Confirm",
+                                                                    style: TextStyle(
+                                                                      color:
+                                                                          Colors
+                                                                              .white,
+                                                                    ),
+                                                                  ),
+                                                          onPressed: () async {
+                                                            setModalStateDialog(
+                                                              () =>
+                                                                  _isLoading =
+                                                                      true,
                                                             );
-                                                        _loadMedicalRecords(
-                                                          managersMedicalRecord,
-                                                        );
-                                                        Navigator.pop(context);
-                                                        Navigator.pop(
-                                                          contextParent,
-                                                        );
-                                                      },
-                                                    ),
+                                                            await managersMedicalRecord
+                                                                .addMedicalRecord(
+                                                                  title,
+                                                                  category,
+                                                                );
+                                                            setModalStateDialog(
+                                                              () =>
+                                                                  _isLoading =
+                                                                      false,
+                                                            );
+
+                                                            setState(() {
+                                                              _loadMedicalRecords(
+                                                                managersMedicalRecord,
+                                                              );
+                                                            });
+
+                                                            Navigator.pop(
+                                                              context,
+                                                            );
+                                                            Navigator.pop(
+                                                              contextParent,
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ],
                                               ),
-                                            ],
-                                          ),
+                                            );
+                                          },
                                         ),
                                       ),
                                 );
@@ -620,6 +650,13 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                               }
                             }
                           },
+                          child: Text(
+                            'Create the medical record',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -664,13 +701,11 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
 
   Widget _buildMedicalRecordCard(MedicalRecord record) {
     final totalSizeMB = record.totalSizeInKo / 1024;
-    final progressValue = totalSizeMB / 50;
-    final fileCount = record.medicalFiles.length;
+    final progressValue = (totalSizeMB / 50) * myMedicalRecords.length;
 
     return GestureDetector(
       onTap: () => _showMedicalRecordInfosModal(medicalRecord: record),
       child: Container(
-        width: 280,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -682,20 +717,24 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             ),
           ],
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 120,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00C853).withOpacity(0.1),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(20),
-                  ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 100,
+              decoration: BoxDecoration(
+                color: const Color(0xFF00C853).withOpacity(0.1),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
                 ),
-                padding: const EdgeInsets.all(16),
+              ),
+              padding: const EdgeInsets.only(
+                top: 8,
+                bottom: 0,
+                right: 16,
+                left: 16,
+              ),
+              child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -705,6 +744,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         Flexible(
                           child: Text(
                             record.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
@@ -737,76 +778,84 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   ],
                 ),
               ),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Fichiers récents :',
+            ),
+            SizedBox(
+              height: 50,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    record.medicalFiles.isNotEmpty
+                        ? Text(
+                          '+ ${record.medicalFiles.length} files...',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                             color: Colors.grey.shade600,
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        ...record.medicalFiles
-                            .take(2)
-                            .map(
-                              (file) => Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Iconsax.document,
-                                      color: Colors.green.shade400,
-                                      size: 14,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Flexible(
-                                      child: Text(
-                                        '${file.title} (${(file.fileSize / 1024).toStringAsFixed(1)} Ko)',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 12,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      DateFormat(
-                                        'dd/MM',
-                                      ).format(file.createdAt),
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 10,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        if (fileCount > 2)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              '+ ${fileCount - 2} autres...',
-                              style: GoogleFonts.poppins(
-                                fontSize: 10,
-                                color: Colors.grey,
-                              ),
+                        )
+                        : Center(
+                          child: Text(
+                            'Aucun Fichiers',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey.shade600,
                             ),
                           ),
-                      ],
-                    ),
-                  ),
+                        ),
+                    // const SizedBox(height: 8),
+                    // ...record.medicalFiles
+                    //     .take(1)
+                    //     .map(
+                    //       (file) => Padding(
+                    //         padding: const EdgeInsets.only(bottom: 4),
+                    //         child: Row(
+                    //           children: [
+                    //             Icon(
+                    //               Iconsax.document,
+                    //               color: Colors.green.shade400,
+                    //               size: 14,
+                    //             ),
+                    //             const SizedBox(width: 8),
+                    //             Flexible(
+                    //               child: Text(
+                    //                 '${file.title} (${file.FSize} Ko)',
+                    //                 style: GoogleFonts.poppins(fontSize: 12),
+                    //                 overflow: TextOverflow.ellipsis,
+                    //               ),
+                    //             ),
+                    //             const SizedBox(width: 8),
+                    //             Text(
+                    //               DateFormat('dd/MM').format(
+                    //                 record.medicalFiles.last.createdAt,
+                    //               ),
+                    //               style: GoogleFonts.poppins(
+                    //                 fontSize: 10,
+                    //                 color: Colors.grey,
+                    //               ),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       ),
+                    //     ),
+                    // if (record.medicalFiles.length > 2)
+                    //   Padding(
+                    //     padding: const EdgeInsets.only(top: 4),
+                    //     child: Text(
+                    //       '+ ${record.medicalFiles.length - 1} autres...',
+                    //       style: GoogleFonts.poppins(
+                    //         fontSize: 10,
+                    //         color: Colors.grey,
+                    //       ),
+                    //     ),
+                    //   ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -835,6 +884,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
 
   void _showMedicalRecordInfosModal({required MedicalRecord medicalRecord}) {
     final totalSizeMB = medicalRecord.totalSizeInKo / 1024;
+    bool _isDeletingMedicalRecord = false;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -842,11 +892,11 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
-      builder: (BuildContext context) {
+      builder: (BuildContext contextParent) {
         final screenHeight = MediaQuery.of(context).size.height;
         final maxModalHeight = screenHeight * .95;
         return Container(
-          width: MediaQuery.of(context).size.width,
+          width: MediaQuery.of(contextParent).size.width,
           height: maxModalHeight,
           constraints: BoxConstraints(maxHeight: maxModalHeight),
           decoration: const BoxDecoration(
@@ -857,7 +907,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             ),
           ),
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 30,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 75,
             left: 24,
             right: 24,
             top: 24,
@@ -882,21 +932,142 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 Row(
                   children: [
                     Icon(Iconsax.folder, color: Color(0xFF00C853), size: 28),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Détails du dossier',
+                            'Medical Record details',
                             style: GoogleFonts.poppins(
-                              fontSize: 22,
+                              fontSize: 20,
                               fontWeight: FontWeight.w600,
                               color: Colors.black87,
                             ),
                           ),
                           IconButton(
-                            onPressed: () {},
+                            onPressed: () async {
+                              showDialog(
+                                barrierDismissible: false,
+                                context: context,
+                                builder:
+                                    (context) => Dialog(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: StatefulBuilder(
+                                        builder: (
+                                          BuildContext context,
+                                          StateSetter setModalState,
+                                        ) {
+                                          return Container(
+                                            padding: const EdgeInsets.all(24),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              gradient: LinearGradient(
+                                                begin: Alignment.topCenter,
+                                                end: Alignment.bottomCenter,
+                                                colors: [
+                                                  Color(0xFFF5F7FB),
+                                                  Colors.white,
+                                                ],
+                                              ),
+                                            ),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  Iconsax.info_circle,
+                                                  size: 40,
+                                                  color: Colors.red,
+                                                ),
+                                                const SizedBox(height: 16),
+                                                Text(
+                                                  "Do you really wand to delete the Medical Record ${medicalRecord.title} ?",
+                                                ),
+                                                const SizedBox(height: 24),
+                                                Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: TextButton(
+                                                        child: const Text(
+                                                          "Cancel",
+                                                        ),
+                                                        onPressed: () {
+                                                          if (!_isDeletingMedicalRecord) {
+                                                            Navigator.pop(
+                                                              context,
+                                                            );
+                                                          }
+                                                        },
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 16),
+                                                    Expanded(
+                                                      child: ElevatedButton(
+                                                        style:
+                                                            ElevatedButton.styleFrom(
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                            ),
+                                                        child:
+                                                            _isDeletingMedicalRecord
+                                                                ? const CircularProgressIndicator(
+                                                                  color:
+                                                                      Colors
+                                                                          .white,
+                                                                  strokeWidth:
+                                                                      2,
+                                                                )
+                                                                : const Text(
+                                                                  "Confirm",
+                                                                  style: TextStyle(
+                                                                    color:
+                                                                        Colors
+                                                                            .white,
+                                                                  ),
+                                                                ),
+                                                        onPressed: () async {
+                                                          setModalState(() {
+                                                            _isDeletingMedicalRecord =
+                                                                true;
+                                                          });
+
+                                                          await managersMedicalRecord
+                                                              .removeMedicalRecord(
+                                                                medicalRecord,
+                                                              );
+
+                                                          setState(() {
+                                                            _loadMedicalRecords(
+                                                              managersMedicalRecord,
+                                                            );
+                                                          });
+                                                          setModalState(() {
+                                                            _isDeletingMedicalRecord =
+                                                                false;
+                                                          });
+
+                                                          Navigator.pop(
+                                                            context,
+                                                          );
+                                                          Navigator.pop(
+                                                            contextParent,
+                                                          );
+                                                        },
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                              );
+                            },
                             icon: Icon(Iconsax.card_remove, color: Colors.red),
                           ),
                         ],
@@ -969,8 +1140,18 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       ),
                       onPressed: () {
                         _showAddMedicalFileModal(
-                          medicalRecords: myMedicalRecords,
-                          managersMedicalRecord: managersMedicalRecord,
+                          medicalRecord: medicalRecord,
+                          onFileAdded: () {
+                            _loadMedicalRecords(managersMedicalRecord);
+                            setState(() {});
+
+                            Future.delayed(Duration(milliseconds: 10), () {
+                              _showMedicalRecordInfosModal(
+                                medicalRecord: medicalRecord,
+                              );
+                            });
+                            Navigator.pop(context);
+                          },
                         );
                       },
                     ),
@@ -982,7 +1163,18 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 medicalRecord.medicalFiles.isEmpty
                     ? _buildEmptyStateMedicalFile()
                     : _buildDocumentsList(
+                      medicalRecord: medicalRecord,
                       medicalFiles: medicalRecord.medicalFiles,
+                      onFileAdded: () {
+                        _loadMedicalRecords(managersMedicalRecord);
+                        setState(() {});
+                        Future.delayed(Duration(milliseconds: 10), () {
+                          _showMedicalRecordInfosModal(
+                            medicalRecord: medicalRecord,
+                          );
+                        });
+                        Navigator.pop(context);
+                      },
                     ),
               ],
             ),
@@ -1048,18 +1240,33 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     );
   }
 
-  Widget _buildDocumentsList({required List<MedicalFile> medicalFiles}) {
+  Widget _buildDocumentsList({
+    required MedicalRecord medicalRecord,
+    required List<MedicalFile> medicalFiles,
+    required VoidCallback onFileAdded,
+  }) {
     return ListView.separated(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       itemCount: medicalFiles.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, index) => _buildDocumentCard(medicalFiles[index]),
+      itemBuilder:
+          (_, index) => _buildDocumentCard(
+            medicalRecord: medicalRecord,
+            medicalFile: medicalFiles[index],
+            onFileAdded: onFileAdded,
+          ),
     );
   }
 
-  Widget _buildDocumentCard(MedicalFile medicalFile) {
+  Widget _buildDocumentCard({
+    required MedicalRecord medicalRecord,
+    required MedicalFile medicalFile,
+    required VoidCallback onFileAdded,
+  }) {
+    bool _isDeletingMedicalFile = false;
     return Card(
+      color: Colors.white,
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: ListTile(
@@ -1082,44 +1289,524 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Text(
-            //   '${medicalFile.type} • ${medicalFile.formattedDate}',
-            //   style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            // ),
             Text(
-              '${medicalFile.fileSize / 1024} Ko',
+              '${medicalRecord.category} • ${medicalFile.formattedDate}',
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            ),
+            Text(
+              '${medicalFile.FSize} Ko',
               style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
           ],
         ),
         trailing: PopupMenuButton(
+          color: Colors.white,
           itemBuilder:
               (context) => [
                 PopupMenuItem(
                   child: ListTile(
                     leading: const Icon(Icons.remove_red_eye),
-                    title: Text('Prévisualiser'),
-                    onTap: () {},
+                    title: Text('Preview'),
+                    onTap: () {
+                      Navigator.pop(context); // Ferme le menu
+                      previewFile(
+                        context,
+                        medicalFile.fileUrl,
+                        medicalFile.fileType,
+                      );
+                    },
                   ),
                 ),
+
                 PopupMenuItem(
                   child: ListTile(
-                    leading: const Icon(Icons.share),
-                    title: Text('Partager'),
-                    onTap: () {},
+                    leading: Icon(Icons.move_down, color: Colors.blue[800]),
+                    title: Text(
+                      'Move to Folder',
+                      style: TextStyle(color: Colors.blue[800]),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.white,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(25),
+                          ),
+                        ),
+                        builder: (BuildContext contextParent) {
+                          final currentFolder = medicalRecord;
+                          final availableFolders =
+                              myMedicalRecords
+                                  .where((f) => f != currentFolder)
+                                  .toList();
+
+                          return GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              height: MediaQuery.of(context).size.height * .5,
+                              color: Color(0x66000000),
+                              child: GestureDetector(
+                                onTap: () {},
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(0),
+                                    ),
+                                  ),
+                                  padding: EdgeInsets.only(
+                                    top: 24,
+                                    bottom:
+                                        MediaQuery.of(
+                                          context,
+                                        ).viewInsets.bottom +
+                                        75,
+                                    right: 24,
+                                    left: 24,
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 48,
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[300],
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: 24),
+
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Iconsax.folder,
+                                            color: Color(0xFF00C853),
+                                            size: 28,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  'Select Destination Folder',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.black87,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 16),
+
+                                      Expanded(
+                                        child: GridView.builder(
+                                          shrinkWrap: true,
+                                          physics:
+                                              const ClampingScrollPhysics(),
+                                          itemCount: availableFolders.length,
+                                          gridDelegate:
+                                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                                crossAxisCount: 2,
+                                                mainAxisSpacing: 8,
+                                                crossAxisSpacing: 8,
+                                                childAspectRatio: 1,
+                                              ),
+                                          itemBuilder: (context, index) {
+                                            final folder =
+                                                availableFolders[index];
+                                            return _buildMedicalRecordCardMove(
+                                              record: folder,
+                                              medicalRecordOld: medicalRecord,
+                                              medicalFile: medicalFile,
+                                              onFileAdded: onFileAdded,
+                                              contextParent: contextParent,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
+
+                PopupMenuItem(
+                  child: ListTile(
+                    leading: const Icon(Icons.download),
+                    title: Text('Download'),
+                    onTap: () async {
+                      Navigator.pop(context); // Ferme le popup
+                      await _downloadFile(
+                        medicalRecord: medicalRecord,
+                        medicalFile: medicalFile,
+                      );
+                    },
+                  ),
+                ),
+
                 PopupMenuItem(
                   child: ListTile(
                     leading: const Icon(Icons.delete, color: Colors.red),
-                    title: Text(
-                      'Supprimer',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                    onTap: () {},
+                    title: Text('Delete', style: TextStyle(color: Colors.red)),
+                    onTap: () {
+                      Navigator.pop(context); // Ferme le menu
+                      Future.delayed(Duration.zero, () {
+                        showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder:
+                              (context) => Dialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: StatefulBuilder(
+                                  builder: (
+                                    BuildContext context,
+                                    StateSetter setModalState,
+                                  ) {
+                                    return Container(
+                                      padding: const EdgeInsets.all(24),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Color(0xFFF5F7FB),
+                                            Colors.white,
+                                          ],
+                                        ),
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Iconsax.info_circle,
+                                            size: 40,
+                                            color: Colors.red,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            "Do you really want to delete the Medical File ${medicalFile.title}?",
+                                          ),
+                                          const SizedBox(height: 24),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: TextButton(
+                                                  child: const Text("Cancel"),
+                                                  onPressed: () {
+                                                    if (!_isDeletingMedicalFile) {
+                                                      Navigator.pop(context);
+                                                    }
+                                                  },
+                                                ),
+                                              ),
+                                              const SizedBox(width: 16),
+                                              Expanded(
+                                                child: ElevatedButton(
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                        backgroundColor:
+                                                            Colors.red,
+                                                      ),
+                                                  child:
+                                                      _isDeletingMedicalFile
+                                                          ? const CircularProgressIndicator(
+                                                            color: Colors.white,
+                                                            strokeWidth: 2,
+                                                          )
+                                                          : const Text(
+                                                            "Confirm",
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                          ),
+                                                  onPressed: () async {
+                                                    setModalState(() {
+                                                      _isDeletingMedicalFile =
+                                                          true;
+                                                    });
+
+                                                    await managersMedicalRecord
+                                                        .removeMedicalFile(
+                                                          medicalRecord,
+                                                          medicalFile,
+                                                        );
+
+                                                    setModalState(() {
+                                                      _isDeletingMedicalFile =
+                                                          false;
+                                                    });
+
+                                                    onFileAdded();
+                                                    Navigator.pop(context);
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                        );
+                      });
+                    },
                   ),
                 ),
               ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMedicalRecordCardMove({
+    required MedicalRecord record,
+    required MedicalRecord medicalRecordOld,
+    required MedicalFile medicalFile,
+    required VoidCallback onFileAdded,
+    required BuildContext contextParent,
+  }) {
+    final totalSizeMB = record.totalSizeInKo / 1024;
+    final progressValue = (totalSizeMB / 50) * myMedicalRecords.length;
+    bool _isLoading = false;
+
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder:
+              (context) => Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: StatefulBuilder(
+                  builder: (
+                    BuildContext context,
+                    StateSetter setModalStateDialog,
+                  ) {
+                    return Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFFF5F7FB), Colors.white],
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Iconsax.info_circle,
+                            size: 40,
+                            color: Color(0xFF00C853),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "Do you want to move",
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "The Medical File: ${medicalFile.title} to ${record.title} ?",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(),
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextButton(
+                                  child: const Text("Cancel"),
+                                  onPressed: () {
+                                    if (!_isLoading) {
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF00C853),
+                                  ),
+                                  child:
+                                      _isLoading
+                                          ? const CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          )
+                                          : const Text(
+                                            "Confirm",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                  onPressed: () async {
+                                    setModalStateDialog(
+                                      () => _isLoading = true,
+                                    );
+                                    await managersMedicalRecord.moveMedicalFile(
+                                      medicalFile,
+                                      medicalRecordOld,
+                                      record.id,
+                                      record.title,
+                                    );
+
+                                    setModalStateDialog(
+                                      () => _isLoading = false,
+                                    );
+                                    onFileAdded();
+                                    Navigator.pop(context);
+                                    Navigator.pop(contextParent);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 100,
+              decoration: BoxDecoration(
+                color: const Color(0xFF00C853).withOpacity(0.1),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
+              ),
+              padding: const EdgeInsets.only(
+                top: 8,
+                bottom: 0,
+                right: 16,
+                left: 16,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            record.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              color: const Color(0xFF00C853),
+                            ),
+                          ),
+                        ),
+                        _buildRecordStatus(record),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: progressValue,
+                      backgroundColor: Colors.grey[200],
+                      color:
+                          progressValue > 0.9
+                              ? Colors.red
+                              : const Color(0xFF00C853),
+                      minHeight: 8,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${totalSizeMB.toStringAsFixed(1)} Mo',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 50,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    record.medicalFiles.isNotEmpty
+                        ? Text(
+                          '+ ${record.medicalFiles.length} files...',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey.shade600,
+                          ),
+                        )
+                        : Center(
+                          child: Text(
+                            'Aucun Fichiers',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1130,13 +1817,22 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
 
     if (lower == 'pdf') {
       return Colors.red[400]!;
-    } else if (lower == '.png' ||
-        lower == 'jpg' ||
-        lower == 'jpeg' ||
-        lower == 'webp' ||
-        lower == 'bmp' ||
-        lower == 'gif') {
+    } else if ([
+      'jpg',
+      'jpeg',
+      'png',
+      'bmp',
+      'tiff',
+      'gif',
+      'webp',
+    ].contains(lower)) {
       return Colors.green[400]!;
+    } else if (['doc', 'docx', 'txt'].contains(lower)) {
+      return Colors.orange[400]!;
+    } else if (['xls', 'xlsx', 'csv'].contains(lower)) {
+      return Colors.teal[400]!;
+    } else if (lower == 'dcm') {
+      return Colors.purple[400]!;
     } else {
       return Colors.blue[400]!;
     }
@@ -1147,26 +1843,36 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
 
     if (lower == 'pdf') {
       return Icons.picture_as_pdf;
-    } else if (lower == 'png' ||
-        lower == 'jpg' ||
-        lower == 'jpeg' ||
-        lower == 'webp' ||
-        lower == 'bmp' ||
-        lower == 'gif') {
+    } else if ([
+      'jpg',
+      'jpeg',
+      'png',
+      'bmp',
+      'tiff',
+      'gif',
+      'webp',
+    ].contains(lower)) {
       return Icons.image;
+    } else if (['doc', 'docx', 'txt'].contains(lower)) {
+      return Icons.description;
+    } else if (['xls', 'xlsx', 'csv'].contains(lower)) {
+      return Icons.table_chart;
+    } else if (lower == 'dcm') {
+      return Icons.medical_information;
     } else {
       return Icons.insert_drive_file;
     }
   }
 
   void _showAddMedicalFileModal({
-    required ManagersMedicalRecord managersMedicalRecord,
-    required List<MedicalRecord> medicalRecords,
+    required MedicalRecord medicalRecord,
+    required VoidCallback onFileAdded,
   }) {
     final titleController = TextEditingController();
     final formKey = GlobalKey<FormState>();
     bool isError = false;
     String error = '';
+    bool _isLoading = false;
 
     showModalBottomSheet(
       context: context,
@@ -1239,15 +1945,40 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                             (value) => value!.isEmpty ? 'Required field' : null,
                       ),
                       const SizedBox(height: 20),
-                      _buildFileUploadSection(
-                        medicalFile: MedicalFile(
-                          title: 'title',
-                          fileType: '',
-                          fileUrl: '',
-                          fileSize: 0,
-                          createdAt: DateTime.now(),
+                      if (selectedFile != null)
+                        Center(
+                          child:
+                              isPickingFile
+                                  ? const CircularProgressIndicator()
+                                  : selectedFile != null
+                                  ? Text(
+                                    'Fichier sélectionné: ${selectedFile!.path.split('/').last}',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 14,
+                                    ),
+                                  )
+                                  : const SizedBox.shrink(),
+                        ),
+
+                      const SizedBox(height: 10),
+                      Center(
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.upload_rounded),
+                          label: const Text('Import a file'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () => _pickFile(setModalState),
                         ),
                       ),
+
                       const SizedBox(height: 10),
                       isError
                           ? Center(
@@ -1258,21 +1989,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                           )
                           : const SizedBox.shrink(),
                       const SizedBox(height: 10),
+
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton.icon(
-                          icon: const Icon(
-                            Iconsax.add,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                          label: Text(
-                            'Create the medical record',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
-                            ),
-                          ),
+                        child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF00C853),
                             padding: const EdgeInsets.symmetric(vertical: 20),
@@ -1283,117 +2003,196 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                           onPressed: () async {
                             if (formKey.currentState!.validate()) {
                               String title = titleController.text.trim();
-
-                              String exist = await managersMedicalRecord
-                                  .checkMedicalRecord(title, medicalRecords);
-                              if (exist == 'Success') {
-                                showDialog(
-                                  context: context,
-                                  builder:
-                                      (context) => Dialog(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                        ),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(24),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              20,
+                              if (selectedFile != null && fileType != null) {
+                                String exist = managersMedicalRecord
+                                    .checkCanAddMedicalFile(
+                                      medicalRecord,
+                                      title,
+                                    );
+                                if (exist == 'Success') {
+                                  String canAdd = await managersMedicalRecord
+                                      .checkCanAddFile(
+                                        selectedFile!,
+                                        myMedicalRecords,
+                                      );
+                                  if (canAdd == 'Success') {
+                                    showDialog(
+                                      barrierDismissible: false,
+                                      context: context,
+                                      builder:
+                                          (context) => Dialog(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
                                             ),
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topCenter,
-                                              end: Alignment.bottomCenter,
-                                              colors: [
-                                                Color(0xFFF5F7FB),
-                                                Colors.white,
-                                              ],
-                                            ),
-                                          ),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                Iconsax.info_circle,
-                                                size: 40,
-                                                color: Color(0xFF00C853),
-                                              ),
-                                              const SizedBox(height: 16),
-                                              Text(
-                                                "Do you want to create the",
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                "Medical Record: $title ?",
-                                                textAlign: TextAlign.center,
-                                                style: GoogleFonts.poppins(),
-                                              ),
-                                              const SizedBox(height: 24),
-                                              Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: TextButton(
-                                                      child: const Text(
-                                                        "Cancel",
-                                                      ),
-                                                      onPressed:
-                                                          () => Navigator.pop(
-                                                            context,
-                                                          ),
+                                            child: StatefulBuilder(
+                                              builder: (
+                                                BuildContext context,
+                                                StateSetter setModalStateDialog,
+                                              ) {
+                                                return Container(
+                                                  padding: const EdgeInsets.all(
+                                                    24,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          20,
+                                                        ),
+                                                    gradient: LinearGradient(
+                                                      begin:
+                                                          Alignment.topCenter,
+                                                      end:
+                                                          Alignment
+                                                              .bottomCenter,
+                                                      colors: [
+                                                        Color(0xFFF5F7FB),
+                                                        Colors.white,
+                                                      ],
                                                     ),
                                                   ),
-                                                  const SizedBox(width: 16),
-                                                  Expanded(
-                                                    child: ElevatedButton(
-                                                      style:
-                                                          ElevatedButton.styleFrom(
-                                                            backgroundColor:
-                                                                const Color(
-                                                                  0xFF00C853,
-                                                                ),
-                                                          ),
-                                                      child: const Text(
-                                                        "Confirm",
-                                                        style: TextStyle(
-                                                          color: Colors.white,
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      const Icon(
+                                                        Iconsax.info_circle,
+                                                        size: 40,
+                                                        color: Color(
+                                                          0xFF00C853,
                                                         ),
                                                       ),
-                                                      onPressed: () async {
-                                                        // await managersMedicalRecord
-                                                        //     .addMedicalRecord(
-                                                        //       title,
-                                                        //       category,
-                                                        //     );
-                                                        _loadMedicalRecords(
-                                                          managersMedicalRecord,
-                                                        );
-                                                        Navigator.pop(context);
-                                                        Navigator.pop(
-                                                          contextParent,
-                                                        );
-                                                      },
-                                                    ),
+                                                      const SizedBox(
+                                                        height: 16,
+                                                      ),
+                                                      Text(
+                                                        "Do you want to add the",
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                              fontSize: 18,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                            ),
+                                                      ),
+                                                      const SizedBox(height: 8),
+                                                      Text(
+                                                        "Medical File: $title ?",
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style:
+                                                            GoogleFonts.poppins(),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 24,
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          Expanded(
+                                                            child: TextButton(
+                                                              child: const Text(
+                                                                "Cancel",
+                                                              ),
+                                                              onPressed: () {
+                                                                if (!_isLoading) {
+                                                                  Navigator.pop(
+                                                                    context,
+                                                                  );
+                                                                }
+                                                              },
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 16,
+                                                          ),
+                                                          Expanded(
+                                                            child: ElevatedButton(
+                                                              style: ElevatedButton.styleFrom(
+                                                                backgroundColor:
+                                                                    const Color(
+                                                                      0xFF00C853,
+                                                                    ),
+                                                              ),
+                                                              child:
+                                                                  _isLoading
+                                                                      ? const CircularProgressIndicator(
+                                                                        color:
+                                                                            Colors.white,
+                                                                        strokeWidth:
+                                                                            2,
+                                                                      )
+                                                                      : const Text(
+                                                                        "Confirm",
+                                                                        style: TextStyle(
+                                                                          color:
+                                                                              Colors.white,
+                                                                        ),
+                                                                      ),
+                                                              onPressed: () async {
+                                                                setModalStateDialog(
+                                                                  () =>
+                                                                      _isLoading =
+                                                                          true,
+                                                                );
+                                                                await managersMedicalRecord
+                                                                    .addMedicalFile(
+                                                                      medicalRecord,
+                                                                      title,
+                                                                      fileType!,
+                                                                      selectedFile!,
+                                                                    );
+
+                                                                setModalStateDialog(
+                                                                  () =>
+                                                                      _isLoading =
+                                                                          false,
+                                                                );
+                                                                onFileAdded();
+                                                                Navigator.pop(
+                                                                  context,
+                                                                );
+                                                                Navigator.pop(
+                                                                  contextParent,
+                                                                );
+                                                              },
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
                                                   ),
-                                                ],
-                                              ),
-                                            ],
+                                                );
+                                              },
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                );
+                                    );
+                                  } else {
+                                    setModalState(() {
+                                      error = canAdd;
+                                      isError = true;
+                                    });
+                                  }
+                                } else {
+                                  setModalState(() {
+                                    error = exist;
+                                    isError = true;
+                                  });
+                                }
                               } else {
                                 setModalState(() {
-                                  error = exist;
+                                  error = "Please select a valid file";
                                   isError = true;
                                 });
                               }
                             }
                           },
+                          child: Text(
+                            'Add the medical file',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -1407,50 +2206,35 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     );
   }
 
-  File? _selectedFile;
-  String? _fileType;
-  Widget _buildFileUploadSection({required MedicalFile medicalFile}) {
-    return Center(
-      child: Column(
-        children: [
-          if (_selectedFile != null) ...[
-            _buildFilePreview(medicalFile),
-            const SizedBox(height: 15),
-          ],
-          ElevatedButton.icon(
-            icon: const Icon(Icons.upload_rounded),
-            label: const Text('Import a file'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: _pickFile,
-          ),
-          if (_selectedFile != null)
-            Text(
-              'Fichier sélectionné: ${_selectedFile!.path.split('/').last}',
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _pickFile() async {
+  Future<void> _pickFile(StateSetter setModalState) async {
     try {
+      setModalState(() => isPickingFile = true);
+
       final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+        allowedExtensions: [
+          'pdf',
+          'doc',
+          'docx',
+          'txt',
+          'jpg',
+          'jpeg',
+          'png',
+          'bmp',
+          'tiff',
+          'dcm',
+          'xls',
+          'xlsx',
+          'csv',
+        ],
       );
 
       if (result != null && result.files.isNotEmpty) {
         final PlatformFile file = result.files.first;
         if (file.path != null) {
           setState(() {
-            _selectedFile = File(file.path!);
-            _fileType = file.extension;
+            selectedFile = File(file.path!);
+            fileType = file.extension;
           });
         }
       }
@@ -1458,131 +2242,134 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Erreur de sélection: $e')));
+    } finally {
+      setModalState(() => isPickingFile = false);
     }
   }
 
-  Widget _buildFilePreview(MedicalFile medicalFile) {
-    return switch (medicalFile.fileType.toLowerCase()) {
-      'pdf' => PdfViewerWidget(url: medicalFile.fileUrl),
-      'image' => InteractiveViewer(
-        minScale: 0.5,
-        maxScale: 5,
-        child: Image.network(
-          medicalFile.fileUrl,
-          loadingBuilder: (context, child, progress) {
-            if (progress == null) return child;
-            return Container(
-              height: 300,
-              alignment: Alignment.center,
-              child: CircularProgressIndicator(
-                value:
-                    progress.cumulativeBytesLoaded /
-                    (progress.expectedTotalBytes ?? 1),
-              ),
-            );
-          },
-          errorBuilder:
-              (context, error, stackTrace) => _ErrorPlaceholder(
-                message: 'Erreur de chargement',
-                icon: Icons.image_not_supported_rounded,
+  void previewFile(BuildContext context, String url, String extension) async {
+    if (['jpg', 'jpeg', 'png', 'bmp', 'tiff'].contains(extension)) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (_) => Scaffold(
+                appBar: AppBar(title: Text("Image Preview")),
+                body: PhotoView(imageProvider: NetworkImage(url)),
               ),
         ),
-      ),
-      _ => _ErrorPlaceholder(
-        message: 'Aperçu non disponible',
-        icon: Icons.visibility_off_rounded,
-      ),
-    };
+      );
+    } else if (extension == 'pdf') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => PDFViewerPage(url: url)),
+      );
+    } else if ([
+      'doc',
+      'docx',
+      'xls',
+      'xlsx',
+      'csv',
+      'txt',
+      'dcm',
+    ].contains(extension)) {
+      // Redirection vers Google Docs Viewer
+      final viewerUrl = 'https://docs.google.com/viewer?url=$url';
+      if (await canLaunchUrl(Uri.parse(viewerUrl))) {
+        await launchUrl(
+          Uri.parse(viewerUrl),
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Impossible d’ouvrir le fichier.')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Type de fichier non pris en charge.')),
+      );
+    }
+  }
+
+  Future<void> _downloadFile({
+    required MedicalRecord medicalRecord,
+    required MedicalFile medicalFile,
+  }) async {
+    // try {
+    //   final dir = await getApplicationDocumentsDirectory();
+    //   final filePath = '${dir.path}/$fileName';
+
+    //   final dio = Dio();
+    //   await dio.download(url, filePath);
+
+    //   // Optionnel : afficher un message de confirmation
+    //   print('Download completed: $filePath');
+    // } catch (e) {
+    //   print('Download error: $e');
+    // }
+
+    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+
+    if (selectedDirectory != null) {
+      final filePath = '$selectedDirectory/${medicalFile.title}';
+
+      final dio = Dio();
+      await dio.download(medicalFile.fileUrl, filePath);
+
+      print('Téléchargement terminé dans : $filePath');
+    } else {
+      print('Aucun dossier sélectionné.');
+    }
   }
 }
 
-class PdfViewerWidget extends StatefulWidget {
+class PDFViewerPage extends StatefulWidget {
   final String url;
-
-  const PdfViewerWidget({super.key, required this.url});
+  const PDFViewerPage({required this.url});
 
   @override
-  State<PdfViewerWidget> createState() => _PdfViewerWidgetState();
+  State<PDFViewerPage> createState() => _PDFViewerPageState();
 }
 
-class _PdfViewerWidgetState extends State<PdfViewerWidget> {
-  late PDFDocument document;
-  bool isLoading = true;
-  bool hasError = false;
+class _PDFViewerPageState extends State<PDFViewerPage> {
+  String? localPath;
 
   @override
   void initState() {
     super.initState();
-    _loadDocument();
+    _downloadPDF();
   }
 
-  Future<void> _loadDocument() async {
+  Future<void> _downloadPDF() async {
     try {
-      document = await PDFDocument.fromURL(widget.url);
+      final response = await http.get(Uri.parse(widget.url));
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/temp.pdf');
+      await file.writeAsBytes(response.bodyBytes, flush: true);
+
       setState(() {
-        isLoading = false;
-        hasError = false;
+        localPath = file.path;
       });
     } catch (e) {
-      setState(() {
-        isLoading = false;
-        hasError = true;
-      });
+      print('Erreur de téléchargement : $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (hasError) {
-      //picture_as_pdf_off_rounded
-      return _ErrorPlaceholder(
-        message: 'Erreur de chargement',
-        icon: Icons.picture_as_pdf,
-      );
-    }
-
-    return SizedBox(
-      height: 500,
-      child:
-          isLoading
+    return Scaffold(
+      appBar: AppBar(title: Text("PDF Preview")),
+      body:
+          localPath == null
               ? const Center(child: CircularProgressIndicator())
-              : PDFViewer(
-                document: document,
-                scrollDirection: Axis.vertical,
-                lazyLoad: false,
-                indicatorBackground:
-                    Theme.of(context).colorScheme.primaryContainer,
-                indicatorText: Theme.of(context).colorScheme.onPrimaryContainer,
-                progressIndicator: const CircularProgressIndicator(),
+              : PDFView(
+                filePath: localPath!,
+                enableSwipe: true,
+                swipeHorizontal: true,
+                autoSpacing: true,
+                pageFling: true,
               ),
-    );
-  }
-}
-
-class _ErrorPlaceholder extends StatelessWidget {
-  final String message;
-  final IconData icon;
-
-  const _ErrorPlaceholder({Key? key, required this.message, required this.icon})
-    : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, size: 80, color: Colors.grey[400]),
-        const SizedBox(height: 16),
-        Text(
-          message,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 16,
-            fontStyle: FontStyle.italic,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
     );
   }
 }

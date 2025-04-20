@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Controllers/databaseMedicalRecords.dart';
 import 'package:med_assist/Controllers/storageService.dart';
-import 'package:mime/mime.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ManagersMedicalRecord {
   final String uid;
@@ -26,7 +26,7 @@ class ManagersMedicalRecord {
     return await database.getMedicalRecordByIds(medicalRecords);
   }
 
-  Future<String> checkMedicalRecord(
+  Future<String> checkCanAddMedicalRecord(
     String title,
     List<MedicalRecord> medicalRecordsData,
   ) async {
@@ -42,6 +42,7 @@ class ManagersMedicalRecord {
       category,
       uid,
       '',
+      true,
     );
 
     medicalRecords.add(medicalRecordId);
@@ -52,16 +53,22 @@ class ManagersMedicalRecord {
 
   Future<void> removeMedicalRecord(MedicalRecord medicalRecord) async {
     await database.removeMedicalRecord(medicalRecord, uid);
+
+    medicalRecords.remove(medicalRecord.id);
+    //Firebase
+    final db = DatabaseService(uid);
+    await db.updateDataOfValue("medicalRecords", medicalRecords);
   }
 
-  String checkMedicalFile(MedicalRecord medicalRecord, String title) {
+  String checkCanAddMedicalFile(MedicalRecord medicalRecord, String title) {
+    if (kIsWeb) return 'Your device is invalid';
     bool exist = medicalRecord.medicalFiles.any((f) => f.title == title);
 
     if (exist) return 'This Medical File already exist in this folder';
     return 'Success';
   }
 
-  Future<String> checkCanAdd(
+  Future<String> checkCanAddFile(
     File file,
     List<MedicalRecord> medicalRecords,
   ) async {
@@ -69,57 +76,57 @@ class ManagersMedicalRecord {
     size = (size / 1024).ceil();
     bool canAdd = canAddFile(size, medicalRecords);
 
-    if (canAdd) return 'Insufficient space. 50MB limit exceeded.';
+    if (!canAdd) return 'Insufficient space. 50MB limit exceeded.';
     return 'Success';
   }
 
   Future<void> addMedicalFile(
-    String medicalRecordTitle,
-    String medicalRecordId,
+    MedicalRecord medicalRecord,
     String title,
-    // String type,
+    String fileType,
     File file,
   ) async {
     int size = await file.length();
-    String? fileType = lookupMimeType(file.path);
     String fileUrl = await storage.uploadMedicalFile(
       file: file,
       uid: uid,
-      medicalRecordTitle: medicalRecordTitle,
+      medicalRecordTitle: medicalRecord.title,
       fileTitle: title,
     );
     MedicalFile medicalFile = MedicalFile(
       title: title,
-      // type: type,
-      fileType: fileType!,
+      fileType: fileType,
       fileUrl: fileUrl,
       fileSize: size,
       createdAt: DateTime.now(),
     );
 
-    await database.addMedicalFile(medicalRecordId, medicalFile);
+    await database.addMedicalFile(medicalRecord.id, medicalFile);
+    medicalRecord.medicalFiles.add(medicalFile);
   }
 
   Future<void> moveMedicalFile(
     MedicalFile medicalFile,
-    String medicalRecordOldId,
+    MedicalRecord medicalRecordOld,
     String medicalRecordNewId,
     String newMedicalRecordTitle,
   ) async {
     await database.moveMedicalFile(
       medicalFile,
-      medicalRecordOldId,
+      medicalRecordOld.id,
       uid,
       medicalRecordNewId,
       newMedicalRecordTitle,
     );
+    medicalRecordOld.medicalFiles.remove(medicalFile);
   }
 
   Future<void> removeMedicalFile(
-    String medicalRecordId,
+    MedicalRecord medicalRecord,
     MedicalFile medicalFile,
   ) async {
-    await database.removeMedicalFile(medicalRecordId, medicalFile);
+    await database.removeMedicalFile(medicalRecord.id, medicalFile);
+    medicalRecord.medicalFiles.remove(medicalFile);
   }
 
   int totalUsedMemory(List<MedicalRecord> myMedicalRecords) {
@@ -152,6 +159,7 @@ class MedicalRecord {
   final String doctorID;
   final List<MedicalFile> medicalFiles;
   final DateTime createdAt;
+  final bool canBeShared;
 
   const MedicalRecord({
     required this.id,
@@ -161,6 +169,7 @@ class MedicalRecord {
     required this.doctorID,
     required this.medicalFiles,
     required this.createdAt,
+    this.canBeShared = true,
   });
 
   int get totalSizeInKo {
@@ -177,6 +186,7 @@ class MedicalRecord {
       'doctorID': doctorID,
       'medicalFiles': medicalFiles.map((file) => file.toMap()).toList(),
       'createdAt': createdAt.toIso8601String(),
+      'canBeShared': canBeShared,
     };
   }
 
@@ -191,6 +201,10 @@ class MedicalRecord {
         (map['medicalFiles'] as List).map((item) => MedicalFile.fromMap(item)),
       ),
       createdAt: DateTime.parse(map['createdAt']),
+      canBeShared:
+          map['canBeShared'] is bool
+              ? map['canBeShared']
+              : map['canBeShared'].toString().toLowerCase() == 'true',
     );
   }
 
@@ -216,6 +230,10 @@ class MedicalFile {
     required this.createdAt,
   });
 
+  int get FSize {
+    return (fileSize / 1024).ceil();
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'title': title,
@@ -236,5 +254,9 @@ class MedicalFile {
       fileSize: map['fileSize'] ?? 0,
       createdAt: DateTime.parse(map['createdAt']),
     );
+  }
+
+  String get formattedDate {
+    return DateFormat('EEE, d MMM yyyy').format(createdAt);
   }
 }

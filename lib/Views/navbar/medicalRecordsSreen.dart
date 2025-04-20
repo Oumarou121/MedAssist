@@ -984,611 +984,611 @@
 //   }
 // }
 
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:iconsax/iconsax.dart';
-import 'package:intl/intl.dart';
-import 'package:med_assist/Models/medicalRecord.dart';
-import 'package:med_assist/Models/user.dart';
+// import 'package:flutter/material.dart';
+// import 'package:google_fonts/google_fonts.dart';
+// import 'package:iconsax/iconsax.dart';
+// import 'package:intl/intl.dart';
+// import 'package:med_assist/Models/medicalRecord.dart';
+// import 'package:med_assist/Models/user.dart';
 
-class MedicalRecordsScreen extends StatefulWidget {
-  final AppUserData userData;
-  const MedicalRecordsScreen({super.key, required this.userData});
+// class MedicalRecordsScreen extends StatefulWidget {
+//   final AppUserData userData;
+//   const MedicalRecordsScreen({super.key, required this.userData});
 
-  @override
-  State<MedicalRecordsScreen> createState() => _MedicalRecordsScreenState();
-}
+//   @override
+//   State<MedicalRecordsScreen> createState() => _MedicalRecordsScreenState();
+// }
 
-class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
-  late ManagersMedicalRecord _manager;
-  List<MedicalRecord> _medicalRecords = [];
-  List<MedicalRecord> _filteredRecords = [];
-  String _selectedCategory = 'Tous';
-  double _usedStorage = 0;
-  final double _maxStorage = 50;
+// class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
+//   late ManagersMedicalRecord _manager;
+//   List<MedicalRecord> _medicalRecords = [];
+//   List<MedicalRecord> _filteredRecords = [];
+//   String _selectedCategory = 'Tous';
+//   double _usedStorage = 0;
+//   final double _maxStorage = 50;
 
-  @override
-  void initState() {
-    super.initState();
-    _manager = ManagersMedicalRecord(
-      uid: widget.userData.uid,
-      name: widget.userData.name,
-      medicalRecords: widget.userData.medicalRecords,
-    );
-    _loadMedicalRecords();
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     _manager = ManagersMedicalRecord(
+//       uid: widget.userData.uid,
+//       name: widget.userData.name,
+//       medicalRecords: widget.userData.medicalRecords,
+//     );
+//     _loadMedicalRecords();
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
-    final size = MediaQuery.of(context).size;
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomPadding + 60),
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF5F7FB),
-        body: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              expandedHeight: 80,
-              flexibleSpace: FlexibleSpaceBar(
-                title: Text(
-                  'My Medical records',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
+//   @override
+//   Widget build(BuildContext context) {
+//     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+//     final size = MediaQuery.of(context).size;
+//     return Padding(
+//       padding: EdgeInsets.only(bottom: bottomPadding + 60),
+//       child: Scaffold(
+//         backgroundColor: const Color(0xFFF5F7FB),
+//         body: CustomScrollView(
+//           slivers: [
+//             SliverAppBar(
+//               expandedHeight: 80,
+//               flexibleSpace: FlexibleSpaceBar(
+//                 title: Text(
+//                   'My Medical records',
+//                   style: GoogleFonts.poppins(
+//                     color: Colors.white,
+//                     fontWeight: FontWeight.w600,
+//                     fontSize: 16,
+//                   ),
+//                 ),
 
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF00C853), Color(0xFFB2FF59)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                ),
-              ),
-              actions: [
-                IconButton(
-                  onPressed: () {},
-                  icon: Icon(Iconsax.search_status_1, color: Colors.white),
-                ),
-              ],
-            ),
+//                 background: Container(
+//                   decoration: const BoxDecoration(
+//                     gradient: LinearGradient(
+//                       colors: [Color(0xFF00C853), Color(0xFFB2FF59)],
+//                       begin: Alignment.topLeft,
+//                       end: Alignment.bottomRight,
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//               actions: [
+//                 IconButton(
+//                   onPressed: () {},
+//                   icon: Icon(Iconsax.search_status_1, color: Colors.white),
+//                 ),
+//               ],
+//             ),
 
-            // SliverToBoxAdapter(
-            //   child: Padding(
-            //     padding: const EdgeInsets.symmetric(
-            //       horizontal: 20,
-            //       vertical: 10,
-            //     ),
-            //     child: Column(
-            //       crossAxisAlignment: CrossAxisAlignment.start,
-            //       children: [
-            //         _buildCategoryFilter(),
-            //         SizedBox(height: size.height * 0.03),
-            //         _buildStorageIndicator(),
-            //         SizedBox(height: size.height * 0.03),
-            //         SliverPadding(
-            //           padding: EdgeInsets.symmetric(horizontal: 20),
-            //           sliver: SliverGrid(
-            //             gridDelegate:
-            //             SliverGridDelegateWithFixedCrossAxisCount(
-            //               crossAxisCount: 2, // 2 colonnes
-            //               crossAxisSpacing: 15,
-            //               mainAxisSpacing: 15,
-            //               childAspectRatio: 1.2, // Format des cartes
-            //             ),
-            //             delegate: SliverChildBuilderDelegate(
-            //               (context, index) =>
-            //                   _buildFolderItem(_filteredRecords[index]),
-            //               childCount: _filteredRecords.length,
-            //             ),
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //   ),
-            // ),
-            // SliverToBoxAdapter(child: _buildCategoryFilter()),
-            SliverToBoxAdapter(child: SizedBox(height: size.height * 0.03)),
-            SliverToBoxAdapter(child: _buildStorageIndicator()),
-            SliverToBoxAdapter(child: SizedBox(height: size.height * 0.03)),
+//             // SliverToBoxAdapter(
+//             //   child: Padding(
+//             //     padding: const EdgeInsets.symmetric(
+//             //       horizontal: 20,
+//             //       vertical: 10,
+//             //     ),
+//             //     child: Column(
+//             //       crossAxisAlignment: CrossAxisAlignment.start,
+//             //       children: [
+//             //         _buildCategoryFilter(),
+//             //         SizedBox(height: size.height * 0.03),
+//             //         _buildStorageIndicator(),
+//             //         SizedBox(height: size.height * 0.03),
+//             //         SliverPadding(
+//             //           padding: EdgeInsets.symmetric(horizontal: 20),
+//             //           sliver: SliverGrid(
+//             //             gridDelegate:
+//             //             SliverGridDelegateWithFixedCrossAxisCount(
+//             //               crossAxisCount: 2, // 2 colonnes
+//             //               crossAxisSpacing: 15,
+//             //               mainAxisSpacing: 15,
+//             //               childAspectRatio: 1.2, // Format des cartes
+//             //             ),
+//             //             delegate: SliverChildBuilderDelegate(
+//             //               (context, index) =>
+//             //                   _buildFolderItem(_filteredRecords[index]),
+//             //               childCount: _filteredRecords.length,
+//             //             ),
+//             //           ),
+//             //         ),
+//             //       ],
+//             //     ),
+//             //   ),
+//             // ),
+//             // SliverToBoxAdapter(child: _buildCategoryFilter()),
+//             SliverToBoxAdapter(child: SizedBox(height: size.height * 0.03)),
+//             SliverToBoxAdapter(child: _buildStorageIndicator()),
+//             SliverToBoxAdapter(child: SizedBox(height: size.height * 0.03)),
 
-            SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverGrid(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 15,
-                  mainAxisSpacing: 15,
-                  childAspectRatio: 1,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) =>
-                      _buildMedicalRecordCard(_filteredRecords[index]),
-                  childCount: _filteredRecords.length,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+//             SliverPadding(
+//               padding: EdgeInsets.symmetric(horizontal: 20),
+//               sliver: SliverGrid(
+//                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+//                   crossAxisCount: 2,
+//                   crossAxisSpacing: 15,
+//                   mainAxisSpacing: 15,
+//                   childAspectRatio: 1,
+//                 ),
+//                 delegate: SliverChildBuilderDelegate(
+//                   (context, index) =>
+//                       _buildMedicalRecordCard(_filteredRecords[index]),
+//                   childCount: _filteredRecords.length,
+//                 ),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
 
-  // Nouvelle méthode pour créer les items de dossier
-  Widget _buildFolderItem(MedicalRecord record) {
-    final fileCount = record.medicalFiles.length;
+//   // Nouvelle méthode pour créer les items de dossier
+//   Widget _buildFolderItem(MedicalRecord record) {
+//     final fileCount = record.medicalFiles.length;
 
-    return GestureDetector(
-      onTap: () => _openFolderDetails(record),
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(15),
-          onTap: () => _openFolderDetails(record),
-          child: Padding(
-            padding: EdgeInsets.all(12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Iconsax.folder, size: 40, color: Colors.green[700]),
-                SizedBox(height: 10),
-                Text(
-                  record.title,
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 5),
-                Text(
-                  '$fileCount fichier${fileCount > 1 ? 's' : ''}',
-                  style: GoogleFonts.poppins(
-                    color: Colors.grey[600],
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+//     return GestureDetector(
+//       onTap: () => _openFolderDetails(record),
+//       child: Card(
+//         elevation: 2,
+//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+//         child: InkWell(
+//           borderRadius: BorderRadius.circular(15),
+//           onTap: () => _openFolderDetails(record),
+//           child: Padding(
+//             padding: EdgeInsets.all(12),
+//             child: Column(
+//               mainAxisAlignment: MainAxisAlignment.center,
+//               children: [
+//                 Icon(Iconsax.folder, size: 40, color: Colors.green[700]),
+//                 SizedBox(height: 10),
+//                 Text(
+//                   record.title,
+//                   style: GoogleFonts.poppins(
+//                     fontWeight: FontWeight.w500,
+//                     fontSize: 14,
+//                   ),
+//                   textAlign: TextAlign.center,
+//                   maxLines: 2,
+//                   overflow: TextOverflow.ellipsis,
+//                 ),
+//                 SizedBox(height: 5),
+//                 Text(
+//                   '$fileCount fichier${fileCount > 1 ? 's' : ''}',
+//                   style: GoogleFonts.poppins(
+//                     color: Colors.grey[600],
+//                     fontSize: 12,
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
 
-  // Méthode pour ouvrir le détail d'un dossier
-  void _openFolderDetails(MedicalRecord record) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder:
-          (context) => Container(
-            padding: EdgeInsets.all(20),
-            height: MediaQuery.of(context).size.height * 0.8,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      record.title,
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: record.medicalFiles.length,
-                    itemBuilder:
-                        (context, index) =>
-                            _buildFileItem(record.medicalFiles[index]),
-                  ),
-                ),
-              ],
-            ),
-          ),
-    );
-  }
+//   // Méthode pour ouvrir le détail d'un dossier
+//   void _openFolderDetails(MedicalRecord record) {
+//     showModalBottomSheet(
+//       context: context,
+//       isScrollControlled: true,
+//       builder:
+//           (context) => Container(
+//             padding: EdgeInsets.all(20),
+//             height: MediaQuery.of(context).size.height * 0.8,
+//             child: Column(
+//               children: [
+//                 Row(
+//                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                   children: [
+//                     Text(
+//                       record.title,
+//                       style: GoogleFonts.poppins(
+//                         fontSize: 20,
+//                         fontWeight: FontWeight.bold,
+//                       ),
+//                     ),
+//                     IconButton(
+//                       icon: Icon(Icons.close),
+//                       onPressed: () => Navigator.pop(context),
+//                     ),
+//                   ],
+//                 ),
+//                 Expanded(
+//                   child: ListView.builder(
+//                     itemCount: record.medicalFiles.length,
+//                     itemBuilder:
+//                         (context, index) =>
+//                             _buildFileItem(record.medicalFiles[index]),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//     );
+//   }
 
-  Widget _buildMedicalRecordCard(MedicalRecord record) {
-    final totalSizeMB = record.totalSizeInKo / 1024;
-    final progressValue = totalSizeMB / _maxStorage;
-    final fileCount = record.medicalFiles.length;
+//   Widget _buildMedicalRecordCard(MedicalRecord record) {
+//     final totalSizeMB = record.totalSizeInKo / 1024;
+//     final progressValue = totalSizeMB / _maxStorage;
+//     final fileCount = record.medicalFiles.length;
 
-    return GestureDetector(
-      onTap: () => _openFolderDetails(record),
-      child: Container(
-        width: 280,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 120,
-              decoration: BoxDecoration(
-                color: const Color(0xFF00C853).withOpacity(0.1),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
-              ),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          record.title,
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                            color: const Color(0xFF00C853),
-                          ),
-                        ),
-                      ),
-                      _buildRecordStatus(record),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  LinearProgressIndicator(
-                    value: progressValue,
-                    backgroundColor: Colors.grey[200],
-                    color:
-                        progressValue > 0.9
-                            ? Colors.red
-                            : const Color(0xFF00C853),
-                    minHeight: 8,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${totalSizeMB.toStringAsFixed(1)} Mo / ${_maxStorage} Mo',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Flexible(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Fichiers récents :',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      ...record.medicalFiles
-                          .take(2)
-                          .map(
-                            (file) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    _getFileTypeIcon(file.type),
-                                    color: Colors.green.shade400,
-                                    size: 14,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Flexible(
-                                    child: Text(
-                                      '${file.title} (${(file.fileSize / 1024).toStringAsFixed(1)} Ko)',
-                                      style: GoogleFonts.poppins(fontSize: 12),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    DateFormat('dd/MM').format(file.createdAt),
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 10,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                      if (fileCount > 2)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            '+ ${fileCount - 2} autres...',
-                            style: GoogleFonts.poppins(
-                              fontSize: 10,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+//     return GestureDetector(
+//       onTap: () => _openFolderDetails(record),
+//       child: Container(
+//         width: 280,
+//         decoration: BoxDecoration(
+//           color: Colors.white,
+//           borderRadius: BorderRadius.circular(20),
+//           boxShadow: [
+//             BoxShadow(
+//               color: Colors.black.withOpacity(0.1),
+//               blurRadius: 10,
+//               offset: const Offset(0, 4),
+//             ),
+//           ],
+//         ),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Container(
+//               height: 120,
+//               decoration: BoxDecoration(
+//                 color: const Color(0xFF00C853).withOpacity(0.1),
+//                 borderRadius: const BorderRadius.vertical(
+//                   top: Radius.circular(20),
+//                 ),
+//               ),
+//               padding: const EdgeInsets.all(16),
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   Row(
+//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                     children: [
+//                       Flexible(
+//                         child: Text(
+//                           record.title,
+//                           style: GoogleFonts.poppins(
+//                             fontWeight: FontWeight.w600,
+//                             fontSize: 16,
+//                             color: const Color(0xFF00C853),
+//                           ),
+//                         ),
+//                       ),
+//                       _buildRecordStatus(record),
+//                     ],
+//                   ),
+//                   const SizedBox(height: 8),
+//                   LinearProgressIndicator(
+//                     value: progressValue,
+//                     backgroundColor: Colors.grey[200],
+//                     color:
+//                         progressValue > 0.9
+//                             ? Colors.red
+//                             : const Color(0xFF00C853),
+//                     minHeight: 8,
+//                     borderRadius: BorderRadius.circular(10),
+//                   ),
+//                   const SizedBox(height: 8),
+//                   Text(
+//                     '${totalSizeMB.toStringAsFixed(1)} Mo / ${_maxStorage} Mo',
+//                     style: GoogleFonts.poppins(
+//                       fontSize: 12,
+//                       color: Colors.grey.shade600,
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//             Flexible(
+//               child: Padding(
+//                 padding: const EdgeInsets.all(16),
+//                 child: SingleChildScrollView(
+//                   child: Column(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+//                       Text(
+//                         'Fichiers récents :',
+//                         style: GoogleFonts.poppins(
+//                           fontSize: 12,
+//                           fontWeight: FontWeight.w500,
+//                           color: Colors.grey.shade600,
+//                         ),
+//                       ),
+//                       const SizedBox(height: 8),
+//                       ...record.medicalFiles
+//                           .take(2)
+//                           .map(
+//                             (file) => Padding(
+//                               padding: const EdgeInsets.only(bottom: 4),
+//                               child: Row(
+//                                 children: [
+//                                   Icon(
+//                                     _getFileTypeIcon(file.type),
+//                                     color: Colors.green.shade400,
+//                                     size: 14,
+//                                   ),
+//                                   const SizedBox(width: 8),
+//                                   Flexible(
+//                                     child: Text(
+//                                       '${file.title} (${(file.fileSize / 1024).toStringAsFixed(1)} Ko)',
+//                                       style: GoogleFonts.poppins(fontSize: 12),
+//                                       overflow: TextOverflow.ellipsis,
+//                                     ),
+//                                   ),
+//                                   const SizedBox(width: 8),
+//                                   Text(
+//                                     DateFormat('dd/MM').format(file.createdAt),
+//                                     style: GoogleFonts.poppins(
+//                                       fontSize: 10,
+//                                       color: Colors.grey,
+//                                     ),
+//                                   ),
+//                                 ],
+//                               ),
+//                             ),
+//                           ),
+//                       if (fileCount > 2)
+//                         Padding(
+//                           padding: const EdgeInsets.only(top: 4),
+//                           child: Text(
+//                             '+ ${fileCount - 2} autres...',
+//                             style: GoogleFonts.poppins(
+//                               fontSize: 10,
+//                               color: Colors.grey,
+//                             ),
+//                           ),
+//                         ),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
 
-  Widget _buildRecordStatus(MedicalRecord record) {
-    final isUpdated = record.createdAt.isAfter(
-      DateTime.now().subtract(Duration(days: 7)),
-    );
+//   Widget _buildRecordStatus(MedicalRecord record) {
+//     final isUpdated = record.createdAt.isAfter(
+//       DateTime.now().subtract(Duration(days: 7)),
+//     );
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: isUpdated ? Colors.green[50] : Colors.grey[200],
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        isUpdated ? 'Récent' : 'Archive',
-        style: GoogleFonts.poppins(
-          fontSize: 10,
-          color: isUpdated ? Colors.green[800] : Colors.grey[600],
-        ),
-      ),
-    );
-  }
+//     return Container(
+//       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+//       decoration: BoxDecoration(
+//         color: isUpdated ? Colors.green[50] : Colors.grey[200],
+//         borderRadius: BorderRadius.circular(20),
+//       ),
+//       child: Text(
+//         isUpdated ? 'Récent' : 'Archive',
+//         style: GoogleFonts.poppins(
+//           fontSize: 10,
+//           color: isUpdated ? Colors.green[800] : Colors.grey[600],
+//         ),
+//       ),
+//     );
+//   }
 
-  Widget _buildCategoryFilter() {
-    final categories = ['Tous', 'Prescription', 'Analyse', 'Imagerie'];
+//   Widget _buildCategoryFilter() {
+//     final categories = ['Tous', 'Prescription', 'Analyse', 'Imagerie'];
 
-    return SizedBox(
-      height: 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder:
-            (_, index) => ChoiceChip(
-              label: Text(categories[index]),
-              selected: _selectedCategory == categories[index],
-              onSelected:
-                  (selected) => setState(() {
-                    _selectedCategory = categories[index];
-                  }),
-              selectedColor: Colors.green[100],
-              labelStyle: TextStyle(
-                color:
-                    _selectedCategory == categories[index]
-                        ? Colors.green[800]
-                        : Colors.grey[600],
-              ),
-            ),
-      ),
-    );
-  }
+//     return SizedBox(
+//       height: 40,
+//       child: ListView.separated(
+//         scrollDirection: Axis.horizontal,
+//         itemCount: categories.length,
+//         separatorBuilder: (_, __) => const SizedBox(width: 10),
+//         itemBuilder:
+//             (_, index) => ChoiceChip(
+//               label: Text(categories[index]),
+//               selected: _selectedCategory == categories[index],
+//               onSelected:
+//                   (selected) => setState(() {
+//                     _selectedCategory = categories[index];
+//                   }),
+//               selectedColor: Colors.green[100],
+//               labelStyle: TextStyle(
+//                 color:
+//                     _selectedCategory == categories[index]
+//                         ? Colors.green[800]
+//                         : Colors.grey[600],
+//               ),
+//             ),
+//       ),
+//     );
+//   }
 
-  Widget _buildStorageIndicator() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.green[50],
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Row(
-          children: [
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                CircularProgressIndicator(
-                  value: _usedStorage / _maxStorage,
-                  strokeWidth: 8,
-                  color: Colors.green[800],
-                  backgroundColor: Colors.grey[200],
-                ),
-                Text(
-                  '${(_usedStorage / _maxStorage * 100).toStringAsFixed(0)}%',
-                  style: TextStyle(
-                    color: Colors.green[800],
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Espace utilisé',
-                        style: GoogleFonts.poppins(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
-                      Text(
-                        '${_usedStorage.toStringAsFixed(1)} Mo / ${_maxStorage} Mo',
-                        style: GoogleFonts.poppins(
-                          color: Colors.green[800],
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: IconButton(
-                      onPressed: () {
-                        _showAddMedicalRecordModal();
-                      },
-                      icon: Icon(Iconsax.folder_add, color: Colors.green),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+//   Widget _buildStorageIndicator() {
+//     return Padding(
+//       padding: const EdgeInsets.symmetric(horizontal: 20),
+//       child: Container(
+//         padding: const EdgeInsets.all(16),
+//         decoration: BoxDecoration(
+//           color: Colors.green[50],
+//           borderRadius: BorderRadius.circular(15),
+//         ),
+//         child: Row(
+//           children: [
+//             Stack(
+//               alignment: Alignment.center,
+//               children: [
+//                 CircularProgressIndicator(
+//                   value: _usedStorage / _maxStorage,
+//                   strokeWidth: 8,
+//                   color: Colors.green[800],
+//                   backgroundColor: Colors.grey[200],
+//                 ),
+//                 Text(
+//                   '${(_usedStorage / _maxStorage * 100).toStringAsFixed(0)}%',
+//                   style: TextStyle(
+//                     color: Colors.green[800],
+//                     fontWeight: FontWeight.bold,
+//                   ),
+//                 ),
+//               ],
+//             ),
+//             const SizedBox(width: 20),
+//             Expanded(
+//               child: Row(
+//                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                 children: [
+//                   Column(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+//                       Text(
+//                         'Espace utilisé',
+//                         style: GoogleFonts.poppins(
+//                           color: Colors.grey[600],
+//                           fontSize: 14,
+//                         ),
+//                       ),
+//                       Text(
+//                         '${_usedStorage.toStringAsFixed(1)} Mo / ${_maxStorage} Mo',
+//                         style: GoogleFonts.poppins(
+//                           color: Colors.green[800],
+//                           fontWeight: FontWeight.w600,
+//                           fontSize: 16,
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                   Container(
+//                     padding: const EdgeInsets.all(0),
+//                     decoration: BoxDecoration(
+//                       color: Colors.white,
+//                       borderRadius: BorderRadius.circular(24),
+//                     ),
+//                     child: IconButton(
+//                       onPressed: () {
+//                         _showAddMedicalRecordModal();
+//                       },
+//                       icon: Icon(Iconsax.folder_add, color: Colors.green),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
 
-  void _loadMedicalRecords() async {
-    List<MedicalRecord> records = await _manager.getMedicalRecords();
-    int totalKB = _manager.totalUsedMemory(records);
-    double totalMB = totalKB / 1024;
-    setState(() {
-      _medicalRecords = records;
-      _filteredRecords = _filterRecords(records, _selectedCategory);
-      _usedStorage = totalMB;
-    });
-  }
+//   void _loadMedicalRecords() async {
+//     List<MedicalRecord> records = await _manager.getMedicalRecords();
+//     int totalKB = _manager.totalUsedMemory(records);
+//     double totalMB = totalKB / 1024;
+//     setState(() {
+//       _medicalRecords = records;
+//       _filteredRecords = _filterRecords(records, _selectedCategory);
+//       _usedStorage = totalMB;
+//     });
+//   }
 
-  List<MedicalRecord> _filterRecords(
-    List<MedicalRecord> records,
-    String category,
-  ) {
-    if (category == 'Tous') return records;
-    return records
-        .where((record) => record.medicalFiles.any((f) => f.type == category))
-        .toList();
-  }
+//   List<MedicalRecord> _filterRecords(
+//     List<MedicalRecord> records,
+//     String category,
+//   ) {
+//     if (category == 'Tous') return records;
+//     return records
+//         .where((record) => record.medicalFiles.any((f) => f.type == category))
+//         .toList();
+//   }
 
-  Widget _buildFileItem(MedicalFile file) {
-    return ListTile(
-      leading: Icon(_getFileTypeIcon(file.type), color: Colors.green[700]),
-      title: Text(file.title, style: GoogleFonts.poppins()),
-      subtitle: Text(
-        '${(file.fileSize / 1024).toStringAsFixed(1)} KB - ${DateFormat('dd/MM/yyyy').format(file.createdAt)}',
-        style: GoogleFonts.poppins(color: Colors.grey[600]),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: Icon(Iconsax.document_download, color: Colors.green[700]),
-            onPressed: () => _downloadFile(file),
-          ),
-          IconButton(
-            icon: Icon(Iconsax.trash, color: Colors.red[400]),
-            onPressed: () => _confirmDeleteFile(file),
-          ),
-        ],
-      ),
-    );
-  }
+//   Widget _buildFileItem(MedicalFile file) {
+//     return ListTile(
+//       leading: Icon(_getFileTypeIcon(file.type), color: Colors.green[700]),
+//       title: Text(file.title, style: GoogleFonts.poppins()),
+//       subtitle: Text(
+//         '${(file.fileSize / 1024).toStringAsFixed(1)} KB - ${DateFormat('dd/MM/yyyy').format(file.createdAt)}',
+//         style: GoogleFonts.poppins(color: Colors.grey[600]),
+//       ),
+//       trailing: Row(
+//         mainAxisSize: MainAxisSize.min,
+//         children: [
+//           IconButton(
+//             icon: Icon(Iconsax.document_download, color: Colors.green[700]),
+//             onPressed: () => _downloadFile(file),
+//           ),
+//           IconButton(
+//             icon: Icon(Iconsax.trash, color: Colors.red[400]),
+//             onPressed: () => _confirmDeleteFile(file),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
 
-  IconData _getFileTypeIcon(String type) {
-    switch (type) {
-      case 'Prescription':
-        return Iconsax.note_text;
-      case 'Analyse':
-        return Iconsax.health;
-      case 'Imagerie':
-        return Iconsax.gallery;
-      default:
-        return Iconsax.document;
-    }
-  }
+//   IconData _getFileTypeIcon(String type) {
+//     switch (type) {
+//       case 'Prescription':
+//         return Iconsax.note_text;
+//       case 'Analyse':
+//         return Iconsax.health;
+//       case 'Imagerie':
+//         return Iconsax.gallery;
+//       default:
+//         return Iconsax.document;
+//     }
+//   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        children: [
-          Image.asset('assets/empty_folder.png', height: 150),
-          const SizedBox(height: 20),
-          Text(
-            'Aucun dossier médical trouvé',
-            style: GoogleFonts.poppins(color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton.icon(
-            icon: Icon(Iconsax.document_upload),
-            label: Text('Ajouter un premier document'),
-            onPressed: _showAddMedicalRecordModal,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green[50],
-              foregroundColor: Colors.green[800],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+//   Widget _buildEmptyState() {
+//     return Center(
+//       child: Column(
+//         children: [
+//           Image.asset('assets/empty_folder.png', height: 150),
+//           const SizedBox(height: 20),
+//           Text(
+//             'Aucun dossier médical trouvé',
+//             style: GoogleFonts.poppins(color: Colors.grey[600]),
+//           ),
+//           const SizedBox(height: 10),
+//           ElevatedButton.icon(
+//             icon: Icon(Iconsax.document_upload),
+//             label: Text('Ajouter un premier document'),
+//             onPressed: _showAddMedicalRecordModal,
+//             style: ElevatedButton.styleFrom(
+//               backgroundColor: Colors.green[50],
+//               foregroundColor: Colors.green[800],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
 
-  Future<void> _downloadFile(MedicalFile file) async {
-    // Implémentez la logique de téléchargement
-  }
+//   Future<void> _downloadFile(MedicalFile file) async {
+//     // Implémentez la logique de téléchargement
+//   }
 
-  void _confirmDeleteFile(MedicalFile file) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Supprimer le fichier ?'),
-            content: Text('Êtes-vous sûr de vouloir supprimer ${file.title} ?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Annuler'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  await _manager.removeMedicalFile("", file);
-                  _loadMedicalRecords();
-                  Navigator.pop(context);
-                },
-                child: Text('Supprimer', style: TextStyle(color: Colors.red)),
-              ),
-            ],
-          ),
-    );
-  }
+//   void _confirmDeleteFile(MedicalFile file) {
+//     showDialog(
+//       context: context,
+//       builder:
+//           (context) => AlertDialog(
+//             title: Text('Supprimer le fichier ?'),
+//             content: Text('Êtes-vous sûr de vouloir supprimer ${file.title} ?'),
+//             actions: [
+//               TextButton(
+//                 onPressed: () => Navigator.pop(context),
+//                 child: Text('Annuler'),
+//               ),
+//               TextButton(
+//                 onPressed: () async {
+//                   await _manager.removeMedicalFile("", file);
+//                   _loadMedicalRecords();
+//                   Navigator.pop(context);
+//                 },
+//                 child: Text('Supprimer', style: TextStyle(color: Colors.red)),
+//               ),
+//             ],
+//           ),
+//     );
+//   }
 
-  void _showAddMedicalRecordModal() {
-    // Implémentez la modale d'ajout
-  }
+//   void _showAddMedicalRecordModal() {
+//     // Implémentez la modale d'ajout
+//   }
 
-  // ... Le reste du code existant (build, appbar, etc.) ...
-}
+//   // ... Le reste du code existant (build, appbar, etc.) ...
+// }

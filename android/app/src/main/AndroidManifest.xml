@@ -10,7 +10,10 @@
     <application
         android:label="med_assist"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true"
+        android:enableOnBackInvokedCallback="true">
         <activity
             android:name="io.flutter.embedding.android.FlutterFragmentActivity"
             android:exported="true"

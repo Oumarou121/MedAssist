@@ -13,6 +13,7 @@ class ServiceMedicalRecord {
     String category,
     String patientUid,
     String doctorID,
+    bool canBeShared,
   ) async {
     final docRef = collection.doc();
     final id = docRef.id;
@@ -25,6 +26,7 @@ class ServiceMedicalRecord {
       'doctorID': doctorID,
       'medicalFiles': [],
       'createdAt': DateTime.now().toIso8601String(),
+      'canBeShared': canBeShared,
     });
 
     return id;
@@ -99,8 +101,9 @@ class ServiceMedicalRecord {
       await addMedicalFile(medicalRecordNewId, newMedicalFile);
 
       // Étape 3 : Suppression de l'ancien fichier en base
-      await removeMedicalFile(medicalRecordOldId, medicalFile);
-
+      await collection.doc(medicalRecordOldId).update({
+        'medicalFiles': FieldValue.arrayRemove([medicalFile.toMap()]),
+      });
       print('Fichier "${medicalFile.title}" déplacé avec succès.');
     } catch (e) {
       print('Erreur lors du déplacement du fichier : $e');
