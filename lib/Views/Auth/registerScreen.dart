@@ -23,7 +23,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String _fullName = "";
   String _email = "";
-  int _phoneNumber = 0;
+  String _phoneNumber = "";
   String _password = "";
   String _confirmPassword = "";
 
@@ -153,7 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return _buildTextField(
       hintText: "Numéro de téléphone",
       prefixIcon: const Icon(Iconsax.call),
-      onChanged: (value) => _phoneNumber = int.tryParse(value) ?? 0,
+      onChanged: (value) => _phoneNumber = value,
       validator:
           (value) =>
               value!.isEmpty
@@ -261,7 +261,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           name: _fullName,
           email: _email,
           password: _password,
-          phoneNumber: _phoneNumber.toString(),
+          phoneNumber: _phoneNumber,
         );
         print(result);
         if (result != 'false') {

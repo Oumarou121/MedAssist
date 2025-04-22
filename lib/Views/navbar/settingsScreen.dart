@@ -1,94 +1,14 @@
-// import 'package:flutter/material.dart';
-// import 'package:iconsax/iconsax.dart';
-// import 'package:med_assist/Controllers/database.dart';
-// import 'package:med_assist/Models/user.dart';
-// import 'package:med_assist/Views/Auth/loginScreen.dart';
-// import 'package:provider/provider.dart';
-
-// class SettingsScreen extends StatefulWidget {
-//   const SettingsScreen({super.key});
-
-//   @override
-//   State<SettingsScreen> createState() => _SettingsScreenState();
-// }
-
-// class _SettingsScreenState extends State<SettingsScreen> {
-//   @override
-//   Widget build(BuildContext context) {
-//     final Size size = MediaQuery.of(context).size;
-//     final mediaQuery = MediaQuery.of(context);
-//     final bottomPadding = mediaQuery.viewInsets.bottom;
-
-//     final user = Provider.of<AppUser?>(context);
-//     if (user == null) return const LoginScreen();
-//     final database = DatabaseService(user.uid);
-
-//     return StreamBuilder<AppUserData>(
-//       stream: database.user,
-//       builder: (context, snapshot) {
-//         if (snapshot.connectionState == ConnectionState.waiting) {
-//           return const Scaffold(
-//             body: Center(child: CircularProgressIndicator()),
-//           );
-//         }
-
-//         if (snapshot.hasData) {
-//           AppUserData? userData = snapshot.data;
-//           if (userData == null) return const LoginScreen();
-
-//           return Padding(
-//             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-//             child: Scaffold(
-//               body: Padding(
-//                 padding: EdgeInsets.only(bottom: bottomPadding + 40),
-//                 child: SafeArea(
-//                   child: SingleChildScrollView(
-//                     child: Column(
-//                       children: <Widget>[
-//                         _top(),
-//                         SizedBox(height: size.height * 0.03),
-//                         SizedBox(height: size.height * 0.03),
-//                         SizedBox(height: size.height * 0.03),
-//                         SizedBox(height: size.height * 0.03),
-//                       ],
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//             ),
-//           );
-//         }
-//         return const LoginScreen();
-//       },
-//     );
-//   }
-
-//   Widget _top() {
-//     return Row(
-//       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//       children: [
-//         Text(
-//           'My Settings',
-//           style: TextStyle(fontSize: 28, fontWeight: FontWeight.w400),
-//         ),
-//         Container(
-//           padding: const EdgeInsets.all(10),
-//           decoration: BoxDecoration(
-//             color: Colors.grey.shade200,
-//             borderRadius: BorderRadius.circular(14),
-//           ),
-//           child: Icon(Iconsax.setting_3, size: 24, color: Colors.black),
-//         ),
-//       ],
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:med_assist/Views/settings/change_email_page.dart';
-import 'package:med_assist/Views/settings/change_password_page.dart';
+import 'package:med_assist/Controllers/authentication.dart';
+import 'package:med_assist/Controllers/database.dart';
+import 'package:med_assist/Models/user.dart';
+import 'package:med_assist/Models/userSettings.dart';
+import 'package:med_assist/Views/Auth/forgotPasswordScreen.dart';
+import 'package:med_assist/Views/Auth/forgotPinCodeScreen.dart';
+import 'package:med_assist/Views/Auth/loginScreen.dart';
 import 'package:med_assist/Views/settings/edit_profile_page.dart';
+import 'package:provider/provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -98,66 +18,125 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _darkMode = false;
-  bool _notificationsEnabled = true;
-  bool _biometricAuth = false;
-  String _selectedLanguage = 'Français';
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Paramètres',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildProfileHeader(),
-          const SizedBox(height: 24),
-          _buildSectionTitle('Compte'),
-          _buildAccountSettings(),
-          const SizedBox(height: 24),
-          _buildSectionTitle('Préférences'),
-          _buildAppPreferences(),
-          const SizedBox(height: 24),
-          _buildSectionTitle('Sécurité'),
-          _buildSecuritySettings(),
-          const SizedBox(height: 24),
-          _buildSectionTitle('Support'),
-          _buildSupportOptions(),
-          const SizedBox(height: 40),
-          _buildLogoutButton(),
-        ],
-      ),
+    final Size size = MediaQuery.of(context).size;
+    final mediaQuery = MediaQuery.of(context);
+    final bottomPadding = mediaQuery.viewInsets.bottom;
+    final user = Provider.of<AppUser?>(context);
+    if (user == null) return const LoginScreen();
+    final database = DatabaseService(user.uid);
+
+    return StreamBuilder<AppUserData>(
+      stream: database.user,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasData) {
+          AppUserData? userData = snapshot.data;
+          if (userData == null) return const LoginScreen();
+          final DatabaseService db = DatabaseService(userData.uid);
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: bottomPadding + 60),
+            child: Scaffold(
+              backgroundColor: const Color(0xFFF5F7FB),
+              body: CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    expandedHeight: 80,
+                    flexibleSpace: FlexibleSpaceBar(
+                      title: Text(
+                        'My Settings',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                      background: Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF00C853), Color(0xFFB2FF59)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                      ),
+                    ),
+                    actions: [],
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: size.height * 0.01),
+                          _buildProfileHeader(userData: userData),
+                          SizedBox(height: size.height * 0.03),
+                          _buildSectionTitle('Compte'),
+                          _buildAccountSettings(userData: userData),
+                          SizedBox(height: size.height * 0.03),
+                          _buildSectionTitle('Préférences'),
+                          _buildAppPreferences(userData: userData),
+                          SizedBox(height: size.height * 0.03),
+                          _buildSectionTitle('Sécurité'),
+                          _buildSecuritySettings(userData: userData, db: db),
+                          SizedBox(height: size.height * 0.03),
+                          _buildSectionTitle('Support'),
+                          _buildSupportOptions(),
+                          SizedBox(height: size.height * 0.06),
+                          _buildLogoutButton(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        return const LoginScreen();
+      },
     );
   }
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader({required AppUserData userData}) {
     return Row(
       children: [
-        const CircleAvatar(
-          radius: 30,
-          backgroundImage: NetworkImage('https://example.com/profile.jpg'),
-        ),
+        userData.userSettings.profileUrl != ''
+            ? CircleAvatar(
+              radius: 30,
+              backgroundImage: NetworkImage(userData.userSettings.profileUrl),
+            )
+            : CircleAvatar(
+              radius: 30,
+              backgroundColor: Color(0xFF00C853),
+              child: Text(
+                userData.name[0],
+                style: TextStyle(fontSize: 25, color: Colors.white),
+              ),
+            ),
         const SizedBox(width: 16),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Jean Dupont',
+              userData.name,
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            Text(
-              'jean.dupont@email.com',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
+            Text(userData.email, style: TextStyle(color: Colors.grey[600])),
           ],
         ),
       ],
@@ -178,7 +157,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildAccountSettings() {
+  Widget _buildAccountSettings({required AppUserData userData}) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -191,35 +170,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.person_outline,
             title: 'Modifier le profil',
             trailing: Icon(Icons.chevron_right),
-            onTap: () => _navigateToEditProfile(),
+            onTap: () => _navigateToEditProfile(userData: userData),
           ),
           _buildDivider(),
           _buildListTile(
             onTap:
-                () => Navigator.push(
-                  context,
+                () => Navigator.of(context, rootNavigator: true).push(
                   MaterialPageRoute(
-                    builder:
-                        (context) => const ChangeEmailPage(
-                          currentEmail: 'demo@gmail.com',
-                        ),
+                    builder: (context) => const ForgotPasswordScreen(),
                   ),
                 ),
-            icon: Icons.email_outlined,
-            title: 'Changer l\'email',
+            icon: Icons.lock_outline,
+            title: 'Changer le mot de passe',
             trailing: Icon(Icons.chevron_right),
           ),
           _buildDivider(),
           _buildListTile(
             onTap:
-                () => Navigator.push(
-                  context,
+                () => Navigator.of(context, rootNavigator: true).push(
                   MaterialPageRoute(
-                    builder: (context) => const ChangePasswordPage(),
+                    builder:
+                        (context) => ForgotPinCodeScreen(userData: userData),
                   ),
                 ),
-            icon: Icons.lock_outline,
-            title: 'Changer le mot de passe',
+            icon: Icons.pin,
+            title: 'Changer le Code Pin',
             trailing: Icon(Icons.chevron_right),
           ),
         ],
@@ -227,7 +202,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildAppPreferences() {
+  Widget _buildAppPreferences({required AppUserData userData}) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -236,43 +211,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       child: Column(
         children: [
-          _buildSwitchTile(
+          _buildListTile(
             icon: Icons.dark_mode_outlined,
-            title: 'Mode sombre',
-            value: _darkMode,
-            onChanged: (v) => setState(() => _darkMode = v),
+            title: 'Theme',
+            trailing: DropdownButton<String>(
+              value: userData.userSettings.theme,
+              items:
+                  UserSettings.themes
+                      .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+                      .toList(),
+              onChanged: (value) {
+                print(value);
+              },
+              underline: const SizedBox(),
+              icon: const SizedBox(),
+            ),
           ),
           _buildDivider(),
           _buildListTile(
             icon: Icons.language,
             title: 'Langue',
             trailing: DropdownButton<String>(
-              value: _selectedLanguage,
+              value: userData.userSettings.language,
               items:
-                  ['Français', 'English', 'Español']
+                  UserSettings.languages
                       .map(
                         (lang) =>
                             DropdownMenuItem(value: lang, child: Text(lang)),
                       )
                       .toList(),
-              onChanged: (value) => setState(() => _selectedLanguage = value!),
+              onChanged: (value) {
+                print(value);
+              },
               underline: const SizedBox(),
               icon: const SizedBox(),
             ),
           ),
-          _buildDivider(),
-          _buildSwitchTile(
-            icon: Icons.data_saver_off,
-            title: 'Mode économie de données',
-            value: false,
-            onChanged: (v) {},
-          ),
+          // _buildDivider(),
+          // _buildSwitchTile(
+          //   icon: Icons.data_saver_off,
+          //   title: 'Mode économie de données',
+          //   value: false,
+          //   onChanged: (v) {},
+          // ),
         ],
       ),
     );
   }
 
-  Widget _buildSecuritySettings() {
+  Widget _buildSecuritySettings({
+    required AppUserData userData,
+    required DatabaseService db,
+  }) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -284,15 +274,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSwitchTile(
             icon: Icons.fingerprint,
             title: 'Authentification biométrique',
-            value: _biometricAuth,
-            onChanged: (v) => setState(() => _biometricAuth = v),
+            value: userData.userSettings.allowBiometric,
+            onChanged: (v) async {
+              await db.updateUserSetting("allowBiometric", v);
+            },
           ),
           _buildDivider(),
           _buildSwitchTile(
             icon: Icons.notifications_active_outlined,
             title: 'Notifications',
-            value: _notificationsEnabled,
-            onChanged: (v) => setState(() => _notificationsEnabled = v),
+            value: userData.userSettings.allowNotification,
+            onChanged: (v) async {
+              await db.updateUserSetting("allowNotification", v);
+            },
           ),
         ],
       ),
@@ -390,17 +384,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Divider(height: 1, color: Colors.grey[200]);
   }
 
-  void _navigateToEditProfile() {
+  void _navigateToEditProfile({required AppUserData userData}) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => EditProfilePage(
-              initialName: 'Jean Dupont',
-              initialEmail: 'jean.dupont@email.com',
-              initialPhone: '+33 6 12 34 56 78',
-              initialPhoto: 'https://example.com/profile.jpg',
-            ),
+        builder: (context) => EditProfilePage(userData: userData),
       ),
     );
   }
@@ -420,7 +408,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  // Implémenter la déconnexion
+                  final AuthenticationService _auth = AuthenticationService();
+                  _auth.signOut();
                 },
                 child: const Text(
                   'Déconnexion',

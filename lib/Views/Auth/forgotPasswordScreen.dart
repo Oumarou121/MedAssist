@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:med_assist/Views/Auth/loginScreen.dart';
-import 'package:med_assist/Views/Auth/registerScreen.dart';
 import 'package:med_assist/Controllers/authentication.dart';
-import 'package:med_assist/Views/mainScreen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -25,19 +22,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => LoginScreen()),
-            );
-          },
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: Text('')),
       resizeToAvoidBottomInset: true,
       backgroundColor: const Color(0xFFF8F8F8),
       body: SafeArea(

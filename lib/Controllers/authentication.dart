@@ -48,7 +48,9 @@ class AuthenticationService {
         return 'false';
       }
 
-      await DatabaseService(user.uid).saveUser(name, password, phoneNumber, "");
+      await DatabaseService(
+        user.uid,
+      ).saveUser(name, email, password, phoneNumber, "");
 
       return user.uid;
     } on FirebaseAuthException catch (e) {

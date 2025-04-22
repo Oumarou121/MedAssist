@@ -1,7 +1,9 @@
 import 'package:custom_pin_screen/custom_pin_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:med_assist/Controllers/authentication.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
@@ -28,25 +30,38 @@ class _CodePinState extends State<CodePin> {
     super.initState();
   }
 
-  Future<void> _authenticateWithBiometrics() async {
-    try {
-      bool isAuthenticated = await _localAuth.authenticate(
-        localizedReason: 'Scan your fingerprint or use Face ID to continue',
-        options: const AuthenticationOptions(
-          biometricOnly: true,
-          stickyAuth: true,
-        ),
-      );
+  Future<void> _authenticateWithBiometrics({
+    required AppUserData userData,
+  }) async {
+    if (userData.userSettings.allowBiometric) {
+      try {
+        bool isAuthenticated = await _localAuth.authenticate(
+          localizedReason: 'Scan your fingerprint or use Face ID to continue',
+          options: const AuthenticationOptions(
+            biometricOnly: true,
+            stickyAuth: true,
+          ),
+        );
 
-      if (isAuthenticated) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+        if (isAuthenticated) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MainScreen(initialIndex: 0),
+            ),
+          );
+        }
+      } catch (e) {
+        Fluttertoast.showToast(
+          msg: 'Biometric authentication failed!',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          toastLength: Toast.LENGTH_LONG,
         );
       }
-    } catch (e) {
+    } else {
       Fluttertoast.showToast(
-        msg: 'Biometric authentication failed!',
+        msg: 'Biometric authentication is not allow!',
         backgroundColor: Colors.red,
         textColor: Colors.white,
         toastLength: Toast.LENGTH_LONG,
@@ -81,6 +96,21 @@ class _CodePinState extends State<CodePin> {
           managersTreats.checkAlarm();
 
           return Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              backgroundColor: Colors.white,
+              elevation: 0,
+              actions: [
+                IconButton(
+                  padding: const EdgeInsets.only(right: 20),
+                  onPressed: () {
+                    final AuthenticationService _auth = AuthenticationService();
+                    _auth.signOut();
+                  },
+                  icon: const Icon(Iconsax.login, color: Color(0xFF2A8F68)),
+                ),
+              ],
+            ),
             backgroundColor: Colors.white,
             body: _content(userData),
           );
@@ -115,7 +145,9 @@ class _CodePinState extends State<CodePin> {
           if (v == userData.pinCode) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const MainScreen()),
+              MaterialPageRoute(
+                builder: (context) => const MainScreen(initialIndex: 0),
+              ),
             );
           } else {
             attempts++;
@@ -136,7 +168,9 @@ class _CodePinState extends State<CodePin> {
           }
         }
       },
-      onSpecialKeyTap: _authenticateWithBiometrics,
+      onSpecialKeyTap: () {
+        _authenticateWithBiometrics(userData: userData);
+      },
       useFingerprint: true,
     );
   }

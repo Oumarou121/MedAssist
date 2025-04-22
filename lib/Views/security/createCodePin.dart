@@ -1,9 +1,7 @@
 import 'package:custom_pin_screen/custom_pin_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Controllers/database.dart';
-import 'package:med_assist/Views/Auth/loginScreen.dart';
 import 'package:med_assist/Controllers/noti_service.dart';
 import 'package:med_assist/Views/mainScreen.dart';
 
@@ -22,24 +20,23 @@ class _CreateCodePinState extends State<CreateCodePin> {
 
   @override
   Widget build(BuildContext context) {
-    print(widget.uid);
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            padding: const EdgeInsets.only(right: 20),
-            onPressed:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                ),
-            icon: const Icon(Iconsax.login, color: Color(0xFF2A8F68)),
-          ),
-        ],
-      ),
+      // appBar: AppBar(
+      //   automaticallyImplyLeading: false,
+      //   backgroundColor: Colors.white,
+      //   elevation: 0,
+      //   actions: [
+      //     IconButton(
+      //       padding: const EdgeInsets.only(right: 20),
+      //       onPressed:
+      //           () => Navigator.push(
+      //             context,
+      //             MaterialPageRoute(builder: (context) => const LoginScreen()),
+      //           ),
+      //       icon: const Icon(Iconsax.login, color: Color(0xFF2A8F68)),
+      //     ),
+      //   ],
+      // ),
       resizeToAvoidBottomInset: true,
       body: _content(),
     );
@@ -83,7 +80,9 @@ class _CreateCodePinState extends State<CreateCodePin> {
 
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const MainScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const MainScreen(initialIndex: 0),
+                ),
               );
             } else {
               Fluttertoast.showToast(

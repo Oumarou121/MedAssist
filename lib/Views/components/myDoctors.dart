@@ -29,6 +29,7 @@ class _MyDoctorsListState extends State<MyDoctorsList> {
 
   Future<void> _loadDoctors() async {
     doctors = await widget.managersDoctors.getDoctors();
+    if (!mounted) return;
     setState(() {});
   }
 

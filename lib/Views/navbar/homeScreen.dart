@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Controllers/authentication.dart';
 import 'package:med_assist/Controllers/database.dart';
+import 'package:med_assist/Controllers/noti_service.dart';
 import 'package:med_assist/Views/components/MedicationSchedule.dart';
 import 'package:med_assist/Models/doctor.dart';
 import 'package:med_assist/Models/treat.dart';
@@ -148,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   IconButton(
                     onPressed: () async {
-                      await AuthenticationService().signOut();
+                      await NotiService().cancelAllAlarm();
                     },
                     icon: const Icon(Iconsax.notification, color: Colors.black),
                   ),
@@ -166,20 +167,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              const Padding(
-                padding: EdgeInsets.only(left: 5),
-                child: CircleAvatar(
-                  backgroundImage: NetworkImage(
-                    "https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvMzQwLXBhaTI1MzAuanBn.jpg",
-                  ),
-                  radius: 22,
-                ),
-              ),
+              _buildProfileHeader(userData: userData),
             ],
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildProfileHeader({required AppUserData userData}) {
+    return userData.userSettings.profileUrl != ''
+        ? CircleAvatar(
+          radius: 25,
+          backgroundImage: NetworkImage(userData.userSettings.profileUrl),
+        )
+        : CircleAvatar(
+          radius: 25,
+          backgroundColor: Color(0xFF00C853),
+          child: Text(
+            userData.name[0],
+            style: TextStyle(fontSize: 25, color: Colors.white),
+          ),
+        );
   }
 
   Widget _searchBar() {

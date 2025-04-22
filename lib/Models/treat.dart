@@ -101,6 +101,7 @@ class ManagersTreats {
           } else {
             print("non-active");
             await NotiService().addAlarm(
+              userUid: uid,
               id: id,
               title1: scheduleItem.treat.title,
               title2: scheduleItem.medicine.name,
@@ -156,6 +157,7 @@ class ManagersTreats {
           } else {
             print("non-active");
             await NotiService().addAlarm(
+              userUid: uid,
               id: id,
               title1: scheduleItem.treat.title,
               title2: scheduleItem.medicine.name,

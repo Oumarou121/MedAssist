@@ -12,23 +12,22 @@ import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:iconsax/iconsax.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int initialIndex;
+  const MainScreen({super.key, required this.initialIndex});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
-  final PersistentTabController _controller = PersistentTabController(
-    initialIndex: 0,
-  );
-
+  late PersistentTabController _controller;
   late AnimationController _animationController;
   late Animation<double> _animationValue;
 
   @override
   void initState() {
     super.initState();
+    _controller = PersistentTabController(initialIndex: widget.initialIndex);
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
@@ -114,7 +113,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         ),
         iconAnimationController: _animationController,
         title: "Home",
-        activeColorPrimary: Colors.green,
+        activeColorPrimary: Color(0xFF00C853),
         activeColorSecondary: Colors.white,
         inactiveColorPrimary: Colors.grey,
       ),
@@ -133,7 +132,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         ),
         iconAnimationController: _animationController,
         title: "Treat",
-        activeColorPrimary: Colors.green,
+        activeColorPrimary: Color(0xFF00C853),
         activeColorSecondary: Colors.white,
         inactiveColorPrimary: Colors.grey,
       ),
@@ -152,7 +151,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         ),
         iconAnimationController: _animationController,
         title: "Medicine",
-        activeColorPrimary: Colors.green,
+        activeColorPrimary: Color(0xFF00C853),
         activeColorSecondary: Colors.white,
         inactiveColorPrimary: Colors.grey,
       ),
@@ -171,7 +170,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         ),
         iconAnimationController: _animationController,
         title: "Medical Records",
-        activeColorPrimary: Colors.green,
+        activeColorPrimary: Color(0xFF00C853),
         activeColorSecondary: Colors.white,
         inactiveColorPrimary: Colors.grey,
       ),
@@ -190,7 +189,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         ),
         iconAnimationController: _animationController,
         title: "Settings",
-        activeColorPrimary: Colors.green,
+        activeColorPrimary: Color(0xFF00C853),
         activeColorSecondary: Colors.white,
         inactiveColorPrimary: Colors.grey,
       ),

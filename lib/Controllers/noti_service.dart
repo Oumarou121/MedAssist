@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:alarm/alarm.dart';
 import 'package:alarm/model/volume_settings.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:med_assist/Controllers/database.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -49,32 +50,46 @@ class NotiService {
 
   //NOTIFICATIONS DETAIL SETUP
   NotificationDetails notificationDetails() {
-    return const NotificationDetails(
+    return NotificationDetails(
       android: AndroidNotificationDetails(
-        'channel 0',
-        'Treat Notification',
-        channelDescription: 'Treat Notification Channel',
+        'med_assist_channel', // ID de canal
+        'Alarme Médicale', // Nom du canal
+        channelDescription: 'Notification pour les rappels de médicaments',
         importance: Importance.max,
         priority: Priority.high,
-        ticker: 'ticker',
-        // actions: <AndroidNotificationAction>[
-        //   AndroidNotificationAction(
-        //     'id_1',
-        //     'Action 1',
-        //     icon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-        //     contextual: true,
-        //   ),
-        //   AndroidNotificationAction(
-        //     'id_2',
-        //     'Action 2',
-        //     titleColor: Color.fromARGB(255, 255, 0, 0),
-        //     icon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-        //   ),
-        // ],
+        // icon: 'notification_icon',
       ),
       iOS: DarwinNotificationDetails(),
     );
   }
+
+  // NotificationDetails notificationDetails() {
+  //   return const NotificationDetails(
+  //     android: AndroidNotificationDetails(
+  //       'channel 0',
+  //       'Treat Notification',
+  //       channelDescription: 'Treat Notification Channel',
+  //       importance: Importance.max,
+  //       priority: Priority.high,
+  //       ticker: 'ticker',
+  //       // actions: <AndroidNotificationAction>[
+  //       //   AndroidNotificationAction(
+  //       //     'id_1',
+  //       //     'Action 1',
+  //       //     icon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+  //       //     contextual: true,
+  //       //   ),
+  //       //   AndroidNotificationAction(
+  //       //     'id_2',
+  //       //     'Action 2',
+  //       //     titleColor: Color.fromARGB(255, 255, 0, 0),
+  //       //     icon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+  //       //   ),
+  //       // ],
+  //     ),
+  //     iOS: DarwinNotificationDetails(),
+  //   );
+  // }
 
   Future<void> addAlarm({
     required int id,
@@ -84,7 +99,13 @@ class NotiService {
     required String body2,
     required String payload,
     required DateTime time,
+    required String userUid,
   }) async {
+    bool isAllow = await DatabaseService(
+      userUid,
+    ).getUserSetting("allowNotification");
+    if (!isAllow) return;
+
     // Ne rien faire si l'heure choisie est déjà dépassée
     if (time.isBefore(DateTime.now())) return;
 
@@ -134,19 +155,23 @@ class NotiService {
     );
 
     // Planifie une notification 5 minutes avant l'heure de l'alarme
-    await notificationPlugin.zonedSchedule(
-      id,
-      title1,
-      body1,
-      scheduledTime,
-      notificationDetails(),
-      androidScheduleMode: AndroidScheduleMode.alarmClock,
-      payload: payload,
-      matchDateTimeComponents: null,
-    );
-
-    // Planifie l'alarme
-    await Alarm.set(alarmSettings: alarmSettings);
+    try {
+      await notificationPlugin.zonedSchedule(
+        id,
+        title1,
+        body1,
+        scheduledTime,
+        notificationDetails(),
+        androidScheduleMode: AndroidScheduleMode.alarmClock,
+        payload: payload,
+        matchDateTimeComponents: null,
+      );
+      // Planifie l'alarme
+      await Alarm.set(alarmSettings: alarmSettings);
+    } catch (e, stack) {
+      print("⚠️ zonedSchedule error: $e");
+      print(stack);
+    }
   }
 
   Future<void> cancelAlarm({required int id}) async {

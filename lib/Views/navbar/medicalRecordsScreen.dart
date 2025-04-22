@@ -13,6 +13,7 @@ import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class MedicalRecordsScreen extends StatefulWidget {
   final AppUserData userData;
@@ -1265,15 +1266,13 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       return const Center(child: CircularProgressIndicator());
                     } else if (snapshot.hasError) {
                       return Center(child: Text('Erreur: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('Aucun médecin trouvé.'));
                     }
 
                     final doctors = snapshot.data!;
                     String creator =
                         isFromMe
                             ? 'Me'
-                            : '${doctors[0].name} ${doctors[0].specialty} \n de l\'hôpital ${doctors[0].hospital}';
+                            : '${doctors[0].name} ${doctors[0].specialty} de l\'hôpital ${doctors[0].hospital}';
 
                     return _buildInfoSection(
                       children: [
@@ -1293,14 +1292,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                             _buildDetailItem(
                               Iconsax.personalcard,
                               'Share with : ',
-                              '${doctors[i].name} ${doctors[i].specialty} \n de l\'hôpital ${doctors[i].hospital}',
+                              '${doctors[i].name} ${doctors[i].specialty} de l\'hôpital ${doctors[i].hospital}',
                             ),
                         ] else ...[
                           for (int i = 1; i < doctors.length; i++)
                             _buildDetailItem(
                               Iconsax.personalcard,
                               'Share with : ',
-                              '${doctors[i].name} ${doctors[i].specialty} \n de l\'hôpital ${doctors[i].hospital}',
+                              '${doctors[i].name} ${doctors[i].specialty} de l\'hôpital ${doctors[i].hospital}',
                             ),
                         ],
                       ],
@@ -1395,28 +1394,32 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: Colors.grey.shade600, size: 20),
           const SizedBox(width: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  color: Colors.grey.shade600,
-                  fontSize: 12,
-                ),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: GoogleFonts.poppins(color: Colors.black, fontSize: 14),
+                children: [
+                  TextSpan(
+                    text: label,
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey.shade600,
+                      fontSize: 12,
+                    ),
+                  ),
+                  TextSpan(
+                    text: value,
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 5),
-              Text(
-                value,
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),
@@ -1510,6 +1513,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           ],
         ),
         trailing: PopupMenuButton(
+          offset: const Offset(0, -150),
           color: Colors.white,
           itemBuilder:
               (context) => [
@@ -1518,7 +1522,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     leading: const Icon(Icons.remove_red_eye_outlined),
                     title: Text('Preview'),
                     onTap: () {
-                      Navigator.pop(context); // Ferme le menu
+                      Navigator.pop(context);
                       previewFile(
                         context,
                         medicalFile.fileUrl,
@@ -1554,7 +1558,11 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                             final currentFolder = medicalRecord;
                             final availableFolders =
                                 myMedicalRecords
-                                    .where((f) => f != currentFolder)
+                                    .where(
+                                      (f) =>
+                                          f != currentFolder &&
+                                          f.creatorType == CreatorType.patient,
+                                    )
                                     .toList();
 
                             return GestureDetector(
@@ -1625,33 +1633,38 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                           ],
                                         ),
                                         SizedBox(height: 16),
-
-                                        Expanded(
-                                          child: GridView.builder(
-                                            shrinkWrap: true,
-                                            physics:
-                                                const ClampingScrollPhysics(),
-                                            itemCount: availableFolders.length,
-                                            gridDelegate:
-                                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                                  crossAxisCount: 2,
-                                                  mainAxisSpacing: 8,
-                                                  crossAxisSpacing: 8,
-                                                  childAspectRatio: 1,
-                                                ),
-                                            itemBuilder: (context, index) {
-                                              final folder =
-                                                  availableFolders[index];
-                                              return _buildMedicalRecordCardMove(
-                                                record: folder,
-                                                medicalRecordOld: medicalRecord,
-                                                medicalFile: medicalFile,
-                                                onFileAdded: onFileAdded,
-                                                contextParent: contextParent,
-                                              );
-                                            },
+                                        if (availableFolders.isNotEmpty) ...[
+                                          Expanded(
+                                            child: GridView.builder(
+                                              shrinkWrap: true,
+                                              physics:
+                                                  const ClampingScrollPhysics(),
+                                              itemCount:
+                                                  availableFolders.length,
+                                              gridDelegate:
+                                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                                    crossAxisCount: 2,
+                                                    mainAxisSpacing: 8,
+                                                    crossAxisSpacing: 8,
+                                                    childAspectRatio: 1,
+                                                  ),
+                                              itemBuilder: (context, index) {
+                                                final folder =
+                                                    availableFolders[index];
+                                                return _buildMedicalRecordCardMove(
+                                                  record: folder,
+                                                  medicalRecordOld:
+                                                      medicalRecord,
+                                                  medicalFile: medicalFile,
+                                                  onFileAdded: onFileAdded,
+                                                  contextParent: contextParent,
+                                                );
+                                              },
+                                            ),
                                           ),
-                                        ),
+                                        ] else ...[
+                                          Text("Aucun Dossier Trouve"),
+                                        ],
                                       ],
                                     ),
                                   ),
@@ -2522,27 +2535,28 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     }
   }
 
+  Future<bool> _requestPermission() async {
+    if (await Permission.manageExternalStorage.isGranted) {
+      return true;
+    }
+
+    final status = await Permission.manageExternalStorage.request();
+    return status.isGranted;
+  }
+
   Future<void> _downloadFile({
     required MedicalRecord medicalRecord,
     required MedicalFile medicalFile,
   }) async {
-    // try {
-    //   final dir = await getApplicationDocumentsDirectory();
-    //   final filePath = '${dir.path}/$fileName';
-
-    //   final dio = Dio();
-    //   await dio.download(url, filePath);
-
-    //   // Optionnel : afficher un message de confirmation
-    //   print('Download completed: $filePath');
-    // } catch (e) {
-    //   print('Download error: $e');
-    // }
-
+    if (!await _requestPermission()) {
+      openAppSettings();
+      return;
+    }
     String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
 
     if (selectedDirectory != null) {
-      final filePath = '$selectedDirectory/${medicalFile.title}';
+      final filePath =
+          '$selectedDirectory/${medicalFile.title}.${medicalFile.fileType}';
 
       final dio = Dio();
       await dio.download(medicalFile.fileUrl, filePath);
@@ -2552,6 +2566,33 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
       print('Aucun dossier sélectionné.');
     }
   }
+
+  // Future<void> _downloadFile({
+  //   required MedicalRecord medicalRecord,
+  //   required MedicalFile medicalFile,
+  // }) async {
+  //   if (!await _requestPermission()) {
+  //     openAppSettings(); // Ouvre les paramètres de l'appli
+  //     return;
+  //   }
+
+  //   final directory = await getExternalStorageDirectory();
+  //   if (directory != null) {
+  //     final path =
+  //         '${directory.path}/${medicalFile.title}.${medicalFile.fileType}';
+  //     final file = File(path);
+
+  //     final dio = Dio();
+  //     try {
+  //       await dio.download(medicalFile.fileUrl, file.path);
+  //       print('Téléchargement terminé dans : ${file.path}');
+  //     } catch (e) {
+  //       print('Erreur de téléchargement : $e');
+  //     }
+  //   } else {
+  //     print('Impossible d\'obtenir le répertoire.');
+  //   }
+  // }
 
   void deleteMedicalRecord({
     required MedicalRecord medicalRecord,
@@ -2691,33 +2732,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     fit: BoxFit.cover,
                   ),
                 ),
-                if (doctor.isAvailable())
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Disponible',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2735,27 +2753,6 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       fontSize: 12,
                       color: Colors.grey.shade600,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(
-                        Iconsax.star1,
-                        color: Colors.amber.shade700,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${doctor.rating}',
-                        style: GoogleFonts.poppins(fontSize: 12),
-                      ),
-                      const Spacer(),
-                      Icon(
-                        Iconsax.video,
-                        color: Colors.blue.shade400,
-                        size: 18,
-                      ),
-                    ],
                   ),
                 ],
               ),

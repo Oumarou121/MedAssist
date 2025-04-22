@@ -1,3 +1,4 @@
+import 'package:med_assist/Models/userSettings.dart';
 import 'package:med_assist/Models/treat.dart';
 
 class AppUser {
@@ -9,6 +10,7 @@ class AppUser {
 class AppUserData {
   final String uid;
   final String name;
+  final String email;
   final String password;
   final String phoneNumber;
   final String pinCode;
@@ -17,11 +19,13 @@ class AppUserData {
   final List<String> appointments;
   final List<String> requests;
   final List<String> medicalRecords;
-  final String profileUrl;
+  final UserSettings userSettings;
+  final DateTime createdAt;
 
   AppUserData({
     required this.uid,
     required this.name,
+    required this.email,
     required this.password,
     required this.phoneNumber,
     required this.pinCode,
@@ -30,6 +34,7 @@ class AppUserData {
     required this.appointments,
     required this.requests,
     required this.medicalRecords,
-    required this.profileUrl,
+    required this.userSettings,
+    required this.createdAt,
   });
 }

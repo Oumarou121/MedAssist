@@ -89,43 +89,49 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
     final activeConfirmItems =
         confirmItems.where((item) => item.isActive).toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 0),
-          child: Text(
-            "Planning Médical",
-            style: GoogleFonts.poppins(
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
+    return SizedBox(
+      width: MediaQuery.of(context).size.width,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0),
+            child: Text(
+              "Planning Médical",
+              style: GoogleFonts.poppins(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 16),
-        if (activeConfirmItems.isNotEmpty)
-          ...activeConfirmItems.map((item) => _buildConfirmCard(item)).toList(),
+          const SizedBox(height: 16),
+          if (activeConfirmItems.isNotEmpty)
+            ...activeConfirmItems
+                .map((item) => _buildConfirmCard(item))
+                .toList(),
 
-        if (schedules.isEmpty)
-          _buildEmptyState()
-        else if (_allTaken())
-          _buildFinishState()
-        else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: schedules.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder:
-                (context, index) => _buildMedicationCard(schedules[index]),
-          ),
-      ],
+          if (schedules.isEmpty)
+            _buildEmptyState()
+          else if (_allTaken())
+            _buildFinishState()
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: schedules.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder:
+                  (context, index) => _buildMedicationCard(schedules[index]),
+            ),
+        ],
+      ),
     );
   }
 
   Widget _buildEmptyState() {
     return Container(
+      width: MediaQuery.of(context).size.width,
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -157,6 +163,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
 
   Widget _buildFinishState() {
     return Container(
+      width: MediaQuery.of(context).size.width,
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -187,6 +194,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
 
   Widget _buildConfirmCard(ConfirmItem item) {
     return Container(
+      width: MediaQuery.of(context).size.width,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -256,6 +264,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
 
   Widget _buildMedicationCard(MedicationSchedule schedule) {
     return Container(
+      width: MediaQuery.of(context).size.width,
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(

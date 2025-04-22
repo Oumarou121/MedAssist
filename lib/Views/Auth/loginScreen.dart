@@ -5,7 +5,6 @@ import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Views/Auth/forgotPasswordScreen.dart';
 import 'package:med_assist/Views/Auth/registerScreen.dart';
 import 'package:med_assist/Controllers/authentication.dart';
-import 'package:med_assist/Views/mainScreen.dart';
 import 'package:med_assist/Views/security/codePin.dart';
 
 class LoginScreen extends StatefulWidget {

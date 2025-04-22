@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
+import 'package:med_assist/Models/userSettings.dart';
 
 class DatabaseService {
   final String uid;
@@ -15,13 +16,22 @@ class DatabaseService {
 
   Future<void> saveUser(
     String name,
+    String email,
     String password,
     String phoneNumber,
     String pinCode,
   ) async {
+    UserSettings userSettings = UserSettings(
+      profileUrl: "",
+      allowBiometric: true,
+      allowNotification: true,
+      language: "French",
+      theme: "Brightness",
+    );
     try {
       await userCollection.doc(uid).set({
-        'name': name,
+        'name': capitalizeEachWord(name),
+        'email': email,
         'password': password,
         'phoneNumber': phoneNumber,
         'pinCode': pinCode,
@@ -31,6 +41,8 @@ class DatabaseService {
         'appointments': [],
         'requests': [],
         'medicalRecords': [],
+        "settings": userSettings.toMap(),
+        'createdAt': DateTime.now().toIso8601String(),
       });
     } catch (e) {
       throw Exception("Failed to save user: $e");
@@ -55,6 +67,39 @@ class DatabaseService {
     }
   }
 
+  Future<void> updateUserSetting(String name, dynamic value) async {
+    try {
+      await userCollection.doc(uid).update({'settings.$name': value});
+    } catch (e) {
+      throw Exception("Failed to update setting '$name': $e");
+    }
+  }
+
+  Future<dynamic> getUserSetting(String key) async {
+    try {
+      final docSnapshot =
+          await FirebaseFirestore.instance
+              .collection("users")
+              .doc("patients")
+              .collection("users")
+              .doc(uid)
+              .get();
+
+      if (!docSnapshot.exists) {
+        throw Exception("User not found");
+      }
+
+      final data = docSnapshot.data();
+      if (data == null || data['settings'] == null) {
+        throw Exception("Settings not found");
+      }
+
+      return data['settings'][key];
+    } catch (e) {
+      throw Exception("Failed to get setting '$key': $e");
+    }
+  }
+
   AppUserData _userFromSnapshot(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
   ) {
@@ -63,10 +108,10 @@ class DatabaseService {
     return AppUserData(
       uid: snapshot.id,
       name: data['name'] ?? 'Unknown',
+      email: data['email'] ?? 'Unknown',
       password: data['password'] ?? 'Unknown',
       phoneNumber: data['phoneNumber'] ?? 'Unknown',
       pinCode: data['pinCode'] ?? 'Unknown',
-      profileUrl: data['profileUrl'] ?? 'Unknown',
       treatments:
           data['treatments'] != null
               ? (data['treatments'] as List)
@@ -91,6 +136,8 @@ class DatabaseService {
                 data['medicalRecords'].map((e) => e.toString()),
               )
               : [],
+      userSettings: UserSettings.fromMap(data['settings']),
+      createdAt: DateTime.parse(data['createdAt']),
     );
   }
 
@@ -109,4 +156,16 @@ class DatabaseService {
   Stream<List<AppUserData>> get users {
     return userCollection.snapshots().map(_userListFromSnapshot);
   }
+}
+
+String capitalizeEachWord(String input) {
+  return input
+      .split(' ')
+      .map(
+        (word) =>
+            word.isNotEmpty
+                ? word[0].toUpperCase() + word.substring(1).toLowerCase()
+                : '',
+      )
+      .join(' ');
 }
