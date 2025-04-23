@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:med_assist/Controllers/authentication.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Controllers/noti_service.dart';
 import 'package:med_assist/Views/components/MedicationSchedule.dart';
@@ -19,7 +19,7 @@ class HomeScreen extends StatefulWidget {
 
   const HomeScreen({
     super.key,
-    required PersistentTabController this.persistentTabController,
+    required this.persistentTabController,
   });
 
   @override
@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              "Hello,",
+              'hello'.tr(),
               style: GoogleFonts.poppins(fontSize: 24, color: Colors.black),
             ),
             Text(
@@ -195,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return TextField(
       onChanged: (text) {},
       decoration: InputDecoration(
-        hintText: 'Search for a doctor or specialty',
+        hintText: 'search'.tr(),
         prefixIcon: Icon(Iconsax.search_normal),
         filled: true,
         fillColor: Colors.white,

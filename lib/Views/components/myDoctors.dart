@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
@@ -10,8 +11,8 @@ class MyDoctorsList extends StatefulWidget {
 
   const MyDoctorsList({
     super.key,
-    required ManagersDoctors this.managersDoctors,
-    required PersistentTabController this.persistentTabController,
+    required this.managersDoctors,
+    required this.persistentTabController,
   });
 
   @override
@@ -44,7 +45,7 @@ class _MyDoctorsListState extends State<MyDoctorsList> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "My Recent Doctors",
+                'recent_doctors'.tr(),
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -55,7 +56,7 @@ class _MyDoctorsListState extends State<MyDoctorsList> {
                   widget.persistentTabController.jumpToTab(2);
                 },
                 child: Text(
-                  "See All",
+                  'see_all'.tr(),
                   style: GoogleFonts.poppins(color: Colors.blue, fontSize: 14),
                 ),
               ),
@@ -110,7 +111,7 @@ Widget _buildEmptyState() {
           Icon(Iconsax.user_cirlce_add, size: 40, color: Colors.blueGrey[200]),
           const SizedBox(height: 8),
           Text(
-            'No doctor is following you.',
+            'no_doctors'.tr(),
             style: GoogleFonts.poppins(
               color: Colors.blueGrey[300],
               fontWeight: FontWeight.w500,
@@ -172,7 +173,7 @@ Widget _buildDoctorCard(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      'Disponible',
+                      'available'.tr(),
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontSize: 10,

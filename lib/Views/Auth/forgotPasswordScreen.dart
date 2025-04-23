@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -40,12 +41,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Forgot Password",
+                        'forgot_password'.tr(),
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       SizedBox(height: 10),
                       Text(
-                        "Don't worry! It happens. Please enter the email that associated with yout Account.",
+                        'forgot_password_description'.tr(),
                         style: Theme.of(
                           context,
                         ).textTheme.labelLarge?.copyWith(color: Colors.grey),
@@ -78,14 +79,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       onChanged: (value) => setState(() => _email = value),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Veuillez entrer votre email';
+          return 'required'.tr();
         } else if (!isValidEmail(value)) {
-          return 'Veuillez entrer une adresse email valide';
+          return 'invalid_email'.tr();
         }
         return null;
       },
       keyboardType: TextInputType.emailAddress,
-      decoration: inputDecoration("E-mail", Iconsax.direct_right),
+      decoration: inputDecoration('email'.tr(), Iconsax.direct_right),
     );
   }
 
@@ -134,7 +135,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             _isSigning
                 ? const CircularProgressIndicator(color: Colors.white)
                 : Text(
-                  'Send',
+                  'send'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 16.0,
                     color: Colors.white,
@@ -161,7 +162,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
         if (result) {
           Fluttertoast.showToast(
-            msg: "Email Envoie! Veillez verifier vos email",
+            msg: 'success_forgot_password'.tr(),
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.green,
@@ -169,7 +170,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           );
         } else {
           Fluttertoast.showToast(
-            msg: "Cet email n'existe pas",
+            msg: 'failed_forgot_password'.tr(),
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.red,

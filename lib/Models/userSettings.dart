@@ -5,7 +5,7 @@ class UserSettings {
   final String language;
   final String theme;
 
-  static const languages = ['French', 'English', 'Spanish'];
+  static const languages = {'French': 'fr', 'English': 'en'};
   static const themes = ['Automatic', 'Light', 'Dark'];
 
   UserSettings({
@@ -34,5 +34,14 @@ class UserSettings {
       language: map['language'],
       theme: map['theme'],
     );
+  }
+
+  static String getLabelFromCode(String code) {
+    return languages.entries
+        .firstWhere(
+          (entry) => entry.value == code,
+          orElse: () => MapEntry('Unknown', ''),
+        )
+        .key;
   }
 }

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
@@ -7,6 +8,7 @@ import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
 import 'package:med_assist/Views/Auth/loginScreen.dart';
 import 'package:med_assist/Views/components/schedulePage.dart';
+import 'package:med_assist/Views/components/utils.dart';
 import 'package:provider/provider.dart';
 
 class TreatScreen extends StatefulWidget {
@@ -83,7 +85,7 @@ class _TreatScreenState extends State<TreatScreen> {
                         expandedHeight: 80,
                         flexibleSpace: FlexibleSpaceBar(
                           title: Text(
-                            'My Treatments',
+                            'my_treatments'.tr(),
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
                               fontSize: 18,
@@ -120,7 +122,7 @@ class _TreatScreenState extends State<TreatScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildTreatmentStatusSection(
-                                title: 'Active Treatments',
+                                title: 'active_treatments'.tr(),
                                 icon: Iconsax.health,
                                 treatments: managersTreats.activeTreatments(),
                                 statusColor: const Color(0xFF00C853),
@@ -129,7 +131,7 @@ class _TreatScreenState extends State<TreatScreen> {
                                 isTop: true,
                               ),
                               _buildTreatmentStatusSection(
-                                title: 'Failed Treatments',
+                                title: 'failed_treatments'.tr(),
                                 icon: Iconsax.close_circle,
                                 treatments: managersTreats.failedTreatments(),
                                 statusColor: Colors.red,
@@ -137,14 +139,13 @@ class _TreatScreenState extends State<TreatScreen> {
                                 managersTreats: managersTreats,
                               ),
                               _buildTreatmentStatusSection(
-                                title: 'Treatments Completed',
+                                title: 'completed_treatments'.tr(),
                                 icon: Iconsax.tick_circle,
                                 treatments: managersTreats.finishedTreatments(),
                                 statusColor: Colors.grey,
                                 userData: userData,
                                 managersTreats: managersTreats,
                               ),
-                              // Tu peux aussi afficher publicTreatments ici si tu veux
                             ],
                           ),
                         ),
@@ -181,7 +182,7 @@ class _TreatScreenState extends State<TreatScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'No Treatment.',
+              'no_treatment'.tr(),
               style: GoogleFonts.poppins(
                 color: Colors.blueGrey[300],
                 fontWeight: FontWeight.w500,
@@ -202,8 +203,6 @@ class _TreatScreenState extends State<TreatScreen> {
     required ManagersTreats managersTreats,
     bool isTop = false,
   }) {
-    // if (treatments.isEmpty && !isTop) return const SizedBox.shrink();
-    // if (treatments.isEmpty) return _buildEmptyState();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -350,7 +349,7 @@ class _TreatScreenState extends State<TreatScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Médicaments :',
+                      '${'medicines'.tr()} :',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -386,7 +385,7 @@ class _TreatScreenState extends State<TreatScreen> {
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
-                          '+ ${treat.medicines.length - 2} autres...',
+                          '+ ${treat.medicines.length - 2} ${'others'.tr()}...',
                           style: GoogleFonts.poppins(
                             fontSize: 10,
                             color: Colors.grey,
@@ -412,10 +411,10 @@ class _TreatScreenState extends State<TreatScreen> {
       ),
       child: Text(
         treat.isMissing
-            ? "Failed"
+            ? 'failed'.tr()
             : !treat.isActive()
-            ? 'Completed'
-            : 'In progress',
+            ? 'completed'.tr()
+            : 'in_progress'.tr(),
         style: GoogleFonts.poppins(
           color:
               treat.isMissing
@@ -507,7 +506,7 @@ class _TreatScreenState extends State<TreatScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                "Gestion des Traitements",
+                'processing_management'.tr(),
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -519,7 +518,7 @@ class _TreatScreenState extends State<TreatScreen> {
               // Bouton Nouveau Traitement
               _buildOptionButton(
                 icon: Iconsax.add,
-                label: "Créer un nouveau traitement",
+                label: 'create_treatment'.tr(),
                 color: const Color(0xFF3366FF),
                 onPressed: () {
                   Navigator.pop(context);
@@ -534,7 +533,7 @@ class _TreatScreenState extends State<TreatScreen> {
               // Bouton Rejoindre Traitement
               _buildOptionButton(
                 icon: Iconsax.link,
-                label: "Rejoindre un traitement existant",
+                label: 'join_treatment'.tr(),
                 color: const Color(0xFF00CCFF),
                 onPressed: () {
                   Navigator.pop(context);
@@ -546,7 +545,7 @@ class _TreatScreenState extends State<TreatScreen> {
               // Bouton Planning
               _buildOptionButton(
                 icon: Iconsax.calendar,
-                label: "Planning des traitements",
+                label: 'treatment_planning'.tr(),
                 color: const Color(0xFF00C853),
                 onPressed: () {
                   Navigator.pop(context);
@@ -710,7 +709,7 @@ class _TreatScreenState extends State<TreatScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Détails du traitement',
+                            'treatments_details'.tr(),
                             style: GoogleFonts.poppins(
                               fontSize: 22,
                               fontWeight: FontWeight.w600,
@@ -719,92 +718,25 @@ class _TreatScreenState extends State<TreatScreen> {
                           ),
                           IconButton(
                             onPressed: () {
-                              showDialog(
+                              showDialogConfirm(
+                                isAlert: true,
                                 context: context,
-                                builder:
-                                    (context) => Dialog(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(24),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Color(0xFFF5F7FB),
-                                              Colors.white,
-                                            ],
-                                          ),
-                                        ),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(
-                                              Iconsax.info_circle,
-                                              size: 40,
-                                              color: Colors.red,
-                                            ),
-                                            const SizedBox(height: 16),
-                                            treat.authorUid == userData.uid
-                                                ? Text(
-                                                  "Voulez-vous supprimer votre traitement ${treat.title} ?",
-                                                )
-                                                : Text(
-                                                  "Voulez-vous quitter le traitement ${treat.title} de ${treat.authorName} ?",
-                                                ),
-                                            const SizedBox(height: 24),
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: TextButton(
-                                                    child: const Text(
-                                                      "Annuler",
-                                                    ),
-                                                    onPressed:
-                                                        () => Navigator.pop(
-                                                          context,
-                                                        ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 16),
-                                                Expanded(
-                                                  child: ElevatedButton(
-                                                    style:
-                                                        ElevatedButton.styleFrom(
-                                                          backgroundColor:
-                                                              Colors.red,
-                                                        ),
-                                                    child: const Text(
-                                                      "Confirmer",
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                    onPressed: () {
-                                                      Navigator.pop(context);
-                                                      Navigator.pop(
-                                                        contextParent,
-                                                      );
-                                                      setState(() {
-                                                        managersTreats
-                                                            .removeTreatment(
-                                                              treat,
-                                                            );
-                                                      });
-                                                    },
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
+                                contextParent: contextParent,
+                                msg:
+                                    treat.authorUid == userData.uid
+                                        ? "${'delete_treatment'.tr} ${treat.title} ?"
+                                        : "${'leave_treatment'.tr()} ${treat.title} ${'of'.tr()} ${treat.authorName} ?",
+                                action1: () async {
+                                  setState(() {
+                                    managersTreats.removeTreatment(treat);
+                                    TreatmentService()
+                                        .removeFollowerFromTreatment(
+                                          treat.code,
+                                          managersTreats.uid,
+                                        );
+                                  });
+                                },
+                                action2: () {},
                               );
                             },
                             icon: Icon(Iconsax.heart_remove, color: Colors.red),
@@ -848,7 +780,7 @@ class _TreatScreenState extends State<TreatScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '${(progressValue * 100).toStringAsFixed(1)}% complété',
+                            '${(progressValue * 100).toStringAsFixed(1)}% ${'completed'.tr()}',
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               color: Colors.grey.shade600,
@@ -866,18 +798,18 @@ class _TreatScreenState extends State<TreatScreen> {
                 _buildDetailItem(Iconsax.tag, 'Code : ', treat.code),
                 _buildDetailItem(
                   Iconsax.activity,
-                  'Traitement : ',
+                  '${'treatment'.tr()} : ',
                   treat.title,
                 ),
                 _buildDetailItem(
                   Iconsax.calendar,
-                  'Date de début : ',
+                  '${'start_date'.tr()} : ',
                   formatDate(treat.createdAt),
                 ),
                 _buildDetailItem(
                   Iconsax.clock,
-                  'Durée totale : ',
-                  '${treat.duration} jours',
+                  '${'total_duration'.tr()} : ',
+                  '${treat.duration} ${'days'.tr()}',
                 ),
                 const SizedBox(height: 24),
 
@@ -886,7 +818,7 @@ class _TreatScreenState extends State<TreatScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Médicaments prescrits',
+                      'prescribed_medications'.tr(),
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -900,7 +832,7 @@ class _TreatScreenState extends State<TreatScreen> {
                           color: Colors.white,
                         ),
                         label: Text(
-                          'Ajouter',
+                          'add'.tr(),
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: Colors.white,
@@ -941,10 +873,10 @@ class _TreatScreenState extends State<TreatScreen> {
   Widget _buildStatusBadge(Treat treat) {
     final status =
         treat.isMissing
-            ? 'Échoué'
+            ? 'failed'.tr()
             : treat.isActive()
-            ? 'En cours'
-            : 'Terminé';
+            ? 'in_progress'.tr()
+            : 'finished'.tr();
 
     final color =
         treat.isMissing
@@ -1055,7 +987,7 @@ class _TreatScreenState extends State<TreatScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${medicine.count}/${medicine.maxCount} prises',
+                '${medicine.count}/${medicine.maxCount} ${'intakes'.tr()}',
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: Colors.grey.shade600,
@@ -1089,6 +1021,7 @@ class _TreatScreenState extends State<TreatScreen> {
         String error2 = "";
         bool isError1 = false;
         bool isError2 = false;
+        bool isLoading = false;
 
         return StatefulBuilder(
           builder: (BuildContext contextParent, StateSetter setModalState) {
@@ -1117,7 +1050,7 @@ class _TreatScreenState extends State<TreatScreen> {
 
                   // Titre
                   Text(
-                    "Rejoindre un traitement",
+                    'join_treatment2'.tr(),
                     style: GoogleFonts.poppins(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -1130,7 +1063,7 @@ class _TreatScreenState extends State<TreatScreen> {
                   TextField(
                     controller: _controller,
                     decoration: InputDecoration(
-                      labelText: "Code du traitement",
+                      labelText: 'treatment_code'.tr(),
                       prefixIcon: Icon(
                         Iconsax.code,
                         color: Colors.grey.shade600,
@@ -1152,11 +1085,24 @@ class _TreatScreenState extends State<TreatScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      icon: Icon(Iconsax.link, size: 20, color: Colors.white),
-                      label: Text(
-                        "Rejoindre",
-                        style: GoogleFonts.poppins(color: Colors.white),
-                      ),
+                      icon:
+                          isLoading
+                              ? const SizedBox.shrink()
+                              : Icon(
+                                Iconsax.link,
+                                size: 20,
+                                color: Colors.white,
+                              ),
+                      label:
+                          isLoading
+                              ? const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              )
+                              : Text(
+                                'join'.tr(),
+                                style: GoogleFonts.poppins(color: Colors.white),
+                              ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF00C853),
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1165,11 +1111,17 @@ class _TreatScreenState extends State<TreatScreen> {
                         ),
                       ),
                       onPressed: () {
+                        setModalState(() {
+                          isLoading = true;
+                          isError1 = false;
+                          isError2 = false;
+                        });
                         String code = _controller.text.trim();
                         if (code.isEmpty) {
                           setModalState(() {
-                            error1 = "Please enter a code.";
+                            error1 = "Please enter a code";
                             isError1 = true;
+                            isLoading = false;
                           });
                           return;
                         }
@@ -1184,6 +1136,7 @@ class _TreatScreenState extends State<TreatScreen> {
                           setModalState(() {
                             error1 = "No such public treatment.";
                             isError1 = true;
+                            isLoading = false;
                           });
                           return;
                         }
@@ -1198,128 +1151,43 @@ class _TreatScreenState extends State<TreatScreen> {
                           setModalState(() {
                             error1 = "This treatment is already added";
                             isError1 = true;
+                            isLoading = false;
                           });
                           return;
                         }
 
-                        showDialog(
+                        showDialogConfirm(
                           context: context,
-                          builder:
-                              (context) => Dialog(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Container(
-                                  padding: const EdgeInsets.all(24),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [Color(0xFFF5F7FB), Colors.white],
-                                    ),
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Iconsax.info_circle,
-                                        size: 40,
-                                        color: Color(0xFF00C853),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        "Confirmer l'ajout",
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        "Ajouter le traitement\n${treatment.title} ?",
-                                        textAlign: TextAlign.center,
-                                        style: GoogleFonts.poppins(),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: TextButton(
-                                              child: const Text("Annuler"),
-                                              onPressed:
-                                                  () => Navigator.pop(context),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: const Color(
-                                                  0xFF00C853,
-                                                ),
-                                              ),
-                                              child: const Text(
-                                                "Confirmer",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              onPressed: () {
-                                                setState(() {
-                                                  List<Medicine> ms = [];
+                          contextParent: contextParent,
+                          msg: "Add The Treatment ${treatment.title} ?",
+                          action1: () async {
+                            setState(() {
+                              List<Medicine> ms = [];
 
-                                                  Treat t = Treat(
-                                                    authorName:
-                                                        treatment.authorName,
-                                                    authorUid:
-                                                        treatment.authorName,
-                                                    code: treatment.code,
-                                                    title: treatment.title,
-                                                    medicines: ms,
-                                                    createdAt: DateTime.now(),
-                                                    isPublic:
-                                                        treatment.isPublic,
-                                                    followers: [],
-                                                  );
+                              Treat t = Treat(
+                                authorName: treatment.authorName,
+                                authorUid: treatment.authorName,
+                                code: treatment.code,
+                                title: treatment.title,
+                                medicines: ms,
+                                createdAt: DateTime.now(),
+                                isPublic: treatment.isPublic,
+                                followers: [],
+                              );
 
-                                                  for (Medicine m
-                                                      in treatment.medicines) {
-                                                    t.addMedicineWithoutSave(m);
-                                                  }
+                              for (Medicine m in treatment.medicines) {
+                                t.addMedicineWithoutSave(m);
+                              }
 
-                                                  managersTreats.addTreatment(
-                                                    t,
-                                                  );
+                              managersTreats.addTreatment(t);
 
-                                                  TreatmentService()
-                                                      .addFollowerToTreatment(
-                                                        treatment.code,
-                                                        managersTreats.uid,
-                                                      );
-                                                });
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      "Traitement ajouté avec succès !",
-                                                    ),
-                                                    backgroundColor:
-                                                        Colors.green,
-                                                  ),
-                                                );
-                                                Navigator.pop(context);
-                                                Navigator.pop(contextParent);
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              TreatmentService().addFollowerToTreatment(
+                                treatment.code,
+                                managersTreats.uid,
+                              );
+                            });
+                          },
+                          action2: () {},
                         );
                       },
                     ),
@@ -1332,7 +1200,7 @@ class _TreatScreenState extends State<TreatScreen> {
                       Expanded(child: Divider(color: Colors.grey.shade400)),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Text("OU", style: GoogleFonts.poppins()),
+                        child: Text("OR", style: GoogleFonts.poppins()),
                       ),
                       Expanded(child: Divider(color: Colors.grey.shade400)),
                     ],
@@ -1349,7 +1217,7 @@ class _TreatScreenState extends State<TreatScreen> {
                     child: DropdownButton<Treat>(
                       isExpanded: true,
                       hint: Text(
-                        "Sélectionner un traitement",
+                        "Select a treatment",
                         style: GoogleFonts.poppins(),
                       ),
                       underline: const SizedBox(),
@@ -1378,112 +1246,42 @@ class _TreatScreenState extends State<TreatScreen> {
                         if (selected == null) return;
                         if (managersTreats.alreadyExists(selected.code)) {
                           setModalState(() {
-                            error2 = "Ce traitement est déjà dans la liste";
+                            error2 = "This treatment is already added";
                             isError2 = true;
                           });
                           return;
                         }
 
-                        showDialog(
+                        showDialogConfirm(
                           context: context,
-                          builder:
-                              (context) => Dialog(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Container(
-                                  padding: const EdgeInsets.all(24),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [Color(0xFFF5F7FB), Colors.white],
-                                    ),
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Iconsax.info_circle,
-                                        size: 40,
-                                        color: Color(0xFF00C853),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        "Confirmer l'ajout",
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        "Ajouter le traitement\n${selected.title} ?",
-                                        textAlign: TextAlign.center,
-                                        style: GoogleFonts.poppins(),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: TextButton(
-                                              child: const Text("Annuler"),
-                                              onPressed:
-                                                  () => Navigator.pop(context),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: const Color(
-                                                  0xFF00C853,
-                                                ),
-                                              ),
-                                              child: const Text(
-                                                "Confirmer",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              onPressed: () {
-                                                List<Medicine> ms = [];
+                          contextParent: contextParent,
+                          msg: "Add The Treatment ${selected.title} ?",
+                          action1: () async {
+                            setState(() {
+                              List<Medicine> ms = [];
 
-                                                Treat t = Treat(
-                                                  authorName:
-                                                      selected.authorName,
-                                                  authorUid:
-                                                      selected.authorName,
-                                                  code: selected.code,
-                                                  title: selected.title,
-                                                  medicines: ms,
-                                                  createdAt: DateTime.now(),
-                                                  isPublic: selected.isPublic,
-                                                  followers: [],
-                                                );
+                              Treat t = Treat(
+                                authorName: selected.authorName,
+                                authorUid: selected.authorName,
+                                code: selected.code,
+                                title: selected.title,
+                                medicines: ms,
+                                createdAt: DateTime.now(),
+                                isPublic: selected.isPublic,
+                                followers: [],
+                              );
 
-                                                for (Medicine m
-                                                    in selected.medicines) {
-                                                  t.addMedicineWithoutSave(m);
-                                                }
-                                                managersTreats.addTreatment(t);
-                                                TreatmentService()
-                                                    .addFollowerToTreatment(
-                                                      selected.code,
-                                                      managersTreats.uid,
-                                                    );
-                                                Navigator.pop(context);
-                                                Navigator.pop(contextParent);
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              for (Medicine m in selected.medicines) {
+                                t.addMedicineWithoutSave(m);
+                              }
+                              managersTreats.addTreatment(t);
+                              TreatmentService().addFollowerToTreatment(
+                                selected.code,
+                                managersTreats.uid,
+                              );
+                            });
+                          },
+                          action2: () {},
                         );
                       },
                     ),

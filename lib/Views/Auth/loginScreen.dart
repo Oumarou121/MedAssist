@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -57,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             );
                           },
                           child: Text(
-                            "Forgot Password ?",
+                            "${'forgot_password'.tr()} ?",
                             style: TextStyle(color: Colors.green),
                           ),
                         ),
@@ -77,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           );
                         },
-                        child: const Text('Create Account'),
+                        child: Text('create_account'.tr()),
                       ),
                     ],
                   ),
@@ -103,14 +104,14 @@ class _LoginScreenState extends State<LoginScreen> {
       onChanged: (value) => setState(() => _email = value),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Veuillez entrer votre email';
+          return 'required'.tr();
         } else if (!isValidEmail(value)) {
-          return 'Veuillez entrer une adresse email valide';
+          return 'invalid_email'.tr();
         }
         return null;
       },
       keyboardType: TextInputType.emailAddress,
-      decoration: inputDecoration("E-mail", Iconsax.direct_right),
+      decoration: inputDecoration('email'.tr(), Iconsax.direct_right),
     );
   }
 
@@ -120,14 +121,14 @@ class _LoginScreenState extends State<LoginScreen> {
       onChanged: (value) => setState(() => _password = value),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Veuillez entrer votre mot de passe';
+          return 'required'.tr();
         } else if (value.length < 6) {
-          return 'Le mot de passe doit contenir au moins 6 caractères';
+          return 'invalid_password'.tr();
         }
         return null;
       },
       decoration: inputDecoration(
-        "Password",
+        'password'.tr(),
         Iconsax.password_check,
         suffixIcon: IconButton(
           onPressed:
@@ -183,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
             _isSigning
                 ? const CircularProgressIndicator(color: Colors.white)
                 : Text(
-                  'Login',
+                  'login'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 16.0,
                     color: Colors.white,
@@ -197,14 +198,14 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget buildFooter() {
-    return const Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Expanded(child: Divider(color: Colors.grey, thickness: 1)),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 8.0),
           child: Text(
-            "Je n'ai pas de compte?",
+            'not_have_account'.tr(),
             style: TextStyle(color: Colors.grey),
           ),
         ),
@@ -230,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (result is String) {
           Fluttertoast.showToast(
-            msg: "Échec de la connexion",
+            msg: 'failed_login'.tr(),
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.red,

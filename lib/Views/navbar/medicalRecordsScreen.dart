@@ -8,6 +8,7 @@ import 'package:med_assist/Controllers/databaseDoctors.dart';
 import 'package:med_assist/Models/doctor.dart';
 import 'package:med_assist/Models/medicalRecord.dart';
 import 'package:med_assist/Models/user.dart';
+import 'package:med_assist/Views/components/utils.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -502,143 +503,22 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                     medicalRecords,
                                   );
                               if (exist == 'Success') {
-                                showDialog(
-                                  barrierDismissible: false,
+                                showDialogConfirm(
                                   context: context,
-                                  builder:
-                                      (context) => Dialog(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                        ),
-                                        child: StatefulBuilder(
-                                          builder: (
-                                            BuildContext context,
-                                            StateSetter setModalStateDialog,
-                                          ) {
-                                            return Container(
-                                              padding: const EdgeInsets.all(24),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                                gradient: LinearGradient(
-                                                  begin: Alignment.topCenter,
-                                                  end: Alignment.bottomCenter,
-                                                  colors: [
-                                                    Color(0xFFF5F7FB),
-                                                    Colors.white,
-                                                  ],
-                                                ),
-                                              ),
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  const Icon(
-                                                    Iconsax.info_circle,
-                                                    size: 40,
-                                                    color: Color(0xFF00C853),
-                                                  ),
-                                                  const SizedBox(height: 16),
-                                                  Text(
-                                                    "Do you want to create the",
-                                                    style: GoogleFonts.poppins(
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  Text(
-                                                    "Medical Record: $title ?",
-                                                    textAlign: TextAlign.center,
-                                                    style:
-                                                        GoogleFonts.poppins(),
-                                                  ),
-                                                  const SizedBox(height: 24),
-                                                  Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child: TextButton(
-                                                          child: const Text(
-                                                            "Cancel",
-                                                          ),
-                                                          onPressed: () {
-                                                            if (!_isLoading) {
-                                                              Navigator.pop(
-                                                                context,
-                                                              );
-                                                            }
-                                                          },
-                                                        ),
-                                                      ),
-                                                      const SizedBox(width: 16),
-                                                      Expanded(
-                                                        child: ElevatedButton(
-                                                          style:
-                                                              ElevatedButton.styleFrom(
-                                                                backgroundColor:
-                                                                    const Color(
-                                                                      0xFF00C853,
-                                                                    ),
-                                                              ),
-                                                          child:
-                                                              _isLoading
-                                                                  ? const CircularProgressIndicator(
-                                                                    color:
-                                                                        Colors
-                                                                            .white,
-                                                                    strokeWidth:
-                                                                        2,
-                                                                  )
-                                                                  : const Text(
-                                                                    "Confirm",
-                                                                    style: TextStyle(
-                                                                      color:
-                                                                          Colors
-                                                                              .white,
-                                                                    ),
-                                                                  ),
-                                                          onPressed: () async {
-                                                            setModalStateDialog(
-                                                              () =>
-                                                                  _isLoading =
-                                                                      true,
-                                                            );
-                                                            await managersMedicalRecord
-                                                                .addMedicalRecord(
-                                                                  title,
-                                                                  category,
-                                                                );
-                                                            setModalStateDialog(
-                                                              () =>
-                                                                  _isLoading =
-                                                                      false,
-                                                            );
-
-                                                            setState(() {
-                                                              _loadMedicalRecords(
-                                                                managersMedicalRecord,
-                                                              );
-                                                            });
-
-                                                            Navigator.pop(
-                                                              context,
-                                                            );
-                                                            Navigator.pop(
-                                                              contextParent,
-                                                            );
-                                                          },
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
+                                  contextParent: contextParent,
+                                  msg:
+                                      "The creation of Medical Record : $title ?",
+                                  action1: () async {
+                                    await managersMedicalRecord
+                                        .addMedicalRecord(title, category);
+                                  },
+                                  action2: () {
+                                    setState(() {
+                                      _loadMedicalRecords(
+                                        managersMedicalRecord,
+                                      );
+                                    });
+                                  },
                                 );
                               } else {
                                 setModalState(() {
@@ -1707,114 +1587,23 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         style: TextStyle(color: Colors.red),
                       ),
                       onTap: () {
-                        Navigator.pop(context); // Ferme le menu
+                        Navigator.pop(context);
                         Future.delayed(Duration.zero, () {
-                          showDialog(
-                            barrierDismissible: false,
+                          showDialogConfirm(
                             context: context,
-                            builder:
-                                (context) => Dialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: StatefulBuilder(
-                                    builder: (
-                                      BuildContext context,
-                                      StateSetter setModalState,
-                                    ) {
-                                      return Container(
-                                        padding: const EdgeInsets.all(24),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Color(0xFFF5F7FB),
-                                              Colors.white,
-                                            ],
-                                          ),
-                                        ),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(
-                                              Iconsax.info_circle,
-                                              size: 40,
-                                              color: Colors.red,
-                                            ),
-                                            const SizedBox(height: 16),
-                                            Text(
-                                              "Do you really want to delete the Medical File ${medicalFile.title}?",
-                                            ),
-                                            const SizedBox(height: 24),
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: TextButton(
-                                                    child: const Text("Cancel"),
-                                                    onPressed: () {
-                                                      if (!isDeletingMedicalFile) {
-                                                        Navigator.pop(context);
-                                                      }
-                                                    },
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 16),
-                                                Expanded(
-                                                  child: ElevatedButton(
-                                                    style:
-                                                        ElevatedButton.styleFrom(
-                                                          backgroundColor:
-                                                              Colors.red,
-                                                        ),
-                                                    child:
-                                                        isDeletingMedicalFile
-                                                            ? const CircularProgressIndicator(
-                                                              color:
-                                                                  Colors.white,
-                                                              strokeWidth: 2,
-                                                            )
-                                                            : const Text(
-                                                              "Confirm",
-                                                              style: TextStyle(
-                                                                color:
-                                                                    Colors
-                                                                        .white,
-                                                              ),
-                                                            ),
-                                                    onPressed: () async {
-                                                      setModalState(() {
-                                                        isDeletingMedicalFile =
-                                                            true;
-                                                      });
-
-                                                      await managersMedicalRecord
-                                                          .removeMedicalFile(
-                                                            medicalRecord,
-                                                            medicalFile,
-                                                          );
-
-                                                      setModalState(() {
-                                                        isDeletingMedicalFile =
-                                                            false;
-                                                      });
-
-                                                      onFileAdded();
-                                                      Navigator.pop(context);
-                                                    },
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
+                            isAlert: true,
+                            contextParent: null,
+                            msg:
+                                "The delete the Medical File : ${medicalFile.title} ?",
+                            action1: () async {
+                              await managersMedicalRecord.removeMedicalFile(
+                                medicalRecord,
+                                medicalFile,
+                              );
+                            },
+                            action2: () {
+                              onFileAdded();
+                            },
                           );
                         });
                       },
@@ -1839,110 +1628,22 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
 
     return GestureDetector(
       onTap: () {
-        showDialog(
-          barrierDismissible: false,
+        showDialogConfirm(
           context: context,
-          builder:
-              (context) => Dialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: StatefulBuilder(
-                  builder: (
-                    BuildContext context,
-                    StateSetter setModalStateDialog,
-                  ) {
-                    return Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFFF5F7FB), Colors.white],
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Iconsax.info_circle,
-                            size: 40,
-                            color: Color(0xFF00C853),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            "Do you want to move",
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "The Medical File: ${medicalFile.title} to ${record.title} ?",
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(),
-                          ),
-                          const SizedBox(height: 24),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextButton(
-                                  child: const Text("Cancel"),
-                                  onPressed: () {
-                                    if (!_isLoading) {
-                                      Navigator.pop(context);
-                                    }
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF00C853),
-                                  ),
-                                  child:
-                                      _isLoading
-                                          ? const CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 2,
-                                          )
-                                          : const Text(
-                                            "Confirm",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                  onPressed: () async {
-                                    setModalStateDialog(
-                                      () => _isLoading = true,
-                                    );
-                                    await managersMedicalRecord.moveMedicalFile(
-                                      medicalFile,
-                                      medicalRecordOld,
-                                      record.id,
-                                      record.title,
-                                    );
-
-                                    setModalStateDialog(
-                                      () => _isLoading = false,
-                                    );
-                                    onFileAdded();
-                                    Navigator.pop(context);
-                                    Navigator.pop(contextParent);
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
+          contextParent: contextParent,
+          msg:
+              "Move The Medical File: ${medicalFile.title} to ${record.title} ?",
+          action1: () async {
+            await managersMedicalRecord.moveMedicalFile(
+              medicalFile,
+              medicalRecordOld,
+              record.id,
+              record.title,
+            );
+          },
+          action2: () {
+            onFileAdded();
+          },
         );
       },
       child: Container(
@@ -2259,155 +1960,22 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                         myMedicalRecords,
                                       );
                                   if (canAdd == 'Success') {
-                                    showDialog(
-                                      barrierDismissible: false,
+                                    showDialogConfirm(
                                       context: context,
-                                      builder:
-                                          (context) => Dialog(
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                            ),
-                                            child: StatefulBuilder(
-                                              builder: (
-                                                BuildContext context,
-                                                StateSetter setModalStateDialog,
-                                              ) {
-                                                return Container(
-                                                  padding: const EdgeInsets.all(
-                                                    24,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          20,
-                                                        ),
-                                                    gradient: LinearGradient(
-                                                      begin:
-                                                          Alignment.topCenter,
-                                                      end:
-                                                          Alignment
-                                                              .bottomCenter,
-                                                      colors: [
-                                                        Color(0xFFF5F7FB),
-                                                        Colors.white,
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      const Icon(
-                                                        Iconsax.info_circle,
-                                                        size: 40,
-                                                        color: Color(
-                                                          0xFF00C853,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 16,
-                                                      ),
-                                                      Text(
-                                                        "Do you want to add the",
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                              fontSize: 18,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                            ),
-                                                      ),
-                                                      const SizedBox(height: 8),
-                                                      Text(
-                                                        "Medical File: $title ?",
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style:
-                                                            GoogleFonts.poppins(),
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 24,
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          Expanded(
-                                                            child: TextButton(
-                                                              child: const Text(
-                                                                "Cancel",
-                                                              ),
-                                                              onPressed: () {
-                                                                if (!_isLoading) {
-                                                                  Navigator.pop(
-                                                                    context,
-                                                                  );
-                                                                }
-                                                              },
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                            width: 16,
-                                                          ),
-                                                          Expanded(
-                                                            child: ElevatedButton(
-                                                              style: ElevatedButton.styleFrom(
-                                                                backgroundColor:
-                                                                    const Color(
-                                                                      0xFF00C853,
-                                                                    ),
-                                                              ),
-                                                              child:
-                                                                  _isLoading
-                                                                      ? const CircularProgressIndicator(
-                                                                        color:
-                                                                            Colors.white,
-                                                                        strokeWidth:
-                                                                            2,
-                                                                      )
-                                                                      : const Text(
-                                                                        "Confirm",
-                                                                        style: TextStyle(
-                                                                          color:
-                                                                              Colors.white,
-                                                                        ),
-                                                                      ),
-                                                              onPressed: () async {
-                                                                setModalStateDialog(
-                                                                  () =>
-                                                                      _isLoading =
-                                                                          true,
-                                                                );
-                                                                await managersMedicalRecord
-                                                                    .addMedicalFile(
-                                                                      medicalRecord,
-                                                                      title,
-                                                                      fileType!,
-                                                                      selectedFile!,
-                                                                    );
-
-                                                                setModalStateDialog(
-                                                                  () =>
-                                                                      _isLoading =
-                                                                          false,
-                                                                );
-                                                                onFileAdded();
-                                                                Navigator.pop(
-                                                                  context,
-                                                                );
-                                                                Navigator.pop(
-                                                                  contextParent,
-                                                                );
-                                                              },
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ),
+                                      contextParent: contextParent,
+                                      msg: "Create The Medical File: $title ?",
+                                      action1: () async {
+                                        await managersMedicalRecord
+                                            .addMedicalFile(
+                                              medicalRecord,
+                                              title,
+                                              fileType!,
+                                              selectedFile!,
+                                            );
+                                      },
+                                      action2: () {
+                                        onFileAdded();
+                                      },
                                     );
                                   } else {
                                     setModalState(() {
@@ -2598,97 +2166,18 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     required MedicalRecord medicalRecord,
     required BuildContext contextParent,
   }) {
-    bool isDeletingMedicalRecord = false;
-    showDialog(
-      barrierDismissible: false,
+    showDialogConfirm(
       context: context,
-      builder:
-          (context) => Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setModalState) {
-                return Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFFF5F7FB), Colors.white],
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Iconsax.info_circle,
-                        size: 40,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        "Do you really wand to delete the Medical Record ${medicalRecord.title} ?",
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextButton(
-                              child: const Text("Cancel"),
-                              onPressed: () {
-                                if (!isDeletingMedicalRecord) {
-                                  Navigator.pop(context);
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                              ),
-                              child:
-                                  isDeletingMedicalRecord
-                                      ? const CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      )
-                                      : const Text(
-                                        "Confirm",
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                              onPressed: () async {
-                                setModalState(() {
-                                  isDeletingMedicalRecord = true;
-                                });
-
-                                await managersMedicalRecord.removeMedicalRecord(
-                                  medicalRecord,
-                                );
-
-                                setState(() {
-                                  _loadMedicalRecords(managersMedicalRecord);
-                                });
-                                setModalState(() {
-                                  isDeletingMedicalRecord = false;
-                                });
-
-                                Navigator.pop(context);
-                                Navigator.pop(contextParent);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
+      contextParent: contextParent,
+      msg: "Delete the Medical Record : ${medicalRecord.title} ?",
+      action1: () async {
+        await managersMedicalRecord.removeMedicalRecord(medicalRecord);
+      },
+      action2: () {
+        setState(() {
+          _loadMedicalRecords(managersMedicalRecord);
+        });
+      },
     );
   }
 
@@ -2768,103 +2257,22 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     required Doctor doctor,
     required BuildContext contextParent,
   }) {
-    bool isSharingMedicalRecord = false;
-    showDialog(
-      barrierDismissible: false,
+    showDialogConfirm(
       context: context,
-      builder:
-          (context) => Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setModalState) {
-                return Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFFF5F7FB), Colors.white],
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Iconsax.info_circle,
-                        size: 40,
-                        color: Color(0xFF00C853),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        "Do you really wand to share the Medical Record ${medicalRecord.title} to ${doctor.name} ?",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextButton(
-                              child: const Text("Cancel"),
-                              onPressed: () {
-                                if (!isSharingMedicalRecord) {
-                                  Navigator.pop(context);
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF00C853),
-                              ),
-                              child:
-                                  isSharingMedicalRecord
-                                      ? const CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      )
-                                      : const Text(
-                                        "Confirm",
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                              onPressed: () async {
-                                setModalState(() {
-                                  isSharingMedicalRecord = true;
-                                });
-
-                                await managersMedicalRecord.shareMedicalRecord(
-                                  doctor.id,
-                                  medicalRecord,
-                                );
-
-                                _loadMedicalRecords(managersMedicalRecord);
-                                setState(() {});
-
-                                setModalState(() {
-                                  isSharingMedicalRecord = false;
-                                });
-
-                                Navigator.pop(context);
-                                Navigator.pop(contextParent);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
+      contextParent: contextParent,
+      msg:
+          "Share the Medical Record ${medicalRecord.title} to ${doctor.name} ?",
+      action1: () async {
+        await managersMedicalRecord.shareMedicalRecord(
+          doctor.id,
+          medicalRecord,
+        );
+      },
+      action2: () {
+        setState(() {
+          _loadMedicalRecords(managersMedicalRecord);
+        });
+      },
     );
   }
 }

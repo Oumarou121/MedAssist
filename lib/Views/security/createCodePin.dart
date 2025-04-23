@@ -1,4 +1,5 @@
 import 'package:custom_pin_screen/custom_pin_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:med_assist/Controllers/database.dart';
@@ -15,38 +16,19 @@ class CreateCodePin extends StatefulWidget {
 
 class _CreateCodePinState extends State<CreateCodePin> {
   String _codePin = "";
-  String _title = "Create Pin Code";
+  String _title = 'create_pin_code_title'.tr();
   Key _pinKey = UniqueKey();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // appBar: AppBar(
-      //   automaticallyImplyLeading: false,
-      //   backgroundColor: Colors.white,
-      //   elevation: 0,
-      //   actions: [
-      //     IconButton(
-      //       padding: const EdgeInsets.only(right: 20),
-      //       onPressed:
-      //           () => Navigator.push(
-      //             context,
-      //             MaterialPageRoute(builder: (context) => const LoginScreen()),
-      //           ),
-      //       icon: const Icon(Iconsax.login, color: Color(0xFF2A8F68)),
-      //     ),
-      //   ],
-      // ),
-      resizeToAvoidBottomInset: true,
-      body: _content(),
-    );
+    return Scaffold(resizeToAvoidBottomInset: true, body: _content());
   }
 
   Widget _content() {
     return PinAuthentication(
       key: _pinKey,
       action: _title,
-      actionDescription: 'This password will be required at each login',
+      actionDescription: 'create_pin_code_description'.tr(),
       maxLength: 4,
       pinTheme: PinTheme(
         shape: PinCodeFieldShape.box,
@@ -66,7 +48,7 @@ class _CreateCodePinState extends State<CreateCodePin> {
           if (_codePin.isEmpty) {
             _codePin = v;
             setState(() {
-              _title = "Confirm Pin Code";
+              _title = 'confirm_create_pin_code_title'.tr();
               _pinKey = UniqueKey();
             });
           } else {
@@ -86,14 +68,14 @@ class _CreateCodePinState extends State<CreateCodePin> {
               );
             } else {
               Fluttertoast.showToast(
-                msg: 'Pin Code does not match',
+                msg: 'failed_create_pin_code'.tr(),
                 backgroundColor: Colors.red,
                 textColor: Colors.white,
                 toastLength: Toast.LENGTH_SHORT,
               );
               _codePin = "";
               setState(() {
-                _title = "Create Pin Code";
+                _title = 'create_pin_code_title'.tr();
                 _pinKey = UniqueKey();
               });
             }
@@ -103,7 +85,7 @@ class _CreateCodePinState extends State<CreateCodePin> {
 
       onSpecialKeyTap: () {
         Fluttertoast.showToast(
-          msg: 'Available after the creation of the Pin Code',
+          msg: 'create_pin_code_available_biometric'.tr(),
           backgroundColor: Colors.black54,
           textColor: Colors.white,
           toastLength: Toast.LENGTH_LONG,

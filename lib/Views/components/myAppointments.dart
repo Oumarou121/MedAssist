@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:med_assist/Controllers/databaseDoctors.dart';
 import 'package:med_assist/Models/doctor.dart';
 
@@ -9,7 +9,7 @@ class MyAppointmentsList extends StatefulWidget {
 
   const MyAppointmentsList({
     super.key,
-    required ManagersDoctors this.managersDoctors,
+    required this.managersDoctors,
   });
 
   @override
@@ -40,7 +40,7 @@ class _MyAppointmentsListState extends State<MyAppointmentsList> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 0),
             child: Text(
-              "Today's Appointments",
+              'today_appointment'.tr(),
               style: GoogleFonts.poppins(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
@@ -104,7 +104,7 @@ class _MyAppointmentsListState extends State<MyAppointmentsList> {
             Icon(Icons.calendar_today, size: 40, color: Colors.blueGrey[200]),
             const SizedBox(height: 8),
             Text(
-              'No appointments today',
+              'no_today_appointment'.tr(),
               style: GoogleFonts.poppins(
                 color: Colors.blueGrey[300],
                 fontWeight: FontWeight.w500,
@@ -235,7 +235,7 @@ class _AppointmentCard extends StatelessWidget {
                           border: Border.all(color: Colors.green[100]!),
                         ),
                         child: Text(
-                          'Confirmed',
+                          'confirmed'.tr(),
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             color: Colors.green[800],

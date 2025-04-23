@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:med_assist/Models/treat.dart';
@@ -52,7 +53,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
           time.time.minute + 1,
         );
         final diff = now.difference(scheduledTime).inMinutes;
-        final isActive = !time.isTaken && diff >= 0 && diff <= 5;
+        final isActive = !time.isTaken && diff >= 0 && diff <= 10;
 
         confirmItems.add(
           ConfirmItem(
@@ -97,7 +98,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 0),
             child: Text(
-              "Planning Médical",
+              'planning_medical'.tr(),
               style: GoogleFonts.poppins(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
@@ -150,7 +151,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
           Icon(Icons.health_and_safety, size: 48, color: Colors.blueGrey[300]),
           const SizedBox(height: 12),
           Text(
-            'Aucun traitement prévu aujourd\'hui',
+            'no_treatment_today'.tr(),
             style: GoogleFonts.poppins(
               color: Colors.blueGrey[400],
               fontWeight: FontWeight.w500,
@@ -180,7 +181,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
           const SizedBox(width: 16),
           Expanded(
             child: Text(
-              'Toutes les prises sont effectuées !',
+              'finish_treatment'.tr(),
               style: GoogleFonts.poppins(
                 color: Colors.green[800],
                 fontWeight: FontWeight.w500,
@@ -209,7 +210,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Prise à confirmer',
+                  'intake_confirm'.tr(),
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: Colors.orange[800],
@@ -225,7 +226,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
                   ),
                 ),
                 Text(
-                  'Prise n°${item.medicine.count + 1}',
+                  '${'intake'.tr()} n°${item.medicine.count + 1}',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: Colors.blueGrey[400],
@@ -237,7 +238,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
           const SizedBox(width: 12),
           OutlinedButton.icon(
             icon: const Icon(Icons.check, size: 18),
-            label: const Text('Confirmer'),
+            label: Text('confirm'.tr()),
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.green[800],
               side: BorderSide(color: Colors.green[800]!),
@@ -388,7 +389,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
   }
 
   Widget _buildStatusIndicator(String status) {
-    final color = _statusColor(status);
+    final color = _statusColor(status.tr());
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -417,13 +418,26 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
     );
   }
 
+  // Color _statusColor(String status) {
+  //   switch (status) {
+  //     case 'finished'.tr():
+  //       return Colors.green;
+  //     case 'on_hold'.tr():
+  //       return Colors.orange;
+  //     case 'in_progress'.tr():
+  //       return Colors.grey;
+  //     default:
+  //       return Colors.blueGrey;
+  //   }
+  // }
+
   Color _statusColor(String status) {
     switch (status) {
-      case 'terminé':
+      case 'finished':
         return Colors.green;
-      case 'en cours':
+      case 'on_hold':
         return Colors.orange;
-      case 'en attente':
+      case 'in_progress':
         return Colors.grey;
       default:
         return Colors.blueGrey;

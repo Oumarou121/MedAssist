@@ -8,6 +8,7 @@ import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
 import 'package:med_assist/Views/Auth/loginScreen.dart';
 import 'package:med_assist/Views/components/appointmentsPage.dart';
+import 'package:med_assist/Views/components/utils.dart';
 import 'package:provider/provider.dart';
 
 class DoctorsScreen extends StatefulWidget {
@@ -1002,81 +1003,15 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                       ] else if (request.status != RequestStatus.pending) ...[
                         TextButton(
                           onPressed: () {
-                            showDialog(
+                            showDialogConfirm(
+                              isAlert: true,
                               context: context,
-                              builder:
-                                  (context) => Dialog(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(24),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                          colors: [
-                                            Color(0xFFF5F7FB),
-                                            Colors.white,
-                                          ],
-                                        ),
-                                      ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(
-                                            Iconsax.info_circle,
-                                            size: 40,
-                                            color: Colors.red,
-                                          ),
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            "Do you want to delete this query ?",
-                                          ),
-
-                                          const SizedBox(height: 24),
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: TextButton(
-                                                  child: const Text("Annuler"),
-                                                  onPressed:
-                                                      () => Navigator.pop(
-                                                        context,
-                                                      ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 16),
-                                              Expanded(
-                                                child: ElevatedButton(
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                        backgroundColor:
-                                                            Colors.red,
-                                                      ),
-                                                  child: const Text(
-                                                    "Confirmer",
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                                  onPressed: () async {
-                                                    Navigator.pop(context);
-                                                    await managersDoctors
-                                                        .removeRequest(
-                                                          request.id,
-                                                        );
-                                                    setState(() {});
-                                                  },
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                              contextParent: null,
+                              msg: "Delete this query ?",
+                              action1: () async {
+                                await managersDoctors.removeRequest(request.id);
+                              },
+                              action2: () {},
                             );
                           },
                           child: const Text(
@@ -1227,83 +1162,18 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                               : null,
                       onTap: () {
                         if (request.status != status) {
-                          showDialog(
+                          showDialogConfirm(
                             context: context,
-                            builder:
-                                (context) => Dialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(24),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Color(0xFFF5F7FB),
-                                          Colors.white,
-                                        ],
-                                      ),
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Iconsax.info_circle,
-                                          size: 40,
-                                          color: Color(0xFF00C853),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          "Do you want to change the status ?",
-                                        ),
-
-                                        const SizedBox(height: 24),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: TextButton(
-                                                child: const Text("Annuler"),
-                                                onPressed:
-                                                    () =>
-                                                        Navigator.pop(context),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: Colors.red,
-                                                ),
-                                                child: const Text(
-                                                  "Confirmer",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                                onPressed: () async {
-                                                  await managersDoctors
-                                                      .updateRequestStatus(
-                                                        request,
-                                                        status,
-                                                        managersTreats,
-                                                      );
-
-                                                  Navigator.pop(context);
-                                                  Navigator.pop(context);
-
-                                                  setState(() {});
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                            contextParent: context,
+                            msg: "Change the status ?",
+                            action1: () async {
+                              await managersDoctors.updateRequestStatus(
+                                request,
+                                status,
+                                managersTreats,
+                              );
+                            },
+                            action2: () {},
                           );
                         }
                       },
@@ -1614,91 +1484,19 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                               );
 
                           if (result == "Success") {
-                            showDialog(
+                            showDialogConfirm(
                               context: context,
-                              builder: (BuildContext dialogContext) {
-                                return Dialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(24),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      gradient: const LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Color(0xFFF5F7FB),
-                                          Colors.white,
-                                        ],
-                                      ),
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Iconsax.info_circle,
-                                          size: 40,
-                                          color: Color(0xFF00C853),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          "Confirmer la demande de Rendez-vous",
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          "Voulez-vous vraiment envoyer cette demande ?",
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.poppins(),
-                                        ),
-                                        const SizedBox(height: 24),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: TextButton(
-                                                onPressed:
-                                                    () => Navigator.pop(
-                                                      dialogContext,
-                                                    ),
-                                                child: const Text("Annuler"),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: const Color(
-                                                    0xFF00C853,
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  Navigator.pop(dialogContext);
-                                                  onConfirm(
-                                                    appointmentStart,
-                                                    appointmentEnd,
-                                                    appointmentReason,
-                                                  );
-                                                  Navigator.pop(context);
-                                                },
-                                                child: const Text(
-                                                  "Confirmer",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                              contextParent: null,
+                              msg: "Send this request ?",
+                              action1: () async {
+                                onConfirm(
+                                  appointmentStart,
+                                  appointmentEnd,
+                                  appointmentReason,
                                 );
+                              },
+                              action2: () {
+                                setState(() {});
                               },
                             );
                           } else {
@@ -1745,6 +1543,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
         TextEditingController _controller = TextEditingController();
         String error1 = "";
         bool isError1 = false;
+        bool isLoading = false;
 
         return StatefulBuilder(
           builder: (BuildContext contextParent, StateSetter setModalState) {
@@ -1808,11 +1607,24 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      icon: Icon(Iconsax.link, size: 20, color: Colors.white),
-                      label: Text(
-                        "Send",
-                        style: GoogleFonts.poppins(color: Colors.white),
-                      ),
+                      icon:
+                          isLoading
+                              ? const SizedBox.shrink()
+                              : Icon(
+                                Iconsax.link,
+                                size: 20,
+                                color: Colors.white,
+                              ),
+                      label:
+                          isLoading
+                              ? const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              )
+                              : Text(
+                                "Send",
+                                style: GoogleFonts.poppins(color: Colors.white),
+                              ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF00C853),
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1821,11 +1633,16 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                         ),
                       ),
                       onPressed: () async {
+                        setModalState(() {
+                          isLoading = true;
+                          isError1 = false;
+                        });
                         String code = _controller.text.trim();
                         if (code.isEmpty) {
                           setModalState(() {
                             error1 = "Please enter a Doctor ID.";
                             isError1 = true;
+                            isLoading = false;
                           });
                           return;
                         }
@@ -1836,106 +1653,25 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                         if (parts.isNotEmpty && parts[0] == "Success") {
                           String doctorName =
                               parts.length > 1 ? parts[1] : "Inconnu";
-                          showDialog(
+                          setModalState(() {
+                            isLoading = false;
+                          });
+                          showDialogConfirm(
                             context: context,
-                            builder:
-                                (context) => Dialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(24),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Color(0xFFF5F7FB),
-                                          Colors.white,
-                                        ],
-                                      ),
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Iconsax.info_circle,
-                                          size: 40,
-                                          color: Color(0xFF00C853),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          "Confirm sending tracking request to",
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          "Docteur : $doctorName ?",
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.poppins(),
-                                        ),
-                                        const SizedBox(height: 24),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: TextButton(
-                                                child: const Text("Cancel"),
-                                                onPressed:
-                                                    () =>
-                                                        Navigator.pop(context),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: const Color(
-                                                    0xFF00C853,
-                                                  ),
-                                                ),
-                                                child: const Text(
-                                                  "Confirm",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                                onPressed: () async {
-                                                  await managersDoctors
-                                                      .sendJoinDoctorRequest(
-                                                        code,
-                                                      );
-
-                                                  Navigator.pop(context);
-                                                  Navigator.pop(contextParent);
-                                                  ScaffoldMessenger.of(
-                                                    context,
-                                                  ).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        "Request sent successfully!",
-                                                      ),
-                                                      backgroundColor:
-                                                          Colors.green,
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                            contextParent: contextParent,
+                            msg: "Send tracking request to $doctorName ?",
+                            action1: () async {
+                              await managersDoctors.sendJoinDoctorRequest(code);
+                            },
+                            action2: () {
+                              // setState(() {});
+                            },
                           );
                         } else {
                           setModalState(() {
                             error1 = result;
                             isError1 = true;
+                            isLoading = false;
                           });
                         }
                       },

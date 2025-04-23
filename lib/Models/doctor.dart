@@ -41,7 +41,7 @@ class ManagersDoctors {
     if (!exists) return "This Doctor ID is invalid";
 
     bool alreadyExists = doctors.any((doc) => doc == doctorID);
-    if (alreadyExists) return "This Doctor is already exist";
+    if (alreadyExists) return "This Doctor is already follow you";
 
     List<Request> myRequests = await RequestService().getRequestsByIds(
       requests,

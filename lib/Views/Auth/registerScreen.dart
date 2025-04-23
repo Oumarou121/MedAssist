@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -69,7 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         builder: (context) => const LoginScreen(),
                       ),
                     ),
-                child: const Text('Se connecter'),
+                child: Text('register'.tr()),
               ),
             ],
           ),
@@ -84,8 +85,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       children: [
         Image.asset('assets/images/form.png', height: 110, width: 110),
         SizedBox(height: size.height * 0.03),
-        const Text(
-          'Créer un compte',
+        Text(
+          'create_account'.tr(),
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: size.height * 0.03),
@@ -126,51 +127,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildFullNameTextField() {
     return _buildTextField(
-      hintText: "Nom complet",
+      hintText: 'full_name'.tr(),
       prefixIcon: const Icon(Iconsax.user),
       onChanged: (value) => _fullName = value,
-      validator:
-          (value) =>
-              value!.isEmpty ? 'Veuillez entrer votre nom complet' : null,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'required'.tr();
+        } else if (value.length < 4) {
+          return 'invalid_full_name'.tr();
+        }
+        return null;
+      },
     );
   }
 
   Widget _buildEmailTextField() {
     return _buildTextField(
-      hintText: "E-mail",
+      hintText: "email".tr(),
       prefixIcon: const Icon(Iconsax.direct_right),
       onChanged: (value) => _email = value,
-      validator:
-          (value) =>
-              value!.isEmpty || !isValidEmail(value)
-                  ? 'Veuillez entrer une adresse e-mail valide'
-                  : null,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'required'.tr();
+        } else if (!isValidEmail(value)) {
+          return 'invalid_email'.tr();
+        }
+        return null;
+      },
       keyboardType: TextInputType.emailAddress,
     );
   }
 
   Widget _buildPhoneNumberTextField() {
     return _buildTextField(
-      hintText: "Numéro de téléphone",
+      hintText: 'phone_number'.tr(),
       prefixIcon: const Icon(Iconsax.call),
       onChanged: (value) => _phoneNumber = value,
-      validator:
-          (value) =>
-              value!.isEmpty
-                  ? 'Veuillez entrer votre numéro de téléphone'
-                  : null,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'required'.tr();
+        } else if (value.length < 8) {
+          return 'invalid_phone_number'.tr();
+        }
+        return null;
+      },
       keyboardType: TextInputType.number,
     );
   }
 
   Widget _buildPasswordField() {
     return _buildTextField(
-      hintText: 'Mot de passe',
+      hintText: 'password'.tr(),
       prefixIcon: const Icon(Iconsax.password_check),
       onChanged: (value) => _password = value,
-      validator:
-          (value) =>
-              value!.isEmpty ? 'Veuillez entrer votre mot de passe' : null,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'required'.tr();
+        } else if (value.length < 6) {
+          return 'invalid_password'.tr();
+        }
+        return null;
+      },
       obscureText: !_isPasswordVisible,
       suffixIcon: IconButton(
         onPressed:
@@ -182,14 +199,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildConfirmPasswordField() {
     return _buildTextField(
-      hintText: 'Confirmer le mot de passe',
+      hintText: 'confirm_password'.tr(),
       prefixIcon: const Icon(Iconsax.password_check),
       onChanged: (value) => _confirmPassword = value,
-      validator:
-          (value) =>
-              value != _password
-                  ? 'Les mots de passe ne correspondent pas'
-                  : null,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'required'.tr();
+        } else if (value != _password) {
+          return 'invalid_confirm_password'.tr();
+        }
+        return null;
+      },
       obscureText: !_isConfirmPasswordVisible,
       suffixIcon: IconButton(
         onPressed:
@@ -219,7 +239,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _isSignup
                 ? const CircularProgressIndicator(color: Colors.white)
                 : Text(
-                  'Créer un compte',
+                  'create_account'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 16.0,
                     color: Colors.white,
@@ -231,14 +251,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget buildFooter() {
-    return const Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Expanded(child: Divider(color: Colors.grey, thickness: 1)),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 8.0),
           child: Text(
-            "Vous avez déjà un compte?",
+            'have_account'.tr(),
             style: TextStyle(color: Colors.grey),
           ),
         ),
@@ -263,7 +283,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           password: _password,
           phoneNumber: _phoneNumber,
         );
-        print(result);
         if (result != 'false') {
           Navigator.push(
             context,
@@ -272,7 +291,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ;
         } else {
           Fluttertoast.showToast(
-            msg: "Erreur lors de la création du compte",
+            msg: 'failed_register'.tr(),
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.red,

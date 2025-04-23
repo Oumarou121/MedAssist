@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -41,12 +42,12 @@ class _ForgotPinCodeScreenState extends State<ForgotPinCodeScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Forgot Pin Code",
+                        'forgot_pin_code'.tr(),
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       SizedBox(height: 10),
                       Text(
-                        "Don't worry! It happens. Please enter the password that associated with yout Account.",
+                        'forgot_pin_code_description'.tr(),
                         style: Theme.of(
                           context,
                         ).textTheme.labelLarge?.copyWith(color: Colors.grey),
@@ -80,14 +81,14 @@ class _ForgotPinCodeScreenState extends State<ForgotPinCodeScreen> {
       onChanged: (value) => setState(() => _password = value),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Veuillez entrer votre mot de passe';
+          return 'required'.tr();
         } else if (value.length < 6) {
-          return 'Le mot de passe doit contenir au moins 6 caractères';
+          return 'invalid_password'.tr();
         }
         return null;
       },
       decoration: inputDecoration(
-        "Password",
+        'password'.tr(),
         Iconsax.password_check,
         suffixIcon: IconButton(
           onPressed:
@@ -143,7 +144,7 @@ class _ForgotPinCodeScreenState extends State<ForgotPinCodeScreen> {
             _isSigning
                 ? const CircularProgressIndicator(color: Colors.white)
                 : Text(
-                  'Check Out',
+                  'check_out'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 16.0,
                     color: Colors.white,
@@ -168,7 +169,7 @@ class _ForgotPinCodeScreenState extends State<ForgotPinCodeScreen> {
         );
       } else {
         Fluttertoast.showToast(
-          msg: "Incorrect Password",
+          msg: 'failed_password'.tr(),
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.red,

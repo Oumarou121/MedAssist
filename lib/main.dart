@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:alarm/alarm.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,19 +22,19 @@ void main() {
       NotiService().initNotification();
 
       // Initialisez Firebase
-      await Firebase.initializeApp();
+      // await Firebase.initializeApp();
 
-      // await Firebase.initializeApp(
-      //   options: FirebaseOptions(
-      //     apiKey: "AIzaSyAsWLuoq_8-46L8hFGhzXrJp7qRv9qCffI",
-      //     authDomain: "med-assist-53cba.firebaseapp.com",
-      //     projectId: "med-assist-53cba",
-      //     storageBucket: "med-assist-53cba.firebasestorage.app",
-      //     messagingSenderId: "441831269862",
-      //     appId: "1:441831269862:web:2145e79e8b05be0d4e6227",
-      //     measurementId: "G-X3DPNG80D1",
-      //   ),
-      // );
+      await Firebase.initializeApp(
+        options: FirebaseOptions(
+          apiKey: "AIzaSyAsWLuoq_8-46L8hFGhzXrJp7qRv9qCffI",
+          authDomain: "med-assist-53cba.firebaseapp.com",
+          projectId: "med-assist-53cba",
+          storageBucket: "med-assist-53cba.firebasestorage.app",
+          messagingSenderId: "441831269862",
+          appId: "1:441831269862:web:2145e79e8b05be0d4e6227",
+          measurementId: "G-X3DPNG80D1",
+        ),
+      );
 
       await Supabase.initialize(
         url: 'https://fxwpdqnowtwmckklipve.supabase.co',
@@ -41,7 +42,16 @@ void main() {
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4d3BkcW5vd3R3bWNra2xpcHZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4ODUzNjIsImV4cCI6MjA2MDQ2MTM2Mn0.mHi3QlhxY0v6Y4LLpqydjLCt5dAfbRmcNcRPMR_iKRY',
       );
 
-      runApp(const MyApp());
+      await EasyLocalization.ensureInitialized();
+
+      runApp(
+        EasyLocalization(
+          supportedLocales: const [Locale('en'), Locale('fr')],
+          path: 'assets/langs',
+          fallbackLocale: const Locale('en'),
+          child: const MyApp(),
+        ),
+      );
     },
     (error, stackTrace) {
       print('Caught error: $error');
@@ -84,7 +94,9 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
           useMaterial3: true,
         ),
-
+        localizationsDelegates: context.localizationDelegates,
+        supportedLocales: context.supportedLocales,
+        locale: context.locale,
         home: const SplashScreen(),
       ),
     );

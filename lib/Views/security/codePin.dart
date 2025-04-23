@@ -1,4 +1,5 @@
 import 'package:custom_pin_screen/custom_pin_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:iconsax/iconsax.dart';
@@ -36,7 +37,7 @@ class _CodePinState extends State<CodePin> {
     if (userData.userSettings.allowBiometric) {
       try {
         bool isAuthenticated = await _localAuth.authenticate(
-          localizedReason: 'Scan your fingerprint or use Face ID to continue',
+          localizedReason: 'fingerprint_title'.tr(),
           options: const AuthenticationOptions(
             biometricOnly: true,
             stickyAuth: true,
@@ -53,7 +54,7 @@ class _CodePinState extends State<CodePin> {
         }
       } catch (e) {
         Fluttertoast.showToast(
-          msg: 'Biometric authentication failed!',
+          msg: 'failed_biometric'.tr(),
           backgroundColor: Colors.red,
           textColor: Colors.white,
           toastLength: Toast.LENGTH_LONG,
@@ -61,7 +62,7 @@ class _CodePinState extends State<CodePin> {
       }
     } else {
       Fluttertoast.showToast(
-        msg: 'Biometric authentication is not allow!',
+        msg: 'not_allow_biometric'.tr(),
         backgroundColor: Colors.red,
         textColor: Colors.white,
         toastLength: Toast.LENGTH_LONG,
@@ -124,8 +125,8 @@ class _CodePinState extends State<CodePin> {
   Widget _content(AppUserData userData) {
     return PinAuthentication(
       key: _pinKey,
-      action: 'Enter Pin Code',
-      actionDescription: 'Please enter your PIN to continue',
+      action: 'pin_code_title'.tr(),
+      actionDescription: 'pin_code_description'.tr(),
       maxLength: 4,
       pinTheme: PinTheme(
         shape: PinCodeFieldShape.box,
@@ -159,7 +160,7 @@ class _CodePinState extends State<CodePin> {
                 _pinKey = UniqueKey();
               });
               Fluttertoast.showToast(
-                msg: 'Incorrect PIN. Please try again!',
+                msg: 'invalid_pin_code'.tr(),
                 backgroundColor: Colors.red,
                 textColor: Colors.white,
                 toastLength: Toast.LENGTH_SHORT,
@@ -181,10 +182,8 @@ class _CodePinState extends State<CodePin> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Trop de tentatives"),
-          content: const Text(
-            "Vous avez entré un mauvais code PIN plusieurs fois. Voulez-vous réinitialiser votre mot de passe ?",
-          ),
+          title: Text('many_attempts_title'.tr()),
+          content: Text('many_attempts_description'.tr()),
           actions: [
             TextButton(
               onPressed: () {
@@ -195,7 +194,7 @@ class _CodePinState extends State<CodePin> {
                 });
                 Navigator.of(context).pop();
               },
-              child: const Text("Réessayer"),
+              child: Text('again'.tr()),
             ),
             TextButton(
               onPressed: () {
@@ -208,7 +207,7 @@ class _CodePinState extends State<CodePin> {
                   ),
                 );
               },
-              child: const Text("Réinitialiser"),
+              child: Text('reset'.tr()),
             ),
           ],
         );

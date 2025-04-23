@@ -41,6 +41,7 @@
 //   }
 // }
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Models/user.dart';
@@ -97,6 +98,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
         if (snapshot.hasData) {
           final userData = snapshot.data!;
+
+          final locale = Locale(userData.userSettings.language);
+          if (context.locale != locale) {
+            context.setLocale(locale);
+          }
+
           if (userData.pinCode.isEmpty) {
             return CreateCodePin(uid: userData.uid);
           }

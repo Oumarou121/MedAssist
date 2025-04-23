@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Controllers/noti_service.dart';
@@ -360,11 +361,11 @@ class ManagersTreats {
 
       // Statut en fonction du nombre de prises effectuées
       if (takenCount == medicationTimes.length) {
-        status = 'terminé';
+        status = 'finished'.tr();
       } else if (takenCount == 0) {
-        status = 'en attente';
+        status = 'on_hold'.tr();
       } else {
-        status = 'en cours';
+        status = 'in_progress'.tr();
       }
 
       result.add(

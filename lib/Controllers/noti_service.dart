@@ -135,7 +135,7 @@ class NotiService {
       id: id,
       payload: payload,
       dateTime: time,
-      assetAudioPath: 'assets/alarm.wav',
+      assetAudioPath: 'assets/alarms/alarm.wav',
       loopAudio: true,
       vibrate: true,
       warningNotificationOnKill: Platform.isIOS,

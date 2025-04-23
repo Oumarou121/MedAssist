@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:med_assist/Controllers/authentication.dart';
@@ -51,7 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     expandedHeight: 80,
                     flexibleSpace: FlexibleSpaceBar(
                       title: Text(
-                        'My Settings',
+                        'my_settings'.tr(),
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -82,16 +83,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           SizedBox(height: size.height * 0.01),
                           _buildProfileHeader(userData: userData),
                           SizedBox(height: size.height * 0.03),
-                          _buildSectionTitle('Compte'),
+                          _buildSectionTitle('account'.tr()),
                           _buildAccountSettings(userData: userData),
                           SizedBox(height: size.height * 0.03),
-                          _buildSectionTitle('Préférences'),
+                          _buildSectionTitle('preferences'.tr()),
                           _buildAppPreferences(userData: userData),
                           SizedBox(height: size.height * 0.03),
-                          _buildSectionTitle('Sécurité'),
+                          _buildSectionTitle('security'.tr()),
                           _buildSecuritySettings(userData: userData, db: db),
                           SizedBox(height: size.height * 0.03),
-                          _buildSectionTitle('Support'),
+                          _buildSectionTitle('support'.tr()),
                           _buildSupportOptions(),
                           SizedBox(height: size.height * 0.06),
                           _buildLogoutButton(),
@@ -168,7 +169,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           _buildListTile(
             icon: Icons.person_outline,
-            title: 'Modifier le profil',
+            title: 'edit_profile'.tr(),
             trailing: Icon(Icons.chevron_right),
             onTap: () => _navigateToEditProfile(userData: userData),
           ),
@@ -181,7 +182,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
             icon: Icons.lock_outline,
-            title: 'Changer le mot de passe',
+            title: 'change_password'.tr(),
             trailing: Icon(Icons.chevron_right),
           ),
           _buildDivider(),
@@ -194,7 +195,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
             icon: Icons.pin,
-            title: 'Changer le Code Pin',
+            title: 'change_pin'.tr(),
             trailing: Icon(Icons.chevron_right),
           ),
         ],
@@ -213,40 +214,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           _buildListTile(
             icon: Icons.dark_mode_outlined,
-            title: 'Theme',
+            title: 'theme'.tr(),
             trailing: DropdownButton<String>(
               value: userData.userSettings.theme,
               items:
-                  UserSettings.themes
-                      .map((m) => DropdownMenuItem(value: m, child: Text(m)))
-                      .toList(),
-              onChanged: (value) {
-                print(value);
+                  UserSettings.themes.map((theme) {
+                    return DropdownMenuItem<String>(
+                      value: theme,
+                      child: Text(theme.tr()),
+                    );
+                  }).toList(),
+              onChanged: (value) async {
+                //
+                await DatabaseService(
+                  userData.uid,
+                ).updateUserSetting("theme", value);
               },
               underline: const SizedBox(),
               icon: const SizedBox(),
             ),
           ),
+
           _buildDivider(),
           _buildListTile(
             icon: Icons.language,
-            title: 'Langue',
+            title: 'language'.tr(),
             trailing: DropdownButton<String>(
-              value: userData.userSettings.language,
+              value: UserSettings.getLabelFromCode(
+                userData.userSettings.language,
+              ),
               items:
-                  UserSettings.languages
-                      .map(
-                        (lang) =>
-                            DropdownMenuItem(value: lang, child: Text(lang)),
-                      )
-                      .toList(),
-              onChanged: (value) {
-                print(value);
+                  UserSettings.languages.keys.map((lang) {
+                    return DropdownMenuItem<String>(
+                      value: lang,
+                      child: Text(lang.tr()),
+                    );
+                  }).toList(),
+              onChanged: (selectedLabel) async {
+                final selectedCode = UserSettings.languages[selectedLabel]!;
+                await context.setLocale(Locale(selectedCode));
+                final DatabaseService db = DatabaseService(userData.uid);
+                await db.updateUserSetting("language", selectedCode);
               },
               underline: const SizedBox(),
               icon: const SizedBox(),
             ),
           ),
+
           // _buildDivider(),
           // _buildSwitchTile(
           //   icon: Icons.data_saver_off,
@@ -273,7 +287,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           _buildSwitchTile(
             icon: Icons.fingerprint,
-            title: 'Authentification biométrique',
+            title: 'biometric_auth'.tr(),
             value: userData.userSettings.allowBiometric,
             onChanged: (v) async {
               await db.updateUserSetting("allowBiometric", v);
@@ -282,7 +296,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildDivider(),
           _buildSwitchTile(
             icon: Icons.notifications_active_outlined,
-            title: 'Notifications',
+            title: 'notifications'.tr(),
             value: userData.userSettings.allowNotification,
             onChanged: (v) async {
               await db.updateUserSetting("allowNotification", v);
@@ -304,19 +318,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           _buildListTile(
             icon: Icons.help_outline,
-            title: 'Centre d\'aide',
+            title: 'help_center'.tr(),
             trailing: Icon(Icons.chevron_right),
           ),
           _buildDivider(),
           _buildListTile(
             icon: Icons.description_outlined,
-            title: 'Conditions d\'utilisation',
+            title: 'terms'.tr(),
             trailing: Icon(Icons.chevron_right),
           ),
           _buildDivider(),
           _buildListTile(
             icon: Icons.security_outlined,
-            title: 'Politique de confidentialité',
+            title: 'privacy_policy'.tr(),
             trailing: Icon(Icons.chevron_right),
           ),
         ],
@@ -330,7 +344,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: OutlinedButton.icon(
         icon: const Icon(Icons.logout, color: Colors.red),
         label: Text(
-          'Déconnexion',
+          'logout'.tr(),
           style: GoogleFonts.poppins(color: Colors.red),
         ),
         style: OutlinedButton.styleFrom(
@@ -398,23 +412,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Confirmer la déconnexion'),
-            content: const Text('Voulez-vous vraiment vous déconnecter ?'),
+            title: Text('confirm_logout'.tr()),
+            content: Text('confirm_logout_content'.tr()),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Annuler'),
+                child: Text('cancel'.tr()),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  final AuthenticationService _auth = AuthenticationService();
-                  _auth.signOut();
+                  final AuthenticationService auth = AuthenticationService();
+                  auth.signOut();
                 },
-                child: const Text(
-                  'Déconnexion',
-                  style: TextStyle(color: Colors.red),
-                ),
+                child: Text('logout'.tr(), style: TextStyle(color: Colors.red)),
               ),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
@@ -6,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Controllers/storageService.dart';
 import 'package:med_assist/Models/user.dart';
+import 'package:med_assist/Views/components/utils.dart';
 import 'package:med_assist/Views/mainScreen.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -40,144 +42,51 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      bool isLoading = false;
-      showDialog(
-        barrierDismissible: false,
+      showDialogConfirm(
+        isAlert: true,
         context: context,
-        builder:
-            (context) => Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: StatefulBuilder(
-                builder: (BuildContext context, StateSetter setModalState) {
-                  return Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFFF5F7FB), Colors.white],
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Iconsax.info_circle,
-                          size: 40,
-                          color: Color(0xFF00C853),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          "Do you really wand to change your profile ?",
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextButton(
-                                child: const Text("Cancel"),
-                                onPressed: () {
-                                  if (!isLoading) {
-                                    Navigator.pop(context);
-                                  }
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF00C853),
-                                ),
-                                child:
-                                    isLoading
-                                        ? const CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        )
-                                        : const Text(
-                                          "Confirm",
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                onPressed: () async {
-                                  setModalState(() {
-                                    isLoading = true;
-                                  });
+        contextParent: null,
+        msg: "confirm_change_profile".tr(),
+        action1: () async {
+          AppUserData _userData = widget.userData;
 
-                                  AppUserData _userData = widget.userData;
+          final DatabaseService db = DatabaseService(_userData.uid);
 
-                                  final DatabaseService db = DatabaseService(
-                                    _userData.uid,
-                                  );
+          final name = _nameController.text.trim();
+          final phoneNumber = _phoneController.text.trim();
 
-                                  final name = _nameController.text.trim();
-                                  final phoneNumber =
-                                      _phoneController.text.trim();
+          if (name != _userData.name) {
+            db.updateDataOfValue("name", name);
+          }
 
-                                  if (name != _userData.name) {
-                                    db.updateDataOfValue("name", name);
-                                  }
+          if (phoneNumber != _userData.phoneNumber) {
+            db.updateDataOfValue("phoneNumber", phoneNumber);
+          }
 
-                                  if (phoneNumber != _userData.phoneNumber) {
-                                    db.updateDataOfValue(
-                                      "phoneNumber",
-                                      phoneNumber,
-                                    );
-                                  }
+          final storage = StorageService();
 
-                                  final storage = StorageService();
+          if (_profileImage != null) {
+            if (_userData.userSettings.profileUrl != '') {
+              await storage.deleteProfileImage(
+                _userData.userSettings.profileUrl,
+              );
+            }
+            String url = await storage.uploadProfileImage(
+              file: _profileImage!,
+              uid: _userData.uid,
+            );
 
-                                  if (_profileImage != null) {
-                                    if (_userData.userSettings.profileUrl !=
-                                        '') {
-                                      await storage.deleteProfileImage(
-                                        _userData.userSettings.profileUrl,
-                                      );
-                                    }
-                                    String url = await storage
-                                        .uploadProfileImage(
-                                          file: _profileImage!,
-                                          uid: _userData.uid,
-                                        );
-
-                                    await db.updateUserSetting(
-                                      "profileUrl",
-                                      url,
-                                    );
-                                  }
-
-                                  setModalState(() {
-                                    isLoading = false;
-                                  });
-
-                                  Navigator.pop(context);
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) =>
-                                              MainScreen(initialIndex: 4),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+            await db.updateUserSetting("profileUrl", url);
+          }
+        },
+        action2: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MainScreen(initialIndex: 4),
             ),
+          );
+        },
       );
     }
   }
@@ -189,7 +98,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Modifier le profil',
+          'change_profile'.tr(),
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
       ),
@@ -243,7 +152,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           elevation: 2,
         ),
         child: Text(
-          'Enregistrer les modifications',
+          'save_changes'.tr(),
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -256,19 +165,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget _buildFullNameTextField() {
     return _CustomTextField(
       controller: _nameController,
-      label: 'Nom complet',
+      label: 'full_name'.tr(),
       icon: Iconsax.user,
-      validator: (value) => value!.length < 4 ? 'Ce champ est requis' : null,
+      validator: (value) => value!.length < 4 ? 'required'.tr() : null,
     );
   }
 
   Widget _buildPhoneNumberTextField() {
     return _CustomTextField(
       controller: _phoneController,
-      label: 'Numéro de téléphone',
+      label: 'phone_number'.tr(),
       icon: Iconsax.call,
       keyboardType: TextInputType.phone,
-      validator: (value) => value!.length < 8 ? 'Numéro invalide' : null,
+      validator:
+          (value) => value!.length < 8 ? 'invalid_phone_number'.tr() : null,
     );
   }
 }
@@ -385,7 +295,7 @@ class _ImagePickerBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'Changer la photo de profil',
+            'change_profile_picture'.tr(),
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -395,7 +305,7 @@ class _ImagePickerBottomSheet extends StatelessWidget {
           ListTile(
             leading: Icon(Iconsax.camera, color: Color(0xFF00C853)),
             title: Text(
-              'Prendre une photo',
+              'take_picture'.tr(),
               style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
             ),
             onTap: onCameraPressed,
@@ -407,7 +317,7 @@ class _ImagePickerBottomSheet extends StatelessWidget {
           ListTile(
             leading: Icon(Iconsax.gallery, color: Color(0xFF00C853)),
             title: Text(
-              'Choisir depuis la galerie',
+              'choose_from_gallery'.tr(),
               style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
             ),
             onTap: onGalleryPressed,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:med_assist/Views/navbar/homeScreen.dart';
 import 'package:med_assist/Views/navbar/doctorsScreen.dart';
@@ -112,7 +113,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           },
         ),
         iconAnimationController: _animationController,
-        title: "Home",
+        title: 'home'.tr(),
         activeColorPrimary: Color(0xFF00C853),
         activeColorSecondary: Colors.white,
         inactiveColorPrimary: Colors.grey,
@@ -131,7 +132,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           },
         ),
         iconAnimationController: _animationController,
-        title: "Treat",
+        title: 'treatments'.tr(),
         activeColorPrimary: Color(0xFF00C853),
         activeColorSecondary: Colors.white,
         inactiveColorPrimary: Colors.grey,
@@ -150,7 +151,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           },
         ),
         iconAnimationController: _animationController,
-        title: "Medicine",
+        title: 'doctors'.tr(),
         activeColorPrimary: Color(0xFF00C853),
         activeColorSecondary: Colors.white,
         inactiveColorPrimary: Colors.grey,
@@ -169,7 +170,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           },
         ),
         iconAnimationController: _animationController,
-        title: "Medical Records",
+        title: 'medical_records'.tr(),
         activeColorPrimary: Color(0xFF00C853),
         activeColorSecondary: Colors.white,
         inactiveColorPrimary: Colors.grey,
@@ -188,7 +189,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           },
         ),
         iconAnimationController: _animationController,
-        title: "Settings",
+        title: "settings".tr(),
         activeColorPrimary: Color(0xFF00C853),
         activeColorSecondary: Colors.white,
         inactiveColorPrimary: Colors.grey,
