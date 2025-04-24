@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Controllers/database.dart';
-import 'package:med_assist/Controllers/noti_service.dart';
 import 'package:med_assist/Views/components/MedicationSchedule.dart';
 import 'package:med_assist/Models/doctor.dart';
 import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
 import 'package:med_assist/Views/Auth/loginScreen.dart';
+import 'package:med_assist/Views/components/messagingScreen.dart';
 import 'package:med_assist/Views/components/myAppointments.dart';
 import 'package:med_assist/Views/components/myDoctors.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
@@ -17,32 +17,29 @@ import 'package:provider/provider.dart';
 class HomeScreen extends StatefulWidget {
   final PersistentTabController persistentTabController;
 
-  const HomeScreen({
-    super.key,
-    required this.persistentTabController,
-  });
+  const HomeScreen({super.key, required this.persistentTabController});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
+  // @override
+  // void initState() {
+  //   super.initState();
 
-    listenNotification();
-  }
+  //   listenNotification();
+  // }
 
-  listenNotification() {
-    print("Listening to nootification");
-    // NotiService.onClickNotification.stream.listen((event) {
-    //   Navigator.push(
-    //     context,
-    //     MaterialPageRoute(builder: (context) => AnotherPage(payload: event)),
-    //   );
-    // });
-  }
+  // listenNotification() {
+  //   print("Listening to nootification");
+  //   NotiService.onClickNotification.stream.listen((event) {
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => AnotherPage(payload: event)),
+  //     );
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -149,9 +146,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   IconButton(
                     onPressed: () async {
-                      await NotiService().cancelAllAlarm();
+                      Navigator.of(context, rootNavigator: true).push(
+                        MaterialPageRoute(
+                          builder: (context) => const MedicalMessagingScreen(),
+                        ),
+                      );
                     },
-                    icon: const Icon(Iconsax.notification, color: Colors.black),
+                    icon: const Icon(Iconsax.message, color: Colors.black),
                   ),
                   Positioned(
                     right: 8,

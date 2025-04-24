@@ -19,6 +19,7 @@ class AppUserData {
   final List<String> appointments;
   final List<String> requests;
   final List<String> medicalRecords;
+  final List<String> medicalMessages;
   final UserSettings userSettings;
   final DateTime createdAt;
 
@@ -34,6 +35,7 @@ class AppUserData {
     required this.appointments,
     required this.requests,
     required this.medicalRecords,
+    required this.medicalMessages,
     required this.userSettings,
     required this.createdAt,
   });

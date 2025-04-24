@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:intl/intl.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Controllers/databaseDoctors.dart';
@@ -11,7 +12,7 @@ import 'package:med_assist/Models/doctor.dart';
 class ManagersMedicalRecord {
   final String uid;
   final String name;
-  List<String> medicalRecords;
+  final List<String> medicalRecords;
 
   static const double maxMemory = 50 * 1024;
 
@@ -34,7 +35,7 @@ class ManagersMedicalRecord {
   ) async {
     bool exist = medicalRecordsData.any((r) => r.title == title);
 
-    if (exist) return 'This Medical Record already exist';
+    if (exist) return 'exist_medical_record'.tr();
     return 'Success';
   }
 
@@ -66,10 +67,10 @@ class ManagersMedicalRecord {
   }
 
   String checkCanAddMedicalFile(MedicalRecord medicalRecord, String title) {
-    if (kIsWeb) return 'Your device is invalid';
+    if (kIsWeb) return 'invalid_device'.tr();
     bool exist = medicalRecord.medicalFiles.any((f) => f.title == title);
 
-    if (exist) return 'This Medical File already exist in this folder';
+    if (exist) return 'exist_medical_file'.tr();
     return 'Success';
   }
 
@@ -81,7 +82,7 @@ class ManagersMedicalRecord {
     size = (size / 1024).ceil();
     bool canAdd = canAddFile(size, medicalRecords);
 
-    if (!canAdd) return 'Insufficient space. 50MB limit exceeded.';
+    if (!canAdd) return 'insufficient_space'.tr();
     return 'Success';
   }
 
@@ -151,7 +152,7 @@ class ManagersMedicalRecord {
         medicalRecords.map((r) => r.category.toUpperCase()).toSet().toList();
     categories.sort();
 
-    categories.insert(0, 'ALL');
+    categories.insert(0, 'all'.tr());
 
     return categories;
   }
@@ -261,7 +262,6 @@ class MedicalFile {
   Map<String, dynamic> toMap() {
     return {
       'title': title,
-      // 'type': type,
       'fileType': fileType,
       'fileUrl': fileUrl,
       'fileSize': fileSize,
@@ -272,7 +272,6 @@ class MedicalFile {
   factory MedicalFile.fromMap(Map<String, dynamic> map) {
     return MedicalFile(
       title: map['title'] ?? '',
-      // type: map['type'] ?? '',
       fileType: map['fileType'] ?? '',
       fileUrl: map['fileUrl'] ?? '',
       fileSize: map['fileSize'] ?? 0,

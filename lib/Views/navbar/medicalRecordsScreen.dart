@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -29,7 +30,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   List<MedicalRecord> myMedicalRecords = [];
   List<MedicalRecord> filteredRecords = [];
   List<String> categories = [];
-  String selectedCategory = 'ALL';
+  String selectedCategory = 'all'.tr();
   double usedStorage = 0;
   double maxStorage = 0;
   bool isLoading = true;
@@ -68,7 +69,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     List<MedicalRecord> records,
     String category,
   ) {
-    if (category == 'ALL') return records;
+    if (category == 'all'.tr()) return records;
     return records.where((r) => r.category.toUpperCase() == category).toList();
   }
 
@@ -92,7 +93,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       expandedHeight: 80,
                       flexibleSpace: FlexibleSpaceBar(
                         title: Text(
-                          'My Medical records',
+                          'my_medical_records'.tr(),
                           style: GoogleFonts.poppins(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -284,7 +285,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Espace utilisé',
+                      'used_space'.tr(),
                       style: GoogleFonts.poppins(
                         color: Colors.grey[600],
                         fontSize: 14,
@@ -338,7 +339,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             Icon(Iconsax.folder, size: 40, color: Colors.blueGrey[200]),
             const SizedBox(height: 8),
             Text(
-              'No medical record',
+              'no_medical_record'.tr(),
               style: GoogleFonts.poppins(
                 color: Colors.blueGrey[300],
                 fontWeight: FontWeight.w500,
@@ -372,7 +373,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             Icon(Iconsax.document, size: 40, color: Colors.blueGrey[200]),
             const SizedBox(height: 8),
             Text(
-              'No medical file',
+              'no_medical_file'.tr(),
               style: GoogleFonts.poppins(
                 color: Colors.blueGrey[300],
                 fontWeight: FontWeight.w500,
@@ -392,7 +393,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     final formKey = GlobalKey<FormState>();
     bool isError = false;
     String error = '';
-    bool _isLoading = false;
+    // bool _isLoading = false;
 
     showModalBottomSheet(
       context: context,
@@ -448,7 +449,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'General information',
+                            'general_information'.tr(),
                             style: GoogleFonts.poppins(
                               fontSize: 22,
                               fontWeight: FontWeight.w600,
@@ -459,18 +460,18 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       const SizedBox(height: 20),
                       _buildModernFormField(
                         controller: titleController,
-                        label: 'Title',
+                        label: 'title'.tr(),
                         icon: Iconsax.document,
                         validator:
-                            (value) => value!.isEmpty ? 'Required field' : null,
+                            (value) => value!.isEmpty ? 'required'.tr() : null,
                       ),
                       const SizedBox(height: 20),
                       _buildModernFormField(
                         controller: categoryController,
-                        label: 'Category',
+                        label: 'category'.tr(),
                         icon: Iconsax.category,
                         validator:
-                            (value) => value!.isEmpty ? 'Required field' : null,
+                            (value) => value!.isEmpty ? 'required'.tr() : null,
                       ),
                       const SizedBox(height: 10),
                       isError
@@ -507,7 +508,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                   context: context,
                                   contextParent: contextParent,
                                   msg:
-                                      "The creation of Medical Record : $title ?",
+                                      "${'create_medical_record'.tr()} : $title ?",
                                   action1: () async {
                                     await managersMedicalRecord
                                         .addMedicalRecord(title, category);
@@ -529,7 +530,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                             }
                           },
                           child: Text(
-                            'Create the medical record',
+                            'create_medical_record_btn'.tr(),
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w500,
                               color: Colors.white,
@@ -666,7 +667,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   children: [
                     record.medicalFiles.isNotEmpty
                         ? Text(
-                          '+ ${record.medicalFiles.length} files...',
+                          '+ ${record.medicalFiles.length} ${'files'.tr()}...',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -675,7 +676,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         )
                         : Center(
                           child: Text(
-                            'Aucun Fichiers',
+                            'no_file'.tr(),
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
@@ -751,7 +752,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        isUpdated ? 'Récent' : 'Archive',
+        isUpdated ? 'recent'.tr() : 'archive'.tr(),
         style: GoogleFonts.poppins(
           fontSize: 10,
           color: isUpdated ? Colors.green[800] : Colors.grey[600],
@@ -817,7 +818,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Medical Record details',
+                            'medical_record_details'.tr(),
                             style: GoogleFonts.poppins(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
@@ -832,7 +833,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                     PopupMenuItem(
                                       child: ListTile(
                                         leading: const Icon(Iconsax.share),
-                                        title: Text('Share'),
+                                        title: Text('share'.tr()),
                                         onTap: () {
                                           Navigator.pop(context);
                                           showModalBottomSheet(
@@ -950,7 +951,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                                                           .spaceBetween,
                                                                   children: [
                                                                     Text(
-                                                                      'Select Destination Doctor',
+                                                                      'select_doctor'
+                                                                          .tr(),
                                                                       style: GoogleFonts.poppins(
                                                                         fontSize:
                                                                             20,
@@ -998,9 +1000,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                                                   snapshot
                                                                       .data!
                                                                       .isEmpty) {
-                                                                return const Center(
+                                                                return Center(
                                                                   child: Text(
-                                                                    'Aucun médecin trouvé.',
+                                                                    'no_doctor_found'
+                                                                        .tr(),
                                                                   ),
                                                                 );
                                                               }
@@ -1063,7 +1066,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                         Iconsax.document_download,
                                         color: Colors.blue,
                                       ),
-                                      title: Text('Download'),
+                                      title: Text('download'.tr()),
                                       onTap: () async {
                                         Navigator.pop(context);
                                       },
@@ -1076,7 +1079,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                         color: Colors.red,
                                       ),
                                       title: Text(
-                                        'Delete',
+                                        'delete'.tr(),
                                         style: TextStyle(color: Colors.red),
                                       ),
                                       onTap: () {
@@ -1102,17 +1105,17 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   children: [
                     _buildDetailItem(
                       Iconsax.activity,
-                      'Title : ',
+                      '${'title'.tr()} : ',
                       medicalRecord.title,
                     ),
                     _buildDetailItem(
                       Iconsax.category,
-                      'Category : ',
+                      '${'category'.tr()} : ',
                       medicalRecord.category.toUpperCase(),
                     ),
                     _buildDetailItem(
                       Iconsax.size,
-                      'Size : ',
+                      '${'size'.tr()} : ',
                       '${totalSizeMB.toStringAsFixed(1)} Mo',
                     ),
                   ],
@@ -1128,7 +1131,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Creator & Share Infos',
+                      'creator_share_infos'.tr(),
                       style: GoogleFonts.poppins(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
@@ -1151,35 +1154,35 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     final doctors = snapshot.data!;
                     String creator =
                         isFromMe
-                            ? 'Me'
-                            : '${doctors[0].name} ${doctors[0].specialty} de l\'hôpital ${doctors[0].hospital}';
+                            ? 'me'.tr()
+                            : '${doctors[0].name} ${doctors[0].specialty} ${'from'.tr()} ${doctors[0].hospital}';
 
                     return _buildInfoSection(
                       children: [
                         _buildDetailItem(
                           Iconsax.personalcard,
-                          'Create By : ',
+                          '${'create_by'.tr()} : ',
                           creator,
                         ),
 
                         _buildDetailItem(
                           Iconsax.timer,
-                          'CreatedAt : ',
+                          '${'created_at'.tr()} : ',
                           medicalRecord.formattedDate,
                         ),
                         if (isFromMe) ...[
                           for (int i = 0; i < doctors.length; i++)
                             _buildDetailItem(
                               Iconsax.personalcard,
-                              'Share with : ',
-                              '${doctors[i].name} ${doctors[i].specialty} de l\'hôpital ${doctors[i].hospital}',
+                              '${'share_with'.tr()} : ',
+                              '${doctors[i].name} ${doctors[i].specialty} ${'from'.tr()} ${doctors[i].hospital}',
                             ),
                         ] else ...[
                           for (int i = 1; i < doctors.length; i++)
                             _buildDetailItem(
                               Iconsax.personalcard,
-                              'Share with : ',
-                              '${doctors[i].name} ${doctors[i].specialty} de l\'hôpital ${doctors[i].hospital}',
+                              '${'share_with'.tr()} : ',
+                              '${doctors[i].name} ${doctors[i].specialty} ${'from'.tr()} ${doctors[i].hospital}',
                             ),
                         ],
                       ],
@@ -1193,7 +1196,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Medical Files',
+                      'medical_files'.tr(),
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -1207,7 +1210,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                           color: Colors.white,
                         ),
                         label: Text(
-                          'Add file',
+                          'add_file'.tr(),
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: Colors.white,
@@ -1357,7 +1360,6 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     required MedicalFile medicalFile,
     required VoidCallback onFileAdded,
   }) {
-    bool isDeletingMedicalFile = false;
     return Card(
       color: Colors.white,
       elevation: 2,
@@ -1420,7 +1422,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         color: Colors.blue[800],
                       ),
                       title: Text(
-                        'Move to Folder',
+                        'move_folder'.tr(),
                         style: TextStyle(color: Colors.blue[800]),
                       ),
                       onTap: () {
@@ -1499,7 +1501,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                                         .spaceBetween,
                                                 children: [
                                                   Text(
-                                                    'Select Destination Folder',
+                                                    'select_folder'.tr(),
                                                     style: GoogleFonts.poppins(
                                                       fontSize: 20,
                                                       fontWeight:
@@ -1543,7 +1545,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                             ),
                                           ),
                                         ] else ...[
-                                          Text("Aucun Dossier Trouve"),
+                                          Text('no_doctor_found'.tr()),
                                         ],
                                       ],
                                     ),
@@ -1563,7 +1565,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       color: Colors.blue,
                     ),
                     title: Text(
-                      'Download',
+                      'download'.tr(),
                       style: TextStyle(color: Colors.blue),
                     ),
                     onTap: () async {
@@ -1583,7 +1585,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         color: Colors.red,
                       ),
                       title: Text(
-                        'Delete',
+                        'delete'.tr(),
                         style: TextStyle(color: Colors.red),
                       ),
                       onTap: () {
@@ -1594,7 +1596,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                             isAlert: true,
                             contextParent: null,
                             msg:
-                                "The delete the Medical File : ${medicalFile.title} ?",
+                                "${'delete_medical_file'.tr()} : ${medicalFile.title} ?",
                             action1: () async {
                               await managersMedicalRecord.removeMedicalFile(
                                 medicalRecord,
@@ -1624,7 +1626,6 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   }) {
     final totalSizeMB = record.totalSizeInKo / 1024;
     final progressValue = (totalSizeMB / 50) * myMedicalRecords.length;
-    bool _isLoading = false;
 
     return GestureDetector(
       onTap: () {
@@ -1632,7 +1633,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           context: context,
           contextParent: contextParent,
           msg:
-              "Move The Medical File: ${medicalFile.title} to ${record.title} ?",
+              "${'move_medical_file'.tr()} : ${medicalFile.title} ${'to'.tr()} ${record.title} ?",
           action1: () async {
             await managersMedicalRecord.moveMedicalFile(
               medicalFile,
@@ -1729,7 +1730,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   children: [
                     record.medicalFiles.isNotEmpty
                         ? Text(
-                          '+ ${record.medicalFiles.length} files...',
+                          '+ ${record.medicalFiles.length} ${'files'.tr()}...',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -1738,7 +1739,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         )
                         : Center(
                           child: Text(
-                            'Aucun Fichiers',
+                            'no_file'.tr(),
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
@@ -1816,7 +1817,6 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     final formKey = GlobalKey<FormState>();
     bool isError = false;
     String error = '';
-    bool _isLoading = false;
 
     showModalBottomSheet(
       context: context,
@@ -1872,7 +1872,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'General information',
+                            'general_information'.tr(),
                             style: GoogleFonts.poppins(
                               fontSize: 22,
                               fontWeight: FontWeight.w600,
@@ -1883,10 +1883,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       const SizedBox(height: 20),
                       _buildModernFormField(
                         controller: titleController,
-                        label: 'Title',
+                        label: 'title'.tr(),
                         icon: Iconsax.document,
                         validator:
-                            (value) => value!.isEmpty ? 'Required field' : null,
+                            (value) => value!.isEmpty ? 'required'.tr() : null,
                       ),
                       const SizedBox(height: 20),
                       if (selectedFile != null)
@@ -1896,7 +1896,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                   ? const CircularProgressIndicator()
                                   : selectedFile != null
                                   ? Text(
-                                    'Fichier sélectionné: ${selectedFile!.path.split('/').last}',
+                                    '${'selected_file'.tr()} : ${selectedFile!.path.split('/').last}',
                                     style: TextStyle(
                                       color: Colors.grey[600],
                                       fontSize: 14,
@@ -1909,7 +1909,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       Center(
                         child: ElevatedButton.icon(
                           icon: const Icon(Icons.upload_rounded),
-                          label: const Text('Import a file'),
+                          label: Text('import_file'.tr()),
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24,
@@ -1963,7 +1963,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                     showDialogConfirm(
                                       context: context,
                                       contextParent: contextParent,
-                                      msg: "Create The Medical File: $title ?",
+                                      msg:
+                                          "${'add_medical_file'.tr()} : $title ?",
                                       action1: () async {
                                         await managersMedicalRecord
                                             .addMedicalFile(
@@ -1991,14 +1992,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                 }
                               } else {
                                 setModalState(() {
-                                  error = "Please select a valid file";
+                                  error = 'invalid_file'.tr();
                                   isError = true;
                                 });
                               }
                             }
                           },
                           child: Text(
-                            'Add the medical file',
+                            'add_medical_file'.tr(),
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w500,
                               color: Colors.white,
@@ -2050,9 +2051,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Erreur de sélection: $e')));
+      print(e);
     } finally {
       setModalState(() => isPickingFile = false);
     }
@@ -2065,7 +2064,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         MaterialPageRoute(
           builder:
               (_) => Scaffold(
-                appBar: AppBar(title: Text("Image Preview")),
+                appBar: AppBar(title: Text('image_preview'.tr())),
                 body: PhotoView(imageProvider: NetworkImage(url)),
               ),
         ),
@@ -2092,14 +2091,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           mode: LaunchMode.externalApplication,
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Impossible d’ouvrir le fichier.')),
-        );
+        Text('Impossible d’ouvrir le fichier.');
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Type de fichier non pris en charge.')),
-      );
+      print('Type de fichier non pris en charge.');
     }
   }
 
@@ -2169,7 +2164,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     showDialogConfirm(
       context: context,
       contextParent: contextParent,
-      msg: "Delete the Medical Record : ${medicalRecord.title} ?",
+      msg: "${'delete_medical_record'.tr()} : ${medicalRecord.title} ?",
       action1: () async {
         await managersMedicalRecord.removeMedicalRecord(medicalRecord);
       },
@@ -2261,7 +2256,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
       context: context,
       contextParent: contextParent,
       msg:
-          "Share the Medical Record ${medicalRecord.title} to ${doctor.name} ?",
+          "${'share_medical_record'.tr()} ${medicalRecord.title} ${'to'.tr()} ${doctor.name} ?",
       action1: () async {
         await managersMedicalRecord.shareMedicalRecord(
           doctor.id,
@@ -2312,7 +2307,7 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("PDF Preview")),
+      appBar: AppBar(title: Text('pdf_preview'.tr())),
       body:
           localPath == null
               ? const Center(child: CircularProgressIndicator())

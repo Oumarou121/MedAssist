@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:intl/intl.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Controllers/databaseAppointments.dart';
@@ -35,13 +36,13 @@ class ManagersDoctors {
 
   Future<String> checkSendJoinDoctorRequest(String doctorID) async {
     List<Doctor> docs = await DoctorService().getAllDoctors();
-    if (docs.isEmpty) return "This Doctor ID is invalid";
+    if (docs.isEmpty) return 'invalid_doctor_id'.tr();
 
     bool exists = docs.any((doc) => doc.id == doctorID);
-    if (!exists) return "This Doctor ID is invalid";
+    if (!exists) return 'invalid_doctor_id'.tr();
 
     bool alreadyExists = doctors.any((doc) => doc == doctorID);
-    if (alreadyExists) return "This Doctor is already follow you";
+    if (alreadyExists) return 'exist_doctor'.tr();
 
     List<Request> myRequests = await RequestService().getRequestsByIds(
       requests,
@@ -56,7 +57,7 @@ class ManagersDoctors {
     );
 
     if (alreadyRequest) {
-      return "You already send a request please wait until the doctor give a answer";
+      return 'exist_request'.tr();
     }
 
     Doctor doctor = docs.firstWhere((doc) => doc.id == doctorID);
@@ -95,7 +96,7 @@ class ManagersDoctors {
     );
 
     if (alreadyRequested) {
-      return "You have already submitted a request. Please wait for the doctor's response.";
+      return 'exist_request'.tr();
     }
 
     return "Success";
@@ -482,8 +483,6 @@ class Request {
   }
 
   Future<Appointment> getAppointment() {
-    // String id =
-    //     "appointment_${doctorUid}_${patientUid}_${createdAt.toIso8601String()}";
     return AppointmentService().getAppointment(id);
   }
 }

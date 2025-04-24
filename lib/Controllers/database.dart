@@ -27,6 +27,7 @@ class DatabaseService {
       allowNotification: true,
       language: "French",
       theme: "Brightness",
+      alarmMusic: "music1",
     );
     try {
       await userCollection.doc(uid).set({
@@ -41,6 +42,7 @@ class DatabaseService {
         'appointments': [],
         'requests': [],
         'medicalRecords': [],
+        'medicalMessages': [],
         "settings": userSettings.toMap(),
         'createdAt': DateTime.now().toIso8601String(),
       });
@@ -77,13 +79,7 @@ class DatabaseService {
 
   Future<dynamic> getUserSetting(String key) async {
     try {
-      final docSnapshot =
-          await FirebaseFirestore.instance
-              .collection("users")
-              .doc("patients")
-              .collection("users")
-              .doc(uid)
-              .get();
+      final docSnapshot = await userCollection.doc(uid).get();
 
       if (!docSnapshot.exists) {
         throw Exception("User not found");
@@ -134,6 +130,12 @@ class DatabaseService {
           data['medicalRecords'] != null
               ? List<String>.from(
                 data['medicalRecords'].map((e) => e.toString()),
+              )
+              : [],
+      medicalMessages:
+          data['medicalMessages'] != null
+              ? List<String>.from(
+                data['medicalMessages'].map((e) => e.toString()),
               )
               : [],
       userSettings: UserSettings.fromMap(data['settings']),

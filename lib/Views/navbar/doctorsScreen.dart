@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
@@ -72,7 +73,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                     expandedHeight: 80,
                     flexibleSpace: FlexibleSpaceBar(
                       title: Text(
-                        'My Doctors & Appointments',
+                        'doctors_appointments'.tr(),
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -106,7 +107,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildSectionHeader(
-                            'My Doctors',
+                            'my_doctors'.tr(),
                             Iconsax.profile_2user5,
                             true,
                             context,
@@ -115,7 +116,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                           _buildDoctorsList(managersDoctors: managersDoctors),
                           const SizedBox(height: 24),
                           _buildSectionHeader(
-                            'My Queries',
+                            'my_queries'.tr(),
                             Iconsax.archive,
                             false,
                             context,
@@ -186,7 +187,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                         );
                       },
                       child: Text(
-                        "Show Appointments",
+                        'show_appointments'.tr(),
                         style: TextStyle(color: Colors.blue),
                       ),
                     ),
@@ -217,7 +218,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'No doctor is following you.',
+              'no_doctors'.tr(),
               style: GoogleFonts.poppins(
                 color: Colors.blueGrey[300],
                 fontWeight: FontWeight.w500,
@@ -244,7 +245,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
             Icon(Iconsax.archive, size: 40, color: Colors.blueGrey[200]),
             const SizedBox(height: 8),
             Text(
-              'No Queries.',
+              'no_queries'.tr(),
               style: GoogleFonts.poppins(
                 color: Colors.blueGrey[300],
                 fontWeight: FontWeight.w500,
@@ -334,7 +335,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        'Disponible',
+                        'available'.tr(),
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontSize: 10,
@@ -509,8 +510,8 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                     const SizedBox(width: 6),
                                     Text(
                                       doctor.isAvailable()
-                                          ? 'Disponible'
-                                          : 'Non Disponible',
+                                          ? 'available'.tr()
+                                          : 'no_available'.tr(),
                                       style: GoogleFonts.poppins(fontSize: 12),
                                     ),
                                   ],
@@ -533,9 +534,6 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                   appointmentReason,
                                 ) async {
                                   Navigator.pop(context);
-                                  print(
-                                    "Start : $appointmentStart, End : $appointmentEnd, Reason : $appointmentReason",
-                                  );
                                   await managersDoctors.sendAppointRequest(
                                     doctor.id,
                                     appointmentStart,
@@ -543,10 +541,8 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                   );
 
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Demande envoyée avec succès !",
-                                      ),
+                                    SnackBar(
+                                      content: Text('success_send_query'.tr()),
                                       backgroundColor: Colors.green,
                                     ),
                                   );
@@ -563,7 +559,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                             ),
                             icon: const Icon(Iconsax.calendar_add, size: 16),
                             label: Text(
-                              "Reservation Now",
+                              'reservation_now'.tr(),
                               style: GoogleFonts.poppins(fontSize: 12),
                             ),
                           ),
@@ -577,22 +573,22 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                 // Section Contact
                 _buildInfoSection(
                   icon: Iconsax.profile_2user,
-                  title: 'Informations professionnelles',
+                  title: 'professional_information'.tr(),
                   children: [
-                    _buildInfoRow('Hôpital', doctor.hospital),
-                    _buildInfoRow('Années d\'expérience', doctor.experience),
-                    _buildInfoRow('N° Licence', doctor.licenseNumber),
+                    _buildInfoRow('from'.tr(), doctor.hospital),
+                    _buildInfoRow('year_experience'.tr(), doctor.experience),
+                    // _buildInfoRow('N° Licence', doctor.licenseNumber),
                   ],
                 ),
 
                 // Section Coordonnées
                 _buildInfoSection(
                   icon: Iconsax.location,
-                  title: 'Coordonnées',
+                  title: 'contact_details'.tr(),
                   children: [
-                    _buildInfoRow('Adresse', doctor.address),
-                    _buildInfoRow('Téléphone', doctor.phoneNumber),
-                    _buildInfoRow('Email', doctor.email),
+                    _buildInfoRow('address'.tr(), doctor.address),
+                    _buildInfoRow('phone_number'.tr(), doctor.phoneNumber),
+                    _buildInfoRow('email'.tr(), doctor.email),
                   ],
                 ),
 
@@ -600,7 +596,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                 //Ajouter le btn demande de rendez-vous (si dispo)
                 _buildInfoSection(
                   icon: Iconsax.calendar,
-                  title: 'Disponibilités',
+                  title: 'availability'.tr(),
                   children: [
                     Wrap(
                       spacing: 8,
@@ -610,7 +606,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Jours :',
+                              '${'days'.tr()} :',
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w500,
                               ),
@@ -627,7 +623,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Heures :',
+                              '${'hours'.tr()} :',
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w500,
                               ),
@@ -657,7 +653,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                 // Section Bio
                 _buildInfoSection(
                   icon: Iconsax.info_circle,
-                  title: 'À propos',
+                  title: 'about'.tr(),
                   children: [
                     Text(
                       doctor.bio,
@@ -670,7 +666,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                 if (doctor.languages.isNotEmpty)
                   _buildInfoSection(
                     icon: Iconsax.language_square,
-                    title: 'Langues parlées',
+                    title: 'languages_spoken'.tr(),
                     children: [
                       Wrap(
                         spacing: 8,
@@ -819,9 +815,9 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
 
     final statusText =
         {
-          RequestStatus.agreed: 'Accepté',
-          RequestStatus.pending: 'En attente',
-          RequestStatus.disagreed: 'Refusé',
+          RequestStatus.agreed: 'accepted'.tr(),
+          RequestStatus.pending: 'on_hold'.tr(),
+          RequestStatus.disagreed: 'denied'.tr(),
         }[request.status]!;
 
     return FutureBuilder<Doctor?>(
@@ -831,8 +827,6 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Text('Erreur : ${snapshot.error}');
-        } else if (!snapshot.hasData || snapshot.data == null) {
-          return const Text('Médecin non trouvé');
         }
 
         final doctor = snapshot.data!;
@@ -870,10 +864,10 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                   ),
                   subtitle: Text(
                     request.requestType == RequestType.doctor
-                        ? 'Demande de suivie ${request.senderType == SenderType.patient ? "envoyée" : "reçue"}'
+                        ? '${'request_follow_up'.tr()} ${request.senderType == SenderType.patient ? 'sent'.tr() : 'received'.tr()}'
                         : request.requestType == RequestType.appointment
-                        ? 'Demande de rendez-vous programmé ${request.senderType == SenderType.patient ? "envoyé" : "reçu"}'
-                        : 'Traitement : ${request.treatCode} reçu',
+                        ? '${'request_scheduled_appointment'.tr()} ${request.senderType == SenderType.patient ? 'sent'.tr() : 'received'.tr()}'
+                        : '${'treatment'.tr()} : ${request.treatCode} ${'received'.tr()}',
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                   ),
                 ),
@@ -995,8 +989,8 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                 managersDoctors,
                                 managersTreats,
                               ),
-                          child: const Text(
-                            'Confirmation',
+                          child: Text(
+                            'confirmation'.tr(),
                             style: TextStyle(color: Colors.blue),
                           ),
                         ),
@@ -1007,15 +1001,15 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                               isAlert: true,
                               context: context,
                               contextParent: null,
-                              msg: "Delete this query ?",
+                              msg: 'delete_request'.tr(),
                               action1: () async {
                                 await managersDoctors.removeRequest(request.id);
                               },
                               action2: () {},
                             );
                           },
-                          child: const Text(
-                            'Delete',
+                          child: Text(
+                            'delete'.tr(),
                             style: TextStyle(color: Colors.red),
                           ),
                         ),
@@ -1053,9 +1047,9 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
 
     final statusText =
         {
-          RequestStatus.agreed: 'Accepté',
-          RequestStatus.pending: 'En attente',
-          RequestStatus.disagreed: 'Refusé',
+          RequestStatus.agreed: 'accepted'.tr(),
+          RequestStatus.pending: 'on_hold'.tr(),
+          RequestStatus.disagreed: 'denied'.tr(),
         }[request.status]!;
 
     return FutureBuilder<Doctor?>(
@@ -1065,8 +1059,6 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Erreur : ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data == null) {
-          return const Center(child: Text('Médecin non trouvé'));
         }
 
         final doctor = snapshot.data!;
@@ -1086,18 +1078,18 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
               const SizedBox(height: 20),
               if (request.startTime != null) ...[
                 _buildModalRow(
-                  'Date',
+                  'date'.tr(),
                   Appointment.formattedDateStatic(request.startTime!),
                 ),
                 _buildModalRow(
-                  'Heure',
+                  'hours'.tr(),
                   Appointment.formattedTimeStatic(request.startTime!),
                 ),
               ],
 
-              _buildModalRow('Statut', statusText, color: statusColor),
-              _buildModalRow('Hôpital', doctor.hospital),
-              _buildModalRow('Spécialité', doctor.specialty),
+              _buildModalRow('status'.tr(), statusText, color: statusColor),
+              _buildModalRow('from'.tr(), doctor.hospital),
+              _buildModalRow('speciality'.tr(), doctor.specialty),
             ],
           ),
         );
@@ -1135,7 +1127,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Changer le statut'),
+            title: Text('change_status'.tr()),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children:
@@ -1150,9 +1142,9 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                     return ListTile(
                       title: Text(
                         {
-                          RequestStatus.agreed: 'Accepté',
-                          RequestStatus.pending: 'En attente',
-                          RequestStatus.disagreed: 'Refusé',
+                          RequestStatus.agreed: 'accepted'.tr(),
+                          RequestStatus.pending: 'on_hold'.tr(),
+                          RequestStatus.disagreed: 'denied'.tr(),
                         }[status]!,
                         style: TextStyle(color: color),
                       ),
@@ -1165,7 +1157,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                           showDialogConfirm(
                             context: context,
                             contextParent: context,
-                            msg: "Change the status ?",
+                            msg: 'change_the_status'.tr(),
                             action1: () async {
                               await managersDoctors.updateRequestStatus(
                                 request,
@@ -1276,7 +1268,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                     // Sélection de date
                     _buildSectionTitle(
                       icon: Iconsax.calendar,
-                      title: 'Choisir une date',
+                      title: 'choose_date'.tr(),
                     ),
                     const SizedBox(height: 12),
 
@@ -1345,7 +1337,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                     // Sélection d'horaire
                     _buildSectionTitle(
                       icon: Iconsax.clock,
-                      title: 'Choisir un horaire',
+                      title: 'choose_schedule'.tr(),
                     ),
                     const SizedBox(height: 12),
                     GridView.builder(
@@ -1408,14 +1400,14 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                     // Raison du rendez-vous
                     _buildSectionTitle(
                       icon: Iconsax.note,
-                      title: 'Motif du rendez-vous',
+                      title: 'appointment_reason'.tr(),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       onChanged: (value) => appointmentReason = value,
                       maxLines: 3,
                       decoration: InputDecoration(
-                        hintText: 'Décrivez la raison de votre visite...',
+                        hintText: 'appointment_reason_describe'.tr(),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
@@ -1438,7 +1430,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                           color: Colors.white,
                         ),
                         label: Text(
-                          'Confirmer le rendez-vous',
+                          'confirm_appointment'.tr(),
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w500,
                             color: Colors.white,
@@ -1454,7 +1446,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                         onPressed: () async {
                           if (appointmentReason.isEmpty) {
                             setState(() {
-                              error = "Veuillez entrer un motif.";
+                              error = 'required_reason'.tr();
                               isError = true;
                             });
                             return;
@@ -1487,7 +1479,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                             showDialogConfirm(
                               context: context,
                               contextParent: null,
-                              msg: "Send this request ?",
+                              msg: 'send_appointment'.tr(),
                               action1: () async {
                                 onConfirm(
                                   appointmentStart,
@@ -1572,7 +1564,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
 
                   // Titre
                   Text(
-                    "Send a request",
+                    'send_request_title'.tr(),
                     style: GoogleFonts.poppins(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -1585,7 +1577,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                   TextField(
                     controller: _controller,
                     decoration: InputDecoration(
-                      labelText: "Doctor ID",
+                      labelText: 'doctor_id'.tr(),
                       prefixIcon: Icon(
                         Iconsax.code,
                         color: Colors.grey.shade600,
@@ -1622,7 +1614,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                 strokeWidth: 2,
                               )
                               : Text(
-                                "Send",
+                                'send'.tr(),
                                 style: GoogleFonts.poppins(color: Colors.white),
                               ),
                       style: ElevatedButton.styleFrom(
@@ -1640,7 +1632,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                         String code = _controller.text.trim();
                         if (code.isEmpty) {
                           setModalState(() {
-                            error1 = "Please enter a Doctor ID.";
+                            error1 = 'required_doctor_id'.tr();
                             isError1 = true;
                             isLoading = false;
                           });
@@ -1659,7 +1651,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                           showDialogConfirm(
                             context: context,
                             contextParent: contextParent,
-                            msg: "Send tracking request to $doctorName ?",
+                            msg: "${'tracking_request'.tr()} $doctorName ?",
                             action1: () async {
                               await managersDoctors.sendJoinDoctorRequest(code);
                             },
@@ -1708,13 +1700,12 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
           child: Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom + 35,
-              top: 24, // Ajouté pour l'espace du handle
+              top: 24,
             ),
             child: SizedBox(
               height: MediaQuery.of(context).size.height * 0.85,
               child: Column(
                 children: [
-                  // Handle en haut
                   Center(
                     child: Container(
                       width: 60,
@@ -1727,7 +1718,6 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Contenu principal
                   Expanded(child: AppointmentsPage(manager: managersDoctors)),
                 ],
               ),

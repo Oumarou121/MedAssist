@@ -4,21 +4,20 @@ import 'package:alarm/alarm.dart';
 import 'package:alarm/model/volume_settings.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:med_assist/Controllers/database.dart';
-import 'package:rxdart/subjects.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class NotiService {
   final notificationPlugin = FlutterLocalNotificationsPlugin();
-  static final onClickNotification = BehaviorSubject<String>();
+  // static final onClickNotification = BehaviorSubject<String>();
 
   bool _isInitialized = false;
 
   bool get isInitialized => _isInitialized;
 
-  void onNotificationTap(NotificationResponse notificationResponse) {
-    onClickNotification.add(notificationResponse.payload!);
-  }
+  // void onNotificationTap(NotificationResponse notificationResponse) {
+  //   onClickNotification.add(notificationResponse.payload!);
+  // }
 
   //INITIALIZE
   Future<void> initNotification() async {
@@ -41,8 +40,8 @@ class NotiService {
 
     await notificationPlugin.initialize(
       initSettings,
-      onDidReceiveNotificationResponse: onNotificationTap,
-      onDidReceiveBackgroundNotificationResponse: onNotificationTap,
+      // onDidReceiveNotificationResponse: onNotificationTap,
+      // onDidReceiveBackgroundNotificationResponse: onNotificationTap,
     );
 
     _isInitialized = true;
@@ -52,8 +51,8 @@ class NotiService {
   NotificationDetails notificationDetails() {
     return NotificationDetails(
       android: AndroidNotificationDetails(
-        'med_assist_channel', // ID de canal
-        'Alarme Médicale', // Nom du canal
+        'med_assist_channel',
+        'Alarme Médicale',
         channelDescription: 'Notification pour les rappels de médicaments',
         importance: Importance.max,
         priority: Priority.high,
@@ -106,14 +105,25 @@ class NotiService {
     ).getUserSetting("allowNotification");
     if (!isAllow) return;
 
-    // Ne rien faire si l'heure choisie est déjà dépassée
+    String alarmMusic = await DatabaseService(
+      userUid,
+    ).getUserSetting("alarmMusic");
+
+    const Map<String, String> alarmSounds = {
+      "music1": "alarm.wav",
+      "music2": "alarm_clock.mp3",
+      "music3": "natural_alarm.mp3",
+      "music4": "sehun.mp3",
+    };
+
+    String? song = alarmSounds[alarmMusic];
+    if (song == null) return;
+
     if (time.isBefore(DateTime.now())) return;
 
-    // Initialisation des time zones
     tz.initializeTimeZones();
     final location = tz.getLocation('Africa/Tunis');
 
-    // Calcul de l'heure de notification (5 minutes avant l'heure du réveil)
     final scheduledTime = tz.TZDateTime(
       location,
       time.year,
@@ -124,18 +134,16 @@ class NotiService {
       time.second,
     );
 
-    // Si cette heure est déjà passée, on ne programme pas la notification
     if (scheduledTime.isBefore(tz.TZDateTime.now(location))) {
       print("⛔ Notification skipped: scheduled time is in the past.");
       return;
     }
 
-    // Configuration de l'alarme
     final alarmSettings = AlarmSettings(
       id: id,
       payload: payload,
       dateTime: time,
-      assetAudioPath: 'assets/alarms/alarm.wav',
+      assetAudioPath: 'assets/alarms/$song',
       loopAudio: true,
       vibrate: true,
       warningNotificationOnKill: Platform.isIOS,
@@ -154,7 +162,6 @@ class NotiService {
       ),
     );
 
-    // Planifie une notification 5 minutes avant l'heure de l'alarme
     try {
       await notificationPlugin.zonedSchedule(
         id,
@@ -166,7 +173,6 @@ class NotiService {
         payload: payload,
         matchDateTimeComponents: null,
       );
-      // Planifie l'alarme
       await Alarm.set(alarmSettings: alarmSettings);
     } catch (e, stack) {
       print("⚠️ zonedSchedule error: $e");

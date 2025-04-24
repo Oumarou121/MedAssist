@@ -42,7 +42,7 @@ void showDialogConfirm({
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      "Do you want to confirm",
+                      'confirm_title'.tr(),
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,

@@ -43,7 +43,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       showDialogConfirm(
-        isAlert: true,
         context: context,
         contextParent: null,
         msg: "confirm_change_profile".tr(),

@@ -94,19 +94,16 @@ class ManagersTreats {
             0,
           );
 
-          print('id : $id, time: $alarmDate');
+          // print('id : $id, time: $alarmDate');
 
           bool isActive = await NotiService().isNotificationPlanned(id);
-          if (isActive) {
-            print("active");
-          } else {
-            print("non-active");
+          if (!isActive) {
             await NotiService().addAlarm(
               userUid: uid,
               id: id,
               title1: scheduleItem.treat.title,
               title2: scheduleItem.medicine.name,
-              body1: "C'est l'heure de prendre votre médicament",
+              body1: 'medicine_time'.tr(),
               body2:
                   "${scheduleItem.medicine.name} (${scheduleItem.medicine.dose})",
               payload:
@@ -150,19 +147,16 @@ class ManagersTreats {
             0,
           );
 
-          print('id : $id, time: $alarmDate');
+          // print('id : $id, time: $alarmDate');
 
           bool isActive = await NotiService().isNotificationPlanned(id);
-          if (isActive) {
-            print("active");
-          } else {
-            print("non-active");
+          if (!isActive) {
             await NotiService().addAlarm(
               userUid: uid,
               id: id,
               title1: scheduleItem.treat.title,
               title2: scheduleItem.medicine.name,
-              body1: "C'est l'heure de prendre votre médicament",
+              body1: 'medicine_time'.tr(),
               body2:
                   "${scheduleItem.medicine.name} (${scheduleItem.medicine.dose})",
               payload:
@@ -655,15 +649,15 @@ extension FrequencyTypeExtension on FrequencyType {
   String get unitLabel {
     switch (this) {
       case FrequencyType.daily:
-        return "jour";
+        return 'day'.tr();
       case FrequencyType.weekly:
-        return "semaine";
+        return 'week'.tr();
       case FrequencyType.biweekly:
-        return "2 semaines";
+        return '2_weeks'.tr();
       case FrequencyType.monthly:
-        return "mois";
+        return 'month'.tr();
       case FrequencyType.quarterly:
-        return "3 mois";
+        return '3_months'.tr();
     }
   }
 }

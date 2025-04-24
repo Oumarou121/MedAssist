@@ -1119,22 +1119,20 @@ class _TreatScreenState extends State<TreatScreen> {
                         String code = _controller.text.trim();
                         if (code.isEmpty) {
                           setModalState(() {
-                            error1 = "Please enter a code";
+                            error1 = 'required_field'.tr();
                             isError1 = true;
                             isLoading = false;
                           });
                           return;
                         }
 
-                        // TODO: vérifie l'existence du code / traitement
-                        // setModalState pour update l'erreur si non trouvé
                         bool exists = publicTreatments.any(
                           (treat) => treat.code == code,
                         );
 
                         if (!exists) {
                           setModalState(() {
-                            error1 = "No such public treatment.";
+                            error1 = 'invalid_treatment_code'.tr();
                             isError1 = true;
                             isLoading = false;
                           });
@@ -1149,7 +1147,7 @@ class _TreatScreenState extends State<TreatScreen> {
 
                         if (alreadyExists) {
                           setModalState(() {
-                            error1 = "This treatment is already added";
+                            error1 = 'treatment_already_added'.tr();
                             isError1 = true;
                             isLoading = false;
                           });
@@ -1159,7 +1157,7 @@ class _TreatScreenState extends State<TreatScreen> {
                         showDialogConfirm(
                           context: context,
                           contextParent: contextParent,
-                          msg: "Add The Treatment ${treatment.title} ?",
+                          msg: "${'add_treatment'.tr()} ${treatment.title} ?",
                           action1: () async {
                             setState(() {
                               List<Medicine> ms = [];
@@ -1200,7 +1198,7 @@ class _TreatScreenState extends State<TreatScreen> {
                       Expanded(child: Divider(color: Colors.grey.shade400)),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Text("OR", style: GoogleFonts.poppins()),
+                        child: Text('or'.tr(), style: GoogleFonts.poppins()),
                       ),
                       Expanded(child: Divider(color: Colors.grey.shade400)),
                     ],
@@ -1217,7 +1215,7 @@ class _TreatScreenState extends State<TreatScreen> {
                     child: DropdownButton<Treat>(
                       isExpanded: true,
                       hint: Text(
-                        "Select a treatment",
+                        'select_treatment'.tr(),
                         style: GoogleFonts.poppins(),
                       ),
                       underline: const SizedBox(),
@@ -1246,7 +1244,7 @@ class _TreatScreenState extends State<TreatScreen> {
                         if (selected == null) return;
                         if (managersTreats.alreadyExists(selected.code)) {
                           setModalState(() {
-                            error2 = "This treatment is already added";
+                            error2 = 'treatment_already_added'.tr();
                             isError2 = true;
                           });
                           return;
@@ -1255,7 +1253,7 @@ class _TreatScreenState extends State<TreatScreen> {
                         showDialogConfirm(
                           context: context,
                           contextParent: contextParent,
-                          msg: "Add The Treatment ${selected.title} ?",
+                          msg: "${'add_treatment'.tr()} ${selected.title} ?",
                           action1: () async {
                             setState(() {
                               List<Medicine> ms = [];
@@ -1372,7 +1370,7 @@ class _TreatScreenState extends State<TreatScreen> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Nouveau Médicament',
+                          'new_medicines'.tr(),
                           style: GoogleFonts.poppins(
                             fontSize: 22,
                             fontWeight: FontWeight.w600,
@@ -1388,11 +1386,11 @@ class _TreatScreenState extends State<TreatScreen> {
                         children: [
                           _buildModernFormField(
                             controller: nameController,
-                            label: 'Nom du médicament',
+                            label: 'medicine_name'.tr(),
                             icon: Iconsax.heart,
                             validator:
                                 (value) =>
-                                    value!.isEmpty ? 'Champ obligatoire' : null,
+                                    value!.isEmpty ? 'required'.tr() : null,
                           ),
                           const SizedBox(height: 16),
 
@@ -1401,12 +1399,12 @@ class _TreatScreenState extends State<TreatScreen> {
                               Expanded(
                                 child: _buildModernFormField(
                                   controller: doseController,
-                                  label: 'Dose',
+                                  label: 'dose'.tr(),
                                   icon: Iconsax.d_cube_scan,
                                   validator:
                                       (value) =>
                                           value!.isEmpty
-                                              ? 'Champ obligatoire'
+                                              ? 'required'.tr()
                                               : null,
                                 ),
                               ),
@@ -1414,13 +1412,13 @@ class _TreatScreenState extends State<TreatScreen> {
                               Expanded(
                                 child: _buildModernFormField(
                                   controller: durationController,
-                                  label: 'Durée (jours)',
+                                  label: 'duration'.tr(),
                                   icon: Iconsax.calendar,
                                   keyboardType: TextInputType.number,
                                   validator:
                                       (value) =>
                                           value!.isEmpty
-                                              ? 'Champ obligatoire'
+                                              ? 'required'.tr()
                                               : null,
                                 ),
                               ),
@@ -1430,30 +1428,30 @@ class _TreatScreenState extends State<TreatScreen> {
 
                           _buildModernFormField(
                             controller: frequencyController,
-                            label: 'Fréquence',
+                            label: 'frequency'.tr(),
                             icon: Iconsax.clock,
                             keyboardType: TextInputType.number,
                             validator:
                                 (value) =>
-                                    value!.isEmpty ? 'Champ obligatoire' : null,
+                                    value!.isEmpty ? 'required'.tr() : null,
                           ),
                           const SizedBox(height: 16),
 
                           _buildModernFormField(
                             controller: intervalController,
-                            label: 'Intervalle (heures)',
+                            label: 'interval'.tr(),
                             icon: Iconsax.timer,
                             keyboardType: TextInputType.number,
                             validator:
                                 (value) =>
-                                    value!.isEmpty ? 'Champ obligatoire' : null,
+                                    value!.isEmpty ? 'required'.tr() : null,
                           ),
                           const SizedBox(height: 16),
 
                           DropdownButtonFormField<FrequencyType>(
                             value: medicine.frequencyType,
                             decoration: InputDecoration(
-                              labelText: 'Type de fréquence',
+                              labelText: 'frequency_type'.tr(),
                               prefixIcon: Icon(Iconsax.repeat),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
@@ -1485,7 +1483,7 @@ class _TreatScreenState extends State<TreatScreen> {
                                 color: Colors.white,
                               ),
                               label: Text(
-                                'Ajouter le médicament',
+                                'add_medicine'.tr(),
                                 style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.w500,
                                   color: Colors.white,
@@ -1642,7 +1640,7 @@ class _TreatScreenState extends State<TreatScreen> {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            'Ajouter un traitement',
+                            'add_treatment'.tr(),
                             style: GoogleFonts.poppins(
                               fontSize: 22,
                               fontWeight: FontWeight.w600,
@@ -1653,18 +1651,17 @@ class _TreatScreenState extends State<TreatScreen> {
                       const SizedBox(height: 24),
                       _buildModernFormField(
                         controller: titleController,
-                        label: "Titre du traitement",
+                        label: 'treatment_title'.tr(),
                         icon: Iconsax.health,
                         validator:
-                            (value) =>
-                                value!.isEmpty ? 'Champ obligatoire' : null,
+                            (value) => value!.isEmpty ? 'required'.tr() : null,
                       ),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Médicaments prescrits',
+                            'prescribed_medications'.tr(),
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -1677,7 +1674,7 @@ class _TreatScreenState extends State<TreatScreen> {
                               color: Colors.white,
                             ),
                             label: Text(
-                              'Ajouter',
+                              'add'.tr(),
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 color: Colors.white,
@@ -1723,7 +1720,7 @@ class _TreatScreenState extends State<TreatScreen> {
                             color: Colors.white,
                           ),
                           label: Text(
-                            'Ajouter le traitement',
+                            'add_treatment'.tr(),
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w500,
                               color: Colors.white,
@@ -1794,7 +1791,8 @@ class _TreatScreenState extends State<TreatScreen> {
                                 if (meds.isNotEmpty) {
                                   Treat newTreatment = Treat(
                                     authorUid: userData.uid,
-                                    authorName: 'Mr/Mm ${userData.name}',
+                                    authorName:
+                                        '${'mr/ms'.tr()} ${userData.name}',
                                     code:
                                         'TREAT-${DateTime.now().millisecondsSinceEpoch}',
                                     title: titleController.text.trim(),
@@ -1819,7 +1817,7 @@ class _TreatScreenState extends State<TreatScreen> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        "Traitement ajouté avec succès !",
+                                        'success_add_treatment'.tr(),
                                       ),
                                       backgroundColor: Colors.green,
                                     ),
@@ -1854,7 +1852,7 @@ class _TreatScreenState extends State<TreatScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
-                "Médicament ${index + 1}",
+                "${'medicine'.tr()} ${index + 1}",
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -1878,9 +1876,9 @@ class _TreatScreenState extends State<TreatScreen> {
           ),
           _buildModernFormField(
             controller: nameControllers[index],
-            label: 'Nom du médicament',
+            label: 'medicine_name'.tr(),
             icon: Iconsax.heart,
-            validator: (value) => value!.isEmpty ? 'Champ obligatoire' : null,
+            validator: (value) => value!.isEmpty ? 'required'.tr() : null,
           ),
           const SizedBox(height: 16),
 
@@ -1889,21 +1887,19 @@ class _TreatScreenState extends State<TreatScreen> {
               Expanded(
                 child: _buildModernFormField(
                   controller: doseControllers[index],
-                  label: 'Dose',
+                  label: 'dose'.tr(),
                   icon: Iconsax.d_cube_scan,
-                  validator:
-                      (value) => value!.isEmpty ? 'Champ obligatoire' : null,
+                  validator: (value) => value!.isEmpty ? 'required'.tr() : null,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: _buildModernFormField(
                   controller: durationControllers[index],
-                  label: 'Durée (jours)',
+                  label: 'duration'.tr(),
                   icon: Iconsax.calendar,
                   keyboardType: TextInputType.number,
-                  validator:
-                      (value) => value!.isEmpty ? 'Champ obligatoire' : null,
+                  validator: (value) => value!.isEmpty ? 'required'.tr() : null,
                 ),
               ),
             ],
@@ -1912,26 +1908,26 @@ class _TreatScreenState extends State<TreatScreen> {
 
           _buildModernFormField(
             controller: frequencyControllers[index],
-            label: 'Fréquence',
+            label: 'frequency'.tr(),
             icon: Iconsax.clock,
             keyboardType: TextInputType.number,
-            validator: (value) => value!.isEmpty ? 'Champ obligatoire' : null,
+            validator: (value) => value!.isEmpty ? 'required'.tr() : null,
           ),
           const SizedBox(height: 16),
 
           _buildModernFormField(
             controller: intervaleControllers[index],
-            label: 'Intervalle (heures)',
+            label: 'interval'.tr(),
             icon: Iconsax.timer,
             keyboardType: TextInputType.number,
-            validator: (value) => value!.isEmpty ? 'Champ obligatoire' : null,
+            validator: (value) => value!.isEmpty ? 'required'.tr() : null,
           ),
           const SizedBox(height: 16),
 
           DropdownButtonFormField<FrequencyType>(
             value: medicine.frequencyType,
             decoration: InputDecoration(
-              labelText: 'Type de fréquence',
+              labelText: 'frequency_type'.tr(),
               prefixIcon: Icon(Iconsax.repeat),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),

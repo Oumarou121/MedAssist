@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:med_assist/Controllers/authentication.dart';
 import 'package:med_assist/Controllers/database.dart';
+import 'package:med_assist/Controllers/noti_service.dart';
+import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
 import 'package:med_assist/Models/userSettings.dart';
 import 'package:med_assist/Views/Auth/forgotPasswordScreen.dart';
@@ -261,13 +263,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
-          // _buildDivider(),
-          // _buildSwitchTile(
-          //   icon: Icons.data_saver_off,
-          //   title: 'Mode économie de données',
-          //   value: false,
-          //   onChanged: (v) {},
-          // ),
+          _buildDivider(),
+          _buildListTile(
+            icon: Icons.library_music,
+            title: 'alarm_music'.tr(),
+            trailing: DropdownButton<String>(
+              value: UserSettings.getLabelFromCodeMusics(
+                userData.userSettings.alarmMusic,
+              ),
+              items:
+                  UserSettings.alarmMusics.keys.map((alarm) {
+                    return DropdownMenuItem<String>(
+                      value: alarm,
+                      child: Text(alarm),
+                    );
+                  }).toList(),
+              onChanged: (selectedLabel) async {
+                final selectedCode = UserSettings.alarmMusics[selectedLabel]!;
+                final DatabaseService db = DatabaseService(userData.uid);
+                await db.updateUserSetting("alarmMusic", selectedCode);
+
+                //Redefine all alarm
+                ManagersTreats managersTreats = ManagersTreats(
+                  uid: userData.uid,
+                  name: userData.name,
+                  treats: userData.treatments,
+                );
+
+                managersTreats.redefineAlarm();
+              },
+              underline: const SizedBox(),
+              icon: const SizedBox(),
+            ),
+          ),
         ],
       ),
     );
@@ -300,6 +328,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: userData.userSettings.allowNotification,
             onChanged: (v) async {
               await db.updateUserSetting("allowNotification", v);
+              ManagersTreats managersTreats = ManagersTreats(
+                uid: userData.uid,
+                name: userData.name,
+                treats: userData.treatments,
+              );
+              if (v) {
+                managersTreats.checkAlarm();
+              } else {
+                NotiService().cancelAllAlarm();
+              }
             },
           ),
         ],

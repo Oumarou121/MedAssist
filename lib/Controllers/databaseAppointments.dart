@@ -18,7 +18,6 @@ class AppointmentService {
   }
 
   Future<Appointment> getAppointment(String id) async {
-    print(id);
     final snapshot = await appointmentCollection.doc(id).get();
     return Appointment.fromMap(snapshot.data()!);
   }
