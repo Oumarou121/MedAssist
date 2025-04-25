@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:med_assist/Models/message.dart';
+import 'package:rxdart/rxdart.dart';
 
 class MedicalMessageService {
   final CollectionReference<Map<String, dynamic>> collection = FirebaseFirestore
@@ -15,16 +16,20 @@ class MedicalMessageService {
   }) async {
     final docRef = collection.doc();
     final id = docRef.id;
+    ResponseMedicalMessage responseMedicalMessage = ResponseMedicalMessage(
+      message: '',
+      createdAt: DateTime.now(),
+    );
 
     await docRef.set({
       'id': id,
       'doctorID': doctorID,
       'patientUid': patientUid,
       'message': message,
-      'response': '',
       'createdAt': DateTime.now().toIso8601String(),
       'isRead': isRead,
       'isUrgent': isUrgent,
+      'response': responseMedicalMessage.toMap(),
     });
 
     return id;
@@ -32,9 +37,18 @@ class MedicalMessageService {
 
   Future<void> responseMedicalMessage({
     required String medicalMessageId,
-    required String responseId,
+    required ResponseMedicalMessage response,
   }) async {
-    await collection.doc(medicalMessageId).update({"response": responseId});
+    await collection.doc(medicalMessageId).update({
+      "response": response.toMap(),
+    });
+  }
+
+  Future<void> readMedicalMessage({
+    required String medicalMessageId,
+    required bool read,
+  }) async {
+    await collection.doc(medicalMessageId).update({"isRead": read});
   }
 
   Future<void> deleteMedicalMessage({required String medicalMessageId}) async {
@@ -52,18 +66,41 @@ class MedicalMessageService {
     return MedicalMessage.fromMap(snapshot.data()!);
   }
 
-  Future<List<MedicalMessage>> getMedicalMessagesByIds({
+  Stream<List<MedicalMessage>> getMedicalMessagesByIds({
     required List<String> ids,
-  }) async {
-    if (ids.isEmpty) return [];
+  }) {
+    if (ids.isEmpty) return Stream.value([]);
 
-    final snapshots = await Future.wait(
-      ids.map((id) => collection.doc(id).get()),
-    );
+    const chunkSize = 10;
+    List<List<String>> chunks = [];
 
-    return snapshots
-        .where((snap) => snap.exists)
-        .map((snap) => MedicalMessage.fromMap(snap.data()!))
-        .toList();
+    for (var i = 0; i < ids.length; i += chunkSize) {
+      chunks.add(
+        ids.sublist(i, i + chunkSize > ids.length ? ids.length : i + chunkSize),
+      );
+    }
+
+    List<Stream<List<MedicalMessage>>> streams =
+        chunks.map((chunk) {
+          return collection
+              .where(FieldPath.documentId, whereIn: chunk)
+              .snapshots()
+              .map(
+                (snapshot) =>
+                    snapshot.docs
+                        .map((doc) => MedicalMessage.fromMap(doc.data()))
+                        .toList(),
+              );
+        }).toList();
+
+    return Rx.combineLatestList<List<MedicalMessage>>(streams).map((lists) {
+      return lists.expand((list) => list).toList();
+    });
+  }
+
+  Stream<bool> hasUnreadMessagesStream({required List<String> ids}) {
+    return getMedicalMessagesByIds(ids: ids).map((messages) {
+      return messages.any((message) => !message.isRead);
+    });
   }
 }

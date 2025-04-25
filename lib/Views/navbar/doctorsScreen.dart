@@ -70,6 +70,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
               body: CustomScrollView(
                 slivers: [
                   SliverAppBar(
+                    pinned: true,
                     expandedHeight: 80,
                     flexibleSpace: FlexibleSpaceBar(
                       title: Text(

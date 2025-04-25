@@ -25,8 +25,8 @@ class DatabaseService {
       profileUrl: "",
       allowBiometric: true,
       allowNotification: true,
-      language: "French",
-      theme: "Brightness",
+      language: "fr",
+      theme: "Light",
       alarmMusic: "music1",
     );
     try {

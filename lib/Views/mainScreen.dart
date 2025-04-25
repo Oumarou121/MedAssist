@@ -68,7 +68,10 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           return PersistentTabView(
             context,
             controller: _controller,
-            screens: _buildScreens(userData: userData),
+            screens: _buildScreens(
+              userData: userData,
+              userDataStream: database.user,
+            ),
             items: _navBarsItems(),
             handleAndroidBackButtonPress: true,
             resizeToAvoidBottomInset: true,
@@ -87,7 +90,42 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     );
   }
 
-  List<Widget> _buildScreens({required AppUserData userData}) {
+  // @override
+  // Widget build(BuildContext context) {
+  //   final user = Provider.of<AppUser?>(context);
+  //   final userData = Provider.of<AppUserData?>(context);
+
+  //   if (user == null) return const LoginScreen();
+  //   if (userData == null) {
+  //     return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  //   }
+
+  //   return PersistentTabView(
+  //     context,
+  //     controller: _controller,
+  //     screens: _buildScreens(
+  //       userData: userData,
+  //       // On garde la stream si c’est utilisé dans les écrans :
+  //       userDataStream: DatabaseService(user.uid).user,
+  //     ),
+  //     items: _navBarsItems(),
+  //     handleAndroidBackButtonPress: true,
+  //     resizeToAvoidBottomInset: true,
+  //     stateManagement: true,
+  //     hideNavigationBarWhenKeyboardAppears: true,
+  //     padding: const EdgeInsets.only(top: 8),
+  //     confineToSafeArea: true,
+  //     navBarHeight: 65,
+  //     margin: const EdgeInsets.only(bottom: 5),
+  //     backgroundColor: Colors.white,
+  //     navBarStyle: NavBarStyle.style10,
+  //   );
+  // }
+
+  List<Widget> _buildScreens({
+    required AppUserData userData,
+    required Stream<AppUserData> userDataStream,
+  }) {
     return [
       HomeScreen(persistentTabController: _controller),
       TreatScreen(),

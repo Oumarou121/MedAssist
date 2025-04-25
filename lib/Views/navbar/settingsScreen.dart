@@ -10,6 +10,7 @@ import 'package:med_assist/Models/userSettings.dart';
 import 'package:med_assist/Views/Auth/forgotPasswordScreen.dart';
 import 'package:med_assist/Views/Auth/forgotPinCodeScreen.dart';
 import 'package:med_assist/Views/Auth/loginScreen.dart';
+import 'package:med_assist/Views/components/utils.dart';
 import 'package:med_assist/Views/settings/edit_profile_page.dart';
 import 'package:provider/provider.dart';
 
@@ -51,6 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               body: CustomScrollView(
                 slivers: [
                   SliverAppBar(
+                    pinned: true,
                     expandedHeight: 80,
                     flexibleSpace: FlexibleSpaceBar(
                       title: Text(
@@ -98,6 +100,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           _buildSupportOptions(),
                           SizedBox(height: size.height * 0.06),
                           _buildLogoutButton(),
+                          SizedBox(height: size.height * 0.03),
+                          _buildDeleteAccountButton(userData: userData),
                         ],
                       ),
                     ),
@@ -173,29 +177,96 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.person_outline,
             title: 'edit_profile'.tr(),
             trailing: Icon(Icons.chevron_right),
-            onTap: () => _navigateToEditProfile(userData: userData),
+            onTap: () {
+              Navigator.of(context, rootNavigator: true).push(
+                PageRouteBuilder(
+                  pageBuilder:
+                      (context, animation, secondaryAnimation) =>
+                          EditProfilePage(userData: userData),
+                  transitionsBuilder: (
+                    context,
+                    animation,
+                    secondaryAnimation,
+                    child,
+                  ) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    var tween = Tween(
+                      begin: begin,
+                      end: end,
+                    ).chain(CurveTween(curve: curve));
+                    return SlideTransition(
+                      position: animation.drive(tween),
+                      child: child,
+                    );
+                  },
+                ),
+              );
+            },
           ),
           _buildDivider(),
           _buildListTile(
-            onTap:
-                () => Navigator.of(context, rootNavigator: true).push(
-                  MaterialPageRoute(
-                    builder: (context) => const ForgotPasswordScreen(),
-                  ),
+            onTap: () {
+              Navigator.of(context, rootNavigator: true).push(
+                PageRouteBuilder(
+                  pageBuilder:
+                      (context, animation, secondaryAnimation) =>
+                          ForgotPasswordScreen(),
+                  transitionsBuilder: (
+                    context,
+                    animation,
+                    secondaryAnimation,
+                    child,
+                  ) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    var tween = Tween(
+                      begin: begin,
+                      end: end,
+                    ).chain(CurveTween(curve: curve));
+                    return SlideTransition(
+                      position: animation.drive(tween),
+                      child: child,
+                    );
+                  },
                 ),
+              );
+            },
             icon: Icons.lock_outline,
             title: 'change_password'.tr(),
             trailing: Icon(Icons.chevron_right),
           ),
           _buildDivider(),
           _buildListTile(
-            onTap:
-                () => Navigator.of(context, rootNavigator: true).push(
-                  MaterialPageRoute(
-                    builder:
-                        (context) => ForgotPinCodeScreen(userData: userData),
-                  ),
+            onTap: () {
+              Navigator.of(context, rootNavigator: true).push(
+                PageRouteBuilder(
+                  pageBuilder:
+                      (context, animation, secondaryAnimation) =>
+                          ForgotPinCodeScreen(userData: userData),
+                  transitionsBuilder: (
+                    context,
+                    animation,
+                    secondaryAnimation,
+                    child,
+                  ) {
+                    const begin = Offset(1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+                    var tween = Tween(
+                      begin: begin,
+                      end: end,
+                    ).chain(CurveTween(curve: curve));
+                    return SlideTransition(
+                      position: animation.drive(tween),
+                      child: child,
+                    );
+                  },
                 ),
+              );
+            },
             icon: Icons.pin,
             title: 'change_pin'.tr(),
             trailing: Icon(Icons.chevron_right),
@@ -227,7 +298,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   }).toList(),
               onChanged: (value) async {
-                //
+                //Firebase
                 await DatabaseService(
                   userData.uid,
                 ).updateUserSetting("theme", value);
@@ -397,6 +468,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildDeleteAccountButton({required AppUserData userData}) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        icon: const Icon(Icons.logout, color: Colors.red),
+        label: Text(
+          'delete_account'.tr(),
+          style: GoogleFonts.poppins(color: Colors.red),
+        ),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          side: const BorderSide(color: Colors.red),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        onPressed: () => _confirmDeleteAccount(userData: userData),
+      ),
+    );
+  }
+
   Widget _buildListTile({
     required IconData icon,
     required String title,
@@ -436,37 +528,78 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Divider(height: 1, color: Colors.grey[200]);
   }
 
-  void _navigateToEditProfile({required AppUserData userData}) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditProfilePage(userData: userData),
-      ),
+  void _confirmLogout() {
+    showDialogConfirm(
+      isAlert: true,
+      context: context,
+      contextParent: null,
+      msg: 'confirm_logout_content'.tr(),
+      action1: () async {
+        final AuthenticationService auth = AuthenticationService();
+        await auth.signOut();
+      },
+      action2: () {},
     );
+    // showDialog(
+    //   context: context,
+    //   builder:
+    //       (context) => AlertDialog(
+    //         title: Text('confirm_logout'.tr()),
+    //         content: Text('confirm_logout_content'.tr()),
+    //         actions: [
+    //           TextButton(
+    //             onPressed: () => Navigator.pop(context),
+    //             child: Text('cancel'.tr()),
+    //           ),
+    //           TextButton(
+    //             onPressed: () async {
+    //               Navigator.pop(context);
+    //               final AuthenticationService auth = AuthenticationService();
+    //               await auth.signOut();
+    //             },
+    //             child: Text('logout'.tr(), style: TextStyle(color: Colors.red)),
+    //           ),
+    //         ],
+    //       ),
+    // );
   }
 
-  void _confirmLogout() {
-    showDialog(
+  void _confirmDeleteAccount({required AppUserData userData}) {
+    // showDialog(
+    //   context: context,
+    //   builder:
+    //       (context) => AlertDialog(
+    //         title: Text('confirm_delete_account'.tr()),
+    //         content: Text('confirm_delete_account_content'.tr()),
+    //         actions: [
+    //           TextButton(
+    //             onPressed: () => Navigator.pop(context),
+    //             child: Text('cancel'.tr()),
+    //           ),
+    //           TextButton(
+    //             onPressed: () async {
+    //               Navigator.pop(context);
+    //               final AuthenticationService auth = AuthenticationService();
+    //               await auth.deleteAccountWithData(userData.password);
+    //             },
+    //             child: Text(
+    //               'confirm'.tr(),
+    //               style: TextStyle(color: Colors.red),
+    //             ),
+    //           ),
+    //         ],
+    //       ),
+    // );
+    showDialogConfirm(
+      isAlert: true,
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('confirm_logout'.tr()),
-            content: Text('confirm_logout_content'.tr()),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('cancel'.tr()),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  final AuthenticationService auth = AuthenticationService();
-                  auth.signOut();
-                },
-                child: Text('logout'.tr(), style: TextStyle(color: Colors.red)),
-              ),
-            ],
-          ),
+      contextParent: null,
+      msg: 'confirm_delete_account_content'.tr(),
+      action1: () async {
+        final AuthenticationService auth = AuthenticationService();
+        await auth.deleteAccountWithData(userData.password);
+      },
+      action2: () {},
     );
   }
 }

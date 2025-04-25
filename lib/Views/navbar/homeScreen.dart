@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Controllers/database.dart';
+import 'package:med_assist/Controllers/databaseMedicalMessage.dart';
 import 'package:med_assist/Views/components/MedicationSchedule.dart';
 import 'package:med_assist/Models/doctor.dart';
 import 'package:med_assist/Models/treat.dart';
@@ -24,29 +25,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // @override
-  // void initState() {
-  //   super.initState();
-
-  //   listenNotification();
-  // }
-
-  // listenNotification() {
-  //   print("Listening to nootification");
-  //   NotiService.onClickNotification.stream.listen((event) {
-  //     Navigator.push(
-  //       context,
-  //       MaterialPageRoute(builder: (context) => AnotherPage(payload: event)),
-  //     );
-  //   });
-  // }
-
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     final mediaQuery = MediaQuery.of(context);
     final bottomPadding = mediaQuery.viewInsets.bottom;
-
     final user = Provider.of<AppUser?>(context);
     if (user == null) return const LoginScreen();
     final database = DatabaseService(user.uid);
@@ -85,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: <Widget>[
-                        _top(userData: userData),
+                        _top(userData: userData, userDataStream: database.user),
                         SizedBox(height: size.height * 0.03),
                         _searchBar(),
                         SizedBox(height: size.height * 0.03),
@@ -111,7 +94,68 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _top({required AppUserData userData}) {
+  // @override
+  // Widget build(BuildContext context) {
+  //   final Size size = MediaQuery.of(context).size;
+  //   final mediaQuery = MediaQuery.of(context);
+  //   final bottomPadding = mediaQuery.viewInsets.bottom;
+
+  //   final user = Provider.of<AppUser?>(context);
+  //   final userData = Provider.of<AppUserData?>(context);
+
+  //   if (user == null) return const LoginScreen();
+  //   if (userData == null) {
+  //     return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  //   }
+
+  //   ManagersTreats managersTreats = ManagersTreats(
+  //     uid: userData.uid,
+  //     name: userData.name,
+  //     treats: userData.treatments,
+  //   );
+
+  //   ManagersDoctors managersDoctors = ManagersDoctors(
+  //     uid: userData.uid,
+  //     name: userData.name,
+  //     doctors: userData.doctors,
+  //     appointments: userData.appointments,
+  //     requests: userData.requests,
+  //   );
+
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+  //     child: Scaffold(
+  //       body: Padding(
+  //         padding: EdgeInsets.only(bottom: bottomPadding + 40),
+  //         child: SafeArea(
+  //           child: SingleChildScrollView(
+  //             child: Column(
+  //               children: <Widget>[
+  //                 _top(userData: userData),
+  //                 SizedBox(height: size.height * 0.03),
+  //                 _searchBar(),
+  //                 SizedBox(height: size.height * 0.03),
+  //                 MedicationScheduleList(managersTreats: managersTreats),
+  //                 SizedBox(height: size.height * 0.03),
+  //                 MyAppointmentsList(managersDoctors: managersDoctors),
+  //                 SizedBox(height: size.height * 0.03),
+  //                 MyDoctorsList(
+  //                   managersDoctors: managersDoctors,
+  //                   persistentTabController: widget.persistentTabController,
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  Widget _top({
+    required AppUserData userData,
+    required Stream<AppUserData> userDataStream,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,32 +186,103 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Row(
             children: [
-              Stack(
-                children: [
-                  IconButton(
-                    onPressed: () async {
-                      Navigator.of(context, rootNavigator: true).push(
-                        MaterialPageRoute(
-                          builder: (context) => const MedicalMessagingScreen(),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Iconsax.message, color: Colors.black),
-                  ),
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: Colors.yellow,
-                        shape: BoxShape.circle,
+              StreamBuilder<bool>(
+                stream: MedicalMessageService().hasUnreadMessagesStream(
+                  ids: userData.medicalMessages,
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  }
+
+                  if (snapshot.hasError ||
+                      !snapshot.hasData ||
+                      !snapshot.data!) {
+                    return IconButton(
+                      onPressed: () async {
+                        Navigator.of(context, rootNavigator: true).push(
+                          PageRouteBuilder(
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    MedicalMessagingScreen(
+                                      userDataStream: userDataStream,
+                                    ),
+                            transitionsBuilder: (
+                              context,
+                              animation,
+                              secondaryAnimation,
+                              child,
+                            ) {
+                              const begin = Offset(1.0, 0.0);
+                              const end = Offset.zero;
+                              const curve = Curves.easeInOut;
+                              var tween = Tween(
+                                begin: begin,
+                                end: end,
+                              ).chain(CurveTween(curve: curve));
+                              return SlideTransition(
+                                position: animation.drive(tween),
+                                child: child,
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      icon: const Icon(Iconsax.message, color: Colors.black),
+                    );
+                  }
+
+                  return Stack(
+                    children: [
+                      IconButton(
+                        onPressed: () async {
+                          Navigator.of(context, rootNavigator: true).push(
+                            PageRouteBuilder(
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      MedicalMessagingScreen(
+                                        userDataStream: userDataStream,
+                                      ),
+                              transitionsBuilder: (
+                                context,
+                                animation,
+                                secondaryAnimation,
+                                child,
+                              ) {
+                                const begin = Offset(1.0, 0.0);
+                                const end = Offset.zero;
+                                const curve = Curves.easeInOut;
+                                var tween = Tween(
+                                  begin: begin,
+                                  end: end,
+                                ).chain(CurveTween(curve: curve));
+                                return SlideTransition(
+                                  position: animation.drive(tween),
+                                  child: child,
+                                );
+                              },
+                            ),
+                          );
+                        },
+                        icon: const Icon(Iconsax.message, color: Colors.black),
                       ),
-                    ),
-                  ),
-                ],
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          width: 10,
+                          height: 10,
+                          decoration: const BoxDecoration(
+                            color: Colors.yellow,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
+
               _buildProfileHeader(userData: userData),
             ],
           ),

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Models/user.dart';
@@ -70,12 +71,35 @@ class AuthenticationService {
     }
   }
 
-  Future signOut() async {
+  Future<void> signOut() async {
     try {
       return await _auth.signOut();
     } catch (exception) {
       print(exception.toString());
-      return null;
+    }
+  }
+
+  Future<void> deleteAccountWithData(String password) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: password,
+        );
+
+        await user.reauthenticateWithCredential(credential);
+        await FirebaseFirestore.instance
+            .collection("users")
+            .doc("patients")
+            .collection("users")
+            .doc(user.uid)
+            .delete();
+        await user.delete();
+        print("Compte et données supprimés.");
+      }
+    } catch (e) {
+      print("Erreur : $e");
     }
   }
 }

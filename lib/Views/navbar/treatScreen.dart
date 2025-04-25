@@ -29,11 +29,6 @@ class _TreatScreenState extends State<TreatScreen> {
   List<TextEditingController> intervaleControllers = [];
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final bottomPadding = mediaQuery.viewInsets.bottom;
@@ -162,6 +157,7 @@ class _TreatScreenState extends State<TreatScreen> {
       },
     );
   }
+
 
   Widget _buildEmptyState() {
     return Container(
@@ -450,27 +446,27 @@ class _TreatScreenState extends State<TreatScreen> {
     return '$day $month $year';
   }
 
-  void _addMedicine() {
-    setState(() {
-      medicines.add(
-        Medicine(
-          name: "",
-          duration: 0,
-          count: 0,
-          dose: "",
-          frequencyType: FrequencyType.daily,
-          frequency: 0,
-          intervale: 0,
-          createAt: DateTime.now(),
-        ),
-      );
-      nameControllers.add(TextEditingController());
-      durationControllers.add(TextEditingController());
-      doseControllers.add(TextEditingController());
-      frequencyControllers.add(TextEditingController());
-      intervaleControllers.add(TextEditingController());
-    });
-  }
+  // void _addMedicine() {
+  //   setState(() {
+  //     medicines.add(
+  //       Medicine(
+  //         name: "",
+  //         duration: 0,
+  //         count: 0,
+  //         dose: "",
+  //         frequencyType: FrequencyType.daily,
+  //         frequency: 0,
+  //         intervale: 0,
+  //         createAt: DateTime.now(),
+  //       ),
+  //     );
+  //     nameControllers.add(TextEditingController());
+  //     durationControllers.add(TextEditingController());
+  //     doseControllers.add(TextEditingController());
+  //     frequencyControllers.add(TextEditingController());
+  //     intervaleControllers.add(TextEditingController());
+  //   });
+  // }
 
   void _showTreatmentOptionsModal({
     required AppUserData userData,
@@ -515,20 +511,20 @@ class _TreatScreenState extends State<TreatScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Bouton Nouveau Traitement
-              _buildOptionButton(
-                icon: Iconsax.add,
-                label: 'create_treatment'.tr(),
-                color: const Color(0xFF3366FF),
-                onPressed: () {
-                  Navigator.pop(context);
-                  _showAddTreatmentModal(
-                    userData: userData,
-                    managersTreats: managersTreats,
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
+              // // Bouton Nouveau Traitement
+              // _buildOptionButton(
+              //   icon: Iconsax.add,
+              //   label: 'create_treatment'.tr(),
+              //   color: const Color(0xFF3366FF),
+              //   onPressed: () {
+              //     Navigator.pop(context);
+              //     _showAddTreatmentModal(
+              //       userData: userData,
+              //       managersTreats: managersTreats,
+              //     );
+              //   },
+              // ),
+              // const SizedBox(height: 12),
 
               // Bouton Rejoindre Traitement
               _buildOptionButton(
@@ -618,14 +614,13 @@ class _TreatScreenState extends State<TreatScreen> {
           ),
           child: Padding(
             padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-              top: 24, // Ajouté pour l'espace du handle
+              bottom: MediaQuery.of(context).viewInsets.bottom + 60,
+              top: 24,
             ),
             child: SizedBox(
               height: MediaQuery.of(context).size.height * 0.85,
               child: Column(
                 children: [
-                  // Handle en haut
                   Center(
                     child: Container(
                       width: 60,
@@ -1574,381 +1569,381 @@ class _TreatScreenState extends State<TreatScreen> {
     );
   }
 
-  void _showAddTreatmentModal({
-    required AppUserData userData,
-    required ManagersTreats managersTreats,
-  }) {
-    medicines = [];
-    nameControllers = [];
-    intervaleControllers = [];
-    durationControllers = [];
-    doseControllers = [];
-    frequencyControllers = [];
-    final formKey = GlobalKey<FormState>();
-    _addMedicine();
+  // void _showAddTreatmentModal({
+  //   required AppUserData userData,
+  //   required ManagersTreats managersTreats,
+  // }) {
+  //   medicines = [];
+  //   nameControllers = [];
+  //   intervaleControllers = [];
+  //   durationControllers = [];
+  //   doseControllers = [];
+  //   frequencyControllers = [];
+  //   final formKey = GlobalKey<FormState>();
+  //   _addMedicine();
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      builder: (BuildContext context) {
-        final screenHeight = MediaQuery.of(context).size.height;
-        final maxModalHeight = screenHeight * 0.95;
-        return Container(
-          constraints: BoxConstraints(maxHeight: maxModalHeight),
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFFF5F7FB), Colors.white],
-            ),
-          ),
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 75,
-            left: 24,
-            right: 24,
-            top: 24,
-          ),
-          child: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setModalState) {
-              return SingleChildScrollView(
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 60,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Icon(
-                            Iconsax.health,
-                            color: Color(0xFF00C853),
-                            size: 28,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'add_treatment'.tr(),
-                            style: GoogleFonts.poppins(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      _buildModernFormField(
-                        controller: titleController,
-                        label: 'treatment_title'.tr(),
-                        icon: Iconsax.health,
-                        validator:
-                            (value) => value!.isEmpty ? 'required'.tr() : null,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'prescribed_medications'.tr(),
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          ElevatedButton.icon(
-                            icon: const Icon(
-                              Iconsax.add,
-                              size: 18,
-                              color: Colors.white,
-                            ),
-                            label: Text(
-                              'add'.tr(),
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: Colors.white,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF00C853),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                            ),
-                            onPressed: () {
-                              setModalState(() {
-                                _addMedicine();
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Column(
-                        children: List.generate(medicines.length, (index) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            child: _buildMedicineForm(
-                              medicines[index],
-                              index,
-                              setModalState,
-                            ),
-                          );
-                        }),
-                      ),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          icon: const Icon(
-                            Iconsax.add,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                          label: Text(
-                            'add_treatment'.tr(),
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF00C853),
-                            padding: const EdgeInsets.symmetric(vertical: 20),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                          ),
-                          onPressed: () {
-                            if (formKey.currentState!.validate()) {
-                              bool allValid = true;
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+  //     ),
+  //     builder: (BuildContext context) {
+  //       final screenHeight = MediaQuery.of(context).size.height;
+  //       final maxModalHeight = screenHeight * 0.95;
+  //       return Container(
+  //         constraints: BoxConstraints(maxHeight: maxModalHeight),
+  //         decoration: const BoxDecoration(
+  //           gradient: LinearGradient(
+  //             begin: Alignment.topCenter,
+  //             end: Alignment.bottomCenter,
+  //             colors: [Color(0xFFF5F7FB), Colors.white],
+  //           ),
+  //         ),
+  //         padding: EdgeInsets.only(
+  //           bottom: MediaQuery.of(context).viewInsets.bottom + 75,
+  //           left: 24,
+  //           right: 24,
+  //           top: 24,
+  //         ),
+  //         child: StatefulBuilder(
+  //           builder: (BuildContext context, StateSetter setModalState) {
+  //             return SingleChildScrollView(
+  //               child: Form(
+  //                 key: formKey,
+  //                 child: Column(
+  //                   mainAxisSize: MainAxisSize.min,
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     Center(
+  //                       child: Container(
+  //                         width: 60,
+  //                         height: 4,
+  //                         decoration: BoxDecoration(
+  //                           color: Colors.grey.shade300,
+  //                           borderRadius: BorderRadius.circular(2),
+  //                         ),
+  //                       ),
+  //                     ),
+  //                     const SizedBox(height: 20),
+  //                     Row(
+  //                       children: [
+  //                         Icon(
+  //                           Iconsax.health,
+  //                           color: Color(0xFF00C853),
+  //                           size: 28,
+  //                         ),
+  //                         const SizedBox(width: 12),
+  //                         Text(
+  //                           'add_treatment'.tr(),
+  //                           style: GoogleFonts.poppins(
+  //                             fontSize: 22,
+  //                             fontWeight: FontWeight.w600,
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                     const SizedBox(height: 24),
+  //                     _buildModernFormField(
+  //                       controller: titleController,
+  //                       label: 'treatment_title'.tr(),
+  //                       icon: Iconsax.health,
+  //                       validator:
+  //                           (value) => value!.isEmpty ? 'required'.tr() : null,
+  //                     ),
+  //                     const SizedBox(height: 16),
+  //                     Row(
+  //                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                       children: [
+  //                         Text(
+  //                           'prescribed_medications'.tr(),
+  //                           style: GoogleFonts.poppins(
+  //                             fontSize: 18,
+  //                             fontWeight: FontWeight.w600,
+  //                           ),
+  //                         ),
+  //                         ElevatedButton.icon(
+  //                           icon: const Icon(
+  //                             Iconsax.add,
+  //                             size: 18,
+  //                             color: Colors.white,
+  //                           ),
+  //                           label: Text(
+  //                             'add'.tr(),
+  //                             style: GoogleFonts.poppins(
+  //                               fontSize: 14,
+  //                               color: Colors.white,
+  //                             ),
+  //                           ),
+  //                           style: ElevatedButton.styleFrom(
+  //                             backgroundColor: const Color(0xFF00C853),
+  //                             shape: RoundedRectangleBorder(
+  //                               borderRadius: BorderRadius.circular(12),
+  //                             ),
+  //                             padding: const EdgeInsets.symmetric(
+  //                               horizontal: 16,
+  //                               vertical: 10,
+  //                             ),
+  //                           ),
+  //                           onPressed: () {
+  //                             setModalState(() {
+  //                               _addMedicine();
+  //                             });
+  //                           },
+  //                         ),
+  //                       ],
+  //                     ),
+  //                     const SizedBox(height: 20),
+  //                     Column(
+  //                       children: List.generate(medicines.length, (index) {
+  //                         return Padding(
+  //                           padding: const EdgeInsets.symmetric(vertical: 10),
+  //                           child: _buildMedicineForm(
+  //                             medicines[index],
+  //                             index,
+  //                             setModalState,
+  //                           ),
+  //                         );
+  //                       }),
+  //                     ),
+  //                     SizedBox(
+  //                       width: double.infinity,
+  //                       child: ElevatedButton.icon(
+  //                         icon: const Icon(
+  //                           Iconsax.add,
+  //                           size: 20,
+  //                           color: Colors.white,
+  //                         ),
+  //                         label: Text(
+  //                           'add_treatment'.tr(),
+  //                           style: GoogleFonts.poppins(
+  //                             fontWeight: FontWeight.w500,
+  //                             color: Colors.white,
+  //                           ),
+  //                         ),
+  //                         style: ElevatedButton.styleFrom(
+  //                           backgroundColor: const Color(0xFF00C853),
+  //                           padding: const EdgeInsets.symmetric(vertical: 20),
+  //                           shape: RoundedRectangleBorder(
+  //                             borderRadius: BorderRadius.circular(15),
+  //                           ),
+  //                         ),
+  //                         onPressed: () {
+  //                           if (formKey.currentState!.validate()) {
+  //                             bool allValid = true;
 
-                              // Valider tous les formulaires de médicaments
-                              for (var medicine in medicines) {
-                                final isValid =
-                                    medicine.formKey.currentState?.validate() ??
-                                    false;
-                                if (!isValid) {
-                                  allValid = false;
-                                }
-                              }
+  //                             // Valider tous les formulaires de médicaments
+  //                             for (var medicine in medicines) {
+  //                               final isValid =
+  //                                   medicine.formKey.currentState?.validate() ??
+  //                                   false;
+  //                               if (!isValid) {
+  //                                 allValid = false;
+  //                               }
+  //                             }
 
-                              if (allValid) {
-                                List<Medicine> meds = [];
+  //                             if (allValid) {
+  //                               List<Medicine> meds = [];
 
-                                for (
-                                  int i = 0;
-                                  i < nameControllers.length;
-                                  i++
-                                ) {
-                                  final name = nameControllers[i].text.trim();
-                                  final durationText =
-                                      durationControllers[i].text.trim();
-                                  final dose = doseControllers[i].text.trim();
-                                  final frequencyText =
-                                      frequencyControllers[i].text.trim();
-                                  final intervaleText =
-                                      intervaleControllers[i].text.trim();
+  //                               for (
+  //                                 int i = 0;
+  //                                 i < nameControllers.length;
+  //                                 i++
+  //                               ) {
+  //                                 final name = nameControllers[i].text.trim();
+  //                                 final durationText =
+  //                                     durationControllers[i].text.trim();
+  //                                 final dose = doseControllers[i].text.trim();
+  //                                 final frequencyText =
+  //                                     frequencyControllers[i].text.trim();
+  //                                 final intervaleText =
+  //                                     intervaleControllers[i].text.trim();
 
-                                  final duration = int.tryParse(durationText);
-                                  final frequency = int.tryParse(frequencyText);
-                                  final interval = int.parse(intervaleText);
+  //                                 final duration = int.tryParse(durationText);
+  //                                 final frequency = int.tryParse(frequencyText);
+  //                                 final interval = int.parse(intervaleText);
 
-                                  if (name.isNotEmpty &&
-                                      dose.isNotEmpty &&
-                                      duration != null &&
-                                      frequency != null) {
-                                    meds.add(
-                                      Medicine(
-                                        name: name,
-                                        duration: duration,
-                                        count: 0,
-                                        dose: dose,
-                                        frequency: frequency,
-                                        frequencyType:
-                                            medicines[i].frequencyType,
-                                        intervale: interval,
-                                        createAt: DateTime.now(),
-                                      ),
-                                    );
-                                  }
-                                }
+  //                                 if (name.isNotEmpty &&
+  //                                     dose.isNotEmpty &&
+  //                                     duration != null &&
+  //                                     frequency != null) {
+  //                                   meds.add(
+  //                                     Medicine(
+  //                                       name: name,
+  //                                       duration: duration,
+  //                                       count: 0,
+  //                                       dose: dose,
+  //                                       frequency: frequency,
+  //                                       frequencyType:
+  //                                           medicines[i].frequencyType,
+  //                                       intervale: interval,
+  //                                       createAt: DateTime.now(),
+  //                                     ),
+  //                                   );
+  //                                 }
+  //                               }
 
-                                if (meds.isNotEmpty) {
-                                  Treat newTreatment = Treat(
-                                    authorUid: userData.uid,
-                                    authorName:
-                                        '${'mr/ms'.tr()} ${userData.name}',
-                                    code:
-                                        'TREAT-${DateTime.now().millisecondsSinceEpoch}',
-                                    title: titleController.text.trim(),
-                                    medicines: meds,
-                                    createdAt: DateTime.now(),
-                                    isPublic: false,
-                                    followers: [managersTreats.uid],
-                                  );
+  //                               if (meds.isNotEmpty) {
+  //                                 Treat newTreatment = Treat(
+  //                                   authorUid: userData.uid,
+  //                                   authorName:
+  //                                       '${'mr/ms'.tr()} ${userData.name}',
+  //                                   code:
+  //                                       'TREAT-${DateTime.now().millisecondsSinceEpoch}',
+  //                                   title: titleController.text.trim(),
+  //                                   medicines: meds,
+  //                                   createdAt: DateTime.now(),
+  //                                   isPublic: false,
+  //                                   followers: [managersTreats.uid],
+  //                                 );
 
-                                  Navigator.pop(context);
-                                  setState(() {
-                                    managersTreats.addTreatment(newTreatment);
-                                    titleController.clear();
-                                    medicines.clear();
-                                    nameControllers.clear();
-                                    durationControllers.clear();
-                                    doseControllers.clear();
-                                    frequencyControllers.clear();
-                                    intervaleControllers.clear();
-                                  });
+  //                                 Navigator.pop(context);
+  //                                 setState(() {
+  //                                   managersTreats.addTreatment(newTreatment);
+  //                                   titleController.clear();
+  //                                   medicines.clear();
+  //                                   nameControllers.clear();
+  //                                   durationControllers.clear();
+  //                                   doseControllers.clear();
+  //                                   frequencyControllers.clear();
+  //                                   intervaleControllers.clear();
+  //                                 });
 
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'success_add_treatment'.tr(),
-                                      ),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
-                                }
-                              }
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
+  //                                 ScaffoldMessenger.of(context).showSnackBar(
+  //                                   SnackBar(
+  //                                     content: Text(
+  //                                       'success_add_treatment'.tr(),
+  //                                     ),
+  //                                     backgroundColor: Colors.green,
+  //                                   ),
+  //                                 );
+  //                               }
+  //                             }
+  //                           }
+  //                         },
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             );
+  //           },
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
-  Widget _buildMedicineForm(
-    Medicine medicine,
-    int index,
-    StateSetter setModalState,
-  ) {
-    return Form(
-      key: medicine.formKey,
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Text(
-                "${'medicine'.tr()} ${index + 1}",
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              IconButton(
-                onPressed: () {
-                  setModalState(() {
-                    medicines.removeAt(index);
-                    nameControllers.removeAt(index);
-                    intervaleControllers.removeAt(index);
-                    durationControllers.removeAt(index);
-                    doseControllers.removeAt(index);
-                    frequencyControllers.removeAt(index);
-                  });
-                },
-                icon: Icon(Iconsax.note_remove),
-                color: Colors.red,
-              ),
-            ],
-          ),
-          _buildModernFormField(
-            controller: nameControllers[index],
-            label: 'medicine_name'.tr(),
-            icon: Iconsax.heart,
-            validator: (value) => value!.isEmpty ? 'required'.tr() : null,
-          ),
-          const SizedBox(height: 16),
+  // Widget _buildMedicineForm(
+  //   Medicine medicine,
+  //   int index,
+  //   StateSetter setModalState,
+  // ) {
+  //   return Form(
+  //     key: medicine.formKey,
+  //     child: Column(
+  //       children: [
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: <Widget>[
+  //             Text(
+  //               "${'medicine'.tr()} ${index + 1}",
+  //               style: GoogleFonts.poppins(
+  //                 fontSize: 14,
+  //                 fontWeight: FontWeight.bold,
+  //               ),
+  //             ),
+  //             IconButton(
+  //               onPressed: () {
+  //                 setModalState(() {
+  //                   medicines.removeAt(index);
+  //                   nameControllers.removeAt(index);
+  //                   intervaleControllers.removeAt(index);
+  //                   durationControllers.removeAt(index);
+  //                   doseControllers.removeAt(index);
+  //                   frequencyControllers.removeAt(index);
+  //                 });
+  //               },
+  //               icon: Icon(Iconsax.note_remove),
+  //               color: Colors.red,
+  //             ),
+  //           ],
+  //         ),
+  //         _buildModernFormField(
+  //           controller: nameControllers[index],
+  //           label: 'medicine_name'.tr(),
+  //           icon: Iconsax.heart,
+  //           validator: (value) => value!.isEmpty ? 'required'.tr() : null,
+  //         ),
+  //         const SizedBox(height: 16),
 
-          Row(
-            children: [
-              Expanded(
-                child: _buildModernFormField(
-                  controller: doseControllers[index],
-                  label: 'dose'.tr(),
-                  icon: Iconsax.d_cube_scan,
-                  validator: (value) => value!.isEmpty ? 'required'.tr() : null,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildModernFormField(
-                  controller: durationControllers[index],
-                  label: 'duration'.tr(),
-                  icon: Iconsax.calendar,
-                  keyboardType: TextInputType.number,
-                  validator: (value) => value!.isEmpty ? 'required'.tr() : null,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+  //         Row(
+  //           children: [
+  //             Expanded(
+  //               child: _buildModernFormField(
+  //                 controller: doseControllers[index],
+  //                 label: 'dose'.tr(),
+  //                 icon: Iconsax.d_cube_scan,
+  //                 validator: (value) => value!.isEmpty ? 'required'.tr() : null,
+  //               ),
+  //             ),
+  //             const SizedBox(width: 16),
+  //             Expanded(
+  //               child: _buildModernFormField(
+  //                 controller: durationControllers[index],
+  //                 label: 'duration'.tr(),
+  //                 icon: Iconsax.calendar,
+  //                 keyboardType: TextInputType.number,
+  //                 validator: (value) => value!.isEmpty ? 'required'.tr() : null,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 16),
 
-          _buildModernFormField(
-            controller: frequencyControllers[index],
-            label: 'frequency'.tr(),
-            icon: Iconsax.clock,
-            keyboardType: TextInputType.number,
-            validator: (value) => value!.isEmpty ? 'required'.tr() : null,
-          ),
-          const SizedBox(height: 16),
+  //         _buildModernFormField(
+  //           controller: frequencyControllers[index],
+  //           label: 'frequency'.tr(),
+  //           icon: Iconsax.clock,
+  //           keyboardType: TextInputType.number,
+  //           validator: (value) => value!.isEmpty ? 'required'.tr() : null,
+  //         ),
+  //         const SizedBox(height: 16),
 
-          _buildModernFormField(
-            controller: intervaleControllers[index],
-            label: 'interval'.tr(),
-            icon: Iconsax.timer,
-            keyboardType: TextInputType.number,
-            validator: (value) => value!.isEmpty ? 'required'.tr() : null,
-          ),
-          const SizedBox(height: 16),
+  //         _buildModernFormField(
+  //           controller: intervaleControllers[index],
+  //           label: 'interval'.tr(),
+  //           icon: Iconsax.timer,
+  //           keyboardType: TextInputType.number,
+  //           validator: (value) => value!.isEmpty ? 'required'.tr() : null,
+  //         ),
+  //         const SizedBox(height: 16),
 
-          DropdownButtonFormField<FrequencyType>(
-            value: medicine.frequencyType,
-            decoration: InputDecoration(
-              labelText: 'frequency_type'.tr(),
-              prefixIcon: Icon(Iconsax.repeat),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              filled: true,
-              fillColor: Colors.grey.shade100,
-            ),
-            items:
-                FrequencyType.values.map((type) {
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Text(type.unitLabel),
-                  );
-                }).toList(),
-            onChanged:
-                (value) => setModalState(() {
-                  medicine.frequencyType = value!;
-                }),
-          ),
-        ],
-      ),
-    );
-  }
+  //         DropdownButtonFormField<FrequencyType>(
+  //           value: medicine.frequencyType,
+  //           decoration: InputDecoration(
+  //             labelText: 'frequency_type'.tr(),
+  //             prefixIcon: Icon(Iconsax.repeat),
+  //             border: OutlineInputBorder(
+  //               borderRadius: BorderRadius.circular(15),
+  //             ),
+  //             filled: true,
+  //             fillColor: Colors.grey.shade100,
+  //           ),
+  //           items:
+  //               FrequencyType.values.map((type) {
+  //                 return DropdownMenuItem(
+  //                   value: type,
+  //                   child: Text(type.unitLabel),
+  //                 );
+  //               }).toList(),
+  //           onChanged:
+  //               (value) => setModalState(() {
+  //                 medicine.frequencyType = value!;
+  //               }),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }

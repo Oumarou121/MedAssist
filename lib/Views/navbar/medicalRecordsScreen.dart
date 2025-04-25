@@ -90,6 +90,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 : CustomScrollView(
                   slivers: [
                     SliverAppBar(
+                      pinned: true,
                       expandedHeight: 80,
                       flexibleSpace: FlexibleSpaceBar(
                         title: Text(

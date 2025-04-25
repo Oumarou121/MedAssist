@@ -70,6 +70,45 @@ class _CodePinState extends State<CodePin> {
     }
   }
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   final user = Provider.of<AppUser?>(context);
+  //   final userData = Provider.of<AppUserData?>(context);
+
+  //   if (user == null) return const LoginScreen();
+  //   if (userData == null) {
+  //     return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  //   }
+
+  //   // Manager Notification && Alarm
+  //   ManagersTreats managersTreats = ManagersTreats(
+  //     uid: userData.uid,
+  //     name: userData.name,
+  //     treats: userData.treatments,
+  //   );
+  //   managersTreats.checkAlarm();
+
+  //   return Scaffold(
+  //     appBar: AppBar(
+  //       automaticallyImplyLeading: false,
+  //       backgroundColor: Colors.white,
+  //       elevation: 0,
+  //       actions: [
+  //         IconButton(
+  //           padding: const EdgeInsets.only(right: 20),
+  //           onPressed: () {
+  //             final AuthenticationService _auth = AuthenticationService();
+  //             _auth.signOut();
+  //           },
+  //           icon: const Icon(Iconsax.login, color: Color(0xFF2A8F68)),
+  //         ),
+  //       ],
+  //     ),
+  //     backgroundColor: Colors.white,
+  //     body: _content(userData),
+  //   );
+  // }
+
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<AppUser?>(context);

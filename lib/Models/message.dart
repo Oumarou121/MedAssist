@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Controllers/databaseDoctors.dart';
 import 'package:med_assist/Controllers/databaseMedicalMessage.dart';
 import 'package:med_assist/Models/doctor.dart';
@@ -16,28 +18,26 @@ class ManagersMedicalMessage {
   final database = MedicalMessageService();
   final databaseDoctor = DoctorService();
 
-  Future<List<MedicalMessageData>> getMedicalMessages() async {
-    List<MedicalMessage> medicalMessagesList = await database
-        .getMedicalMessagesByIds(ids: medicalMessages);
+  Stream<List<MedicalMessageData>> getMedicalMessagesStream() {
+    final doctorService = DoctorService();
 
-    List<MedicalMessageData> medicalMessagesData = [];
+    return database.getMedicalMessagesByIds(ids: medicalMessages).asyncMap((
+      messages,
+    ) async {
+      final doctorIds = messages.map((m) => m.doctorID).toSet().toList();
 
-    for (final message in medicalMessagesList) {
-      final doctor = await databaseDoctor.getDoctorById(message.doctorID);
-      if (doctor != null) {
-        medicalMessagesData.add(
-          MedicalMessageData(medicalMessage: message, doctor: doctor),
-        );
-      } else {
-        print("⚠️ Aucun docteur trouvé pour l'ID: ${message.doctorID}");
-      }
-    }
+      final doctors = await doctorService.getDoctorsByIds(doctorIds);
 
-    return medicalMessagesData;
+      final doctorMap = {for (var doc in doctors) doc.id: doc};
+
+      return messages.map((m) {
+        final doctor = doctorMap[m.doctorID];
+        return MedicalMessageData(medicalMessage: m, doctor: doctor!);
+      }).toList();
+    });
   }
 
-  Future<void> responseMedicalMessage({
-    required String medicalMessageId,
+  Future<void> sendMedicalMessage({
     required String doctorID,
     required String patientUid,
     required String message,
@@ -52,14 +52,33 @@ class ManagersMedicalMessage {
       isUrgent: isUrgent,
     );
 
+    medicalMessages.add(id);
+    final db = DatabaseService(uid);
+    await db.updateDataOfValue("medicalMessages", medicalMessages);
+  }
+
+  Future<void> responseMedicalMessage({
+    required String medicalMessageId,
+    required ResponseMedicalMessage response,
+  }) async {
     await database.responseMedicalMessage(
       medicalMessageId: medicalMessageId,
-      responseId: id,
+      response: response,
     );
   }
 
   Future<void> deleteMedicalMessage({required String medicalMessageId}) async {
     await database.deleteMedicalMessage(medicalMessageId: medicalMessageId);
+  }
+
+  Future<void> readMedicalMessage({
+    required String medicalMessageId,
+    required bool read,
+  }) async {
+    await database.readMedicalMessage(
+      medicalMessageId: medicalMessageId,
+      read: read,
+    );
   }
 }
 
@@ -71,7 +90,7 @@ class MedicalMessage {
   final DateTime createdAt;
   final bool isRead;
   final bool isUrgent;
-  final String response;
+  final ResponseMedicalMessage response;
 
   MedicalMessage({
     required this.id,
@@ -81,7 +100,7 @@ class MedicalMessage {
     required this.createdAt,
     this.isRead = false,
     this.isUrgent = false,
-    this.response = '',
+    required this.response,
   });
 
   Map<String, dynamic> toMap() {
@@ -90,10 +109,10 @@ class MedicalMessage {
       'patientUid': patientUid,
       'doctorID': doctorID,
       'message': message,
-      'response': response,
       'createdAt': createdAt.toIso8601String(),
       'isRead': isRead,
       'isUrgent': isUrgent,
+      'response': response.toMap(),
     };
   }
 
@@ -103,10 +122,28 @@ class MedicalMessage {
       patientUid: map['patientUid'] ?? '',
       doctorID: map['doctorID'] ?? '',
       message: map['message'] ?? '',
-      response: map['response'] ?? '',
       createdAt: DateTime.parse(map['createdAt']),
       isRead: map['isRead'] ?? false,
       isUrgent: map['isUrgent'] ?? false,
+      response: ResponseMedicalMessage.fromMap(map['response']),
+    );
+  }
+}
+
+class ResponseMedicalMessage {
+  final String message;
+  final DateTime createdAt;
+
+  ResponseMedicalMessage({required this.message, required this.createdAt});
+
+  Map<String, dynamic> toMap() {
+    return {'message': message, 'createdAt': createdAt.toIso8601String()};
+  }
+
+  factory ResponseMedicalMessage.fromMap(Map<String, dynamic> map) {
+    return ResponseMedicalMessage(
+      message: map['message'] ?? '',
+      createdAt: DateTime.parse(map['createdAt']),
     );
   }
 }
