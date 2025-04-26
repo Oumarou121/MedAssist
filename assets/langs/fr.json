@@ -251,5 +251,10 @@
   "Light": "Clair",
   "Dark": "Sombre",
   "delete_account": "Supprimer le compte",
-  "confirm_delete_account_content": "La suppression du compte ?"
+  "confirm_delete_account_content": "La suppression du compte ?",
+  "appointment_schedule": "Planning des rendez-vous",
+  "today": "Aujourd'hui",
+  "no_appointment_scheduled": "Aucun rendez-vous prévu",
+  "created_at": "Create Le",
+  "no_folder_found": "Aucun dossier trouvé"
 }

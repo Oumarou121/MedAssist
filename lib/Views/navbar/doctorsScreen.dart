@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Controllers/database.dart';
-import 'package:med_assist/Controllers/databaseDoctors.dart';
 import 'package:med_assist/Models/doctor.dart';
 import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
@@ -183,7 +182,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                     : TextButton(
                       onPressed: () {
                         _showAppointmentsModal(
-                          context,
+                          context: context,
                           managersDoctors: managersDoctors,
                         );
                       },
@@ -769,7 +768,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     required ManagersDoctors managersDoctors,
     required ManagersTreats managersTreats,
   }) {
-    return FutureBuilder<List<Request>>(
+    return FutureBuilder<List<RequestData>>(
       future: managersDoctors.getRequests(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -780,18 +779,19 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
           return _buildEmptyStateQueries();
         }
 
-        final requests = [...snapshot.data!]
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        final requestDatas = [...snapshot.data!]
+          ..sort((a, b) => b.request.createdAt.compareTo(a.request.createdAt));
 
         return Column(
           children:
-              requests
+              requestDatas
                   .map(
-                    (request) => _buildRequestCard(
-                      context,
-                      request,
-                      managersDoctors,
-                      managersTreats,
+                    (data) => _buildRequestCard(
+                      context: context,
+                      request: data.request,
+                      doctor: data.doctor,
+                      managersDoctors: managersDoctors,
+                      managersTreats: managersTreats,
                     ),
                   )
                   .toList(),
@@ -800,12 +800,13 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     );
   }
 
-  Widget _buildRequestCard(
-    BuildContext context,
-    Request request,
-    ManagersDoctors managersDoctors,
-    ManagersTreats managersTreats,
-  ) {
+  Widget _buildRequestCard({
+    required BuildContext context,
+    required Request request,
+    required Doctor doctor,
+    required ManagersDoctors managersDoctors,
+    required ManagersTreats managersTreats,
+  }) {
     // Couleur et texte du statut
     final statusColor =
         {
@@ -821,224 +822,224 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
           RequestStatus.disagreed: 'denied'.tr(),
         }[request.status]!;
 
-    return FutureBuilder<Doctor?>(
-      future: DoctorService().getDoctorById(request.doctorUid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Text('Erreur : ${snapshot.error}');
-        }
-
-        final doctor = snapshot.data!;
-
-        return GestureDetector(
-          onTap: () => _showDetailsModal(context, request),
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+    return GestureDetector(
+      onTap:
+          () => _showDetailsModal(
+            context: context,
+            request: request,
+            doctor: doctor,
+          ),
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
-            child: Column(
-              children: [
-                // En-tête
-                ListTile(
-                  contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  leading: CircleAvatar(
-                    radius: 28,
-                    backgroundImage: NetworkImage(doctor.imageUrl),
-                  ),
-                  title: Text(
-                    doctor.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 18,
-                    ),
-                  ),
-                  subtitle: Text(
-                    request.requestType == RequestType.doctor
-                        ? '${'request_follow_up'.tr()} ${request.senderType == SenderType.patient ? 'sent'.tr() : 'received'.tr()}'
-                        : request.requestType == RequestType.appointment
-                        ? '${'request_scheduled_appointment'.tr()} ${request.senderType == SenderType.patient ? 'sent'.tr() : 'received'.tr()}'
-                        : '${'treatment'.tr()} : ${request.treatCode} ${'received'.tr()}',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                  ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // En-tête
+            ListTile(
+              contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              leading: CircleAvatar(
+                radius: 28,
+                backgroundImage: NetworkImage(doctor.imageUrl),
+              ),
+              title: Text(
+                doctor.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
                 ),
+              ),
+              subtitle: Text(
+                request.requestType == RequestType.doctor
+                    ? '${'request_follow_up'.tr()} ${request.senderType == SenderType.patient ? 'sent'.tr() : 'received'.tr()}'
+                    : request.requestType == RequestType.appointment
+                    ? '${'request_scheduled_appointment'.tr()} ${request.senderType == SenderType.patient ? 'sent'.tr() : 'received'.tr()}'
+                    : '${'treatment'.tr()} : ${request.treatCode} ${'received'.tr()}',
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+              ),
+            ),
 
-                // Détails
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (request.requestType == RequestType.appointment)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.calendar_today,
-                                size: 20,
-                                color: Colors.grey,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${Appointment.formattedDateStatic(request.startTime!)} • '
-                                '${Appointment.formattedTimeStatic(request.startTime!)}',
-                                style: TextStyle(
-                                  color: Colors.grey.shade700,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.local_hospital,
-                              size: 20,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              doctor.hospital,
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.medical_services,
-                              size: 20,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              doctor.specialty,
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Pied de carte
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.05),
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(15),
-                      bottomRight: Radius.circular(15),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+            // Détails
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (request.requestType == RequestType.appointment)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
                         children: [
-                          Icon(
-                            {
-                              RequestStatus.agreed: Icons.check_circle,
-                              RequestStatus.pending: Icons.access_time,
-                              RequestStatus.disagreed: Icons.cancel,
-                            }[request.status],
-                            color: statusColor,
+                          const Icon(
+                            Icons.calendar_today,
                             size: 20,
+                            color: Colors.grey,
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            statusText,
+                            '${Appointment.formattedDateStatic(request.startTime!)} • '
+                            '${Appointment.formattedTimeStatic(request.startTime!)}',
                             style: TextStyle(
-                              color: statusColor,
-                              fontWeight: FontWeight.w500,
+                              color: Colors.grey.shade700,
                               fontSize: 14,
                             ),
                           ),
                         ],
                       ),
-                      if (request.senderType == SenderType.doctor &&
-                          request.status == RequestStatus.pending) ...[
-                        TextButton(
-                          onPressed:
-                              () => _showStatusDialog(
-                                context,
-                                request,
-                                managersDoctors,
-                                managersTreats,
-                              ),
-                          child: Text(
-                            'confirmation'.tr(),
-                            style: TextStyle(color: Colors.blue),
-                          ),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.local_hospital,
+                          size: 20,
+                          color: Colors.grey,
                         ),
-                      ] else if (request.status != RequestStatus.pending) ...[
-                        TextButton(
-                          onPressed: () {
-                            showDialogConfirm(
-                              isAlert: true,
-                              context: context,
-                              contextParent: null,
-                              msg: 'delete_request'.tr(),
-                              action1: () async {
-                                await managersDoctors.removeRequest(request.id);
-                              },
-                              action2: () {},
-                            );
-                          },
-                          child: Text(
-                            'delete'.tr(),
-                            style: TextStyle(color: Colors.red),
+                        const SizedBox(width: 8),
+                        Text(
+                          doctor.hospital,
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontSize: 14,
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.medical_services,
+                          size: 20,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          doctor.specialty,
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Pied de carte
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.05),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(15),
+                  bottomRight: Radius.circular(15),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        {
+                          RequestStatus.agreed: Icons.check_circle,
+                          RequestStatus.pending: Icons.access_time,
+                          RequestStatus.disagreed: Icons.cancel,
+                        }[request.status],
+                        color: statusColor,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        statusText,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
                     ],
                   ),
-                ),
-              ],
+                  if (request.senderType == SenderType.doctor &&
+                      request.status == RequestStatus.pending) ...[
+                    TextButton(
+                      onPressed:
+                          () => _showStatusDialog(
+                            context,
+                            request,
+                            managersDoctors,
+                            managersTreats,
+                          ),
+                      child: Text(
+                        'confirmation'.tr(),
+                        style: TextStyle(color: Colors.blue),
+                      ),
+                    ),
+                  ] else if (request.status != RequestStatus.pending) ...[
+                    TextButton(
+                      onPressed: () {
+                        showDialogConfirm(
+                          isAlert: true,
+                          context: context,
+                          contextParent: null,
+                          msg: 'delete_request'.tr(),
+                          action1: () async {
+                            await managersDoctors.removeRequest(request.id);
+                          },
+                          action2: () {},
+                        );
+                      },
+                      child: Text(
+                        'delete'.tr(),
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 
-  void _showDetailsModal(BuildContext context, Request request) {
+  void _showDetailsModal({
+    required BuildContext context,
+    required Request request,
+    required Doctor doctor,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
-      builder: (context) => _buildModalContent(request),
+      builder:
+          (context) => _buildModalContent(request: request, doctor: doctor),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
     );
   }
 
-  Widget _buildModalContent(Request request) {
+  Widget _buildModalContent({
+    required Request request,
+    required Doctor doctor,
+  }) {
     final statusColor =
         {
           RequestStatus.agreed: Colors.green,
@@ -1053,48 +1054,35 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
           RequestStatus.disagreed: 'denied'.tr(),
         }[request.status]!;
 
-    return FutureBuilder<Doctor?>(
-      future: DoctorService().getDoctorById(request.doctorUid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Erreur : ${snapshot.error}'));
-        }
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom + 75,
+        left: 20,
+        right: 20,
+        top: 20,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Center(child: Icon(Icons.drag_handle, color: Colors.grey)),
+          const SizedBox(height: 20),
+          if (request.startTime != null) ...[
+            _buildModalRow(
+              'date'.tr(),
+              Appointment.formattedDateStatic(request.startTime!),
+            ),
+            _buildModalRow(
+              'hours'.tr(),
+              Appointment.formattedTimeStatic(request.startTime!),
+            ),
+          ],
 
-        final doctor = snapshot.data!;
-
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 75,
-            left: 20,
-            right: 20,
-            top: 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Center(child: Icon(Icons.drag_handle, color: Colors.grey)),
-              const SizedBox(height: 20),
-              if (request.startTime != null) ...[
-                _buildModalRow(
-                  'date'.tr(),
-                  Appointment.formattedDateStatic(request.startTime!),
-                ),
-                _buildModalRow(
-                  'hours'.tr(),
-                  Appointment.formattedTimeStatic(request.startTime!),
-                ),
-              ],
-
-              _buildModalRow('status'.tr(), statusText, color: statusColor),
-              _buildModalRow('from'.tr(), doctor.hospital),
-              _buildModalRow('speciality'.tr(), doctor.specialty),
-            ],
-          ),
-        );
-      },
+          _buildModalRow('status'.tr(), statusText, color: statusColor),
+          _buildModalRow('from'.tr(), doctor.hospital),
+          _buildModalRow('speciality'.tr(), doctor.specialty),
+        ],
+      ),
     );
   }
 
@@ -1679,8 +1667,8 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     );
   }
 
-  void _showAppointmentsModal(
-    BuildContext context, {
+  void _showAppointmentsModal({
+    required BuildContext context,
     required ManagersDoctors managersDoctors,
   }) {
     showModalBottomSheet(

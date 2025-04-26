@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Views/components/SchedulesView.dart';
@@ -29,11 +30,11 @@ class _SchedulePageState extends State<SchedulePage>
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text('Planning des traitements'),
+        title: Text('treatment_planning'.tr()),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.calendar_today), text: "Aujourd'hui"),
+          tabs: [
+            Tab(icon: Icon(Icons.calendar_today), text: 'today'.tr()),
             Tab(icon: Icon(Icons.calendar_month), text: "Global"),
           ],
         ),

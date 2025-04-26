@@ -389,7 +389,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
   }
 
   Widget _buildStatusIndicator(String status) {
-    final color = _statusColor(status.tr());
+    final color = _statusColor(status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -418,26 +418,16 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
     );
   }
 
-  // Color _statusColor(String status) {
-  //   switch (status) {
-  //     case 'finished'.tr():
-  //       return Colors.green;
-  //     case 'on_hold'.tr():
-  //       return Colors.orange;
-  //     case 'in_progress'.tr():
-  //       return Colors.grey;
-  //     default:
-  //       return Colors.blueGrey;
-  //   }
-  // }
-
   Color _statusColor(String status) {
     switch (status) {
-      case 'finished':
+      case 'Finished':
+      case 'Terminé':
         return Colors.green;
-      case 'on_hold':
+      case 'On hold':
+      case 'En attente':
         return Colors.orange;
-      case 'in_progress':
+      case 'In progress':
+      case 'En cours':
         return Colors.grey;
       default:
         return Colors.blueGrey;

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:med_assist/Controllers/storageService.dart';
 import 'package:med_assist/Models/medicalRecord.dart';
+import 'package:rxdart/rxdart.dart';
 
 class ServiceMedicalRecord {
   final CollectionReference<Map<String, dynamic>> collection = FirebaseFirestore
@@ -137,5 +138,18 @@ class ServiceMedicalRecord {
         .where((snap) => snap.exists)
         .map((snap) => MedicalRecord.fromMap(snap.data()!))
         .toList();
+  }
+
+  Stream<List<MedicalRecord>> streamMedicalRecordsByIds(List<String> ids) {
+    if (ids.isEmpty) return Stream.value([]);
+
+    final streams = ids.map((id) => collection.doc(id).snapshots());
+
+    return CombineLatestStream.list(streams).map((snapshots) {
+      return snapshots
+          .where((snap) => snap.exists)
+          .map((snap) => MedicalRecord.fromMap(snap.data()!))
+          .toList();
+    });
   }
 }

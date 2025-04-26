@@ -25,15 +25,58 @@ class ManagersMedicalRecord {
   final database = ServiceMedicalRecord();
   final storage = StorageService();
 
-  Future<List<MedicalRecord>> getMedicalRecords() async {
-    return await database.getMedicalRecordByIds(medicalRecords);
+  // Future<List<MedicalRecord>> getMedicalRecords() async {
+  //   return await database.getMedicalRecordByIds(medicalRecords);
+  // }
+
+  // Future<List<MedicalRecordData>> getMedicalRecords() async {
+  //   final doctorService = DoctorService();
+
+  //   final medicalRecordList = await database.getMedicalRecordByIds(
+  //     medicalRecords,
+  //   );
+
+  //   final doctorIds =
+  //       medicalRecordList.expand((m) => m.doctorIDs).toSet().toList();
+
+  //   final doctors = await doctorService.getDoctorsByIds(doctorIds);
+
+  //   final doctorMap = {for (var doc in doctors) doc.id: doc};
+
+  //   return medicalRecordList.map((m) {
+  //     final recordDoctors =
+  //         m.doctorIDs.map((id) => doctorMap[id]).whereType<Doctor>().toList();
+
+  //     return MedicalRecordData(medicalRecord: m, doctors: recordDoctors);
+  //   }).toList();
+  // }
+
+  Stream<List<MedicalRecordData>> streamMedicalRecords() {
+    final doctorService = DoctorService();
+
+    return database.streamMedicalRecordsByIds(medicalRecords).asyncMap((
+      medicalRecordList,
+    ) async {
+      final doctorIds =
+          medicalRecordList.expand((m) => m.doctorIDs).toSet().toList();
+
+      final doctors = await doctorService.getDoctorsByIds(doctorIds);
+      final doctorMap = {for (var doc in doctors) doc.id: doc};
+
+      return medicalRecordList.map((m) {
+        final recordDoctors =
+            m.doctorIDs.map((id) => doctorMap[id]).whereType<Doctor>().toList();
+
+        return MedicalRecordData(medicalRecord: m, doctors: recordDoctors);
+      }).toList();
+    });
   }
 
   Future<String> checkCanAddMedicalRecord(
     String title,
-    List<MedicalRecord> medicalRecordsData,
+    List<MedicalRecordData> medicalRecordsData,
   ) async {
-    bool exist = medicalRecordsData.any((r) => r.title == title);
+    bool exist = medicalRecordsData.any((r) => r.medicalRecord.title == title);
 
     if (exist) return 'exist_medical_record'.tr();
     return 'Success';
@@ -76,7 +119,7 @@ class ManagersMedicalRecord {
 
   Future<String> checkCanAddFile(
     File file,
-    List<MedicalRecord> medicalRecords,
+    List<MedicalRecordData> medicalRecords,
   ) async {
     int size = await file.length();
     size = (size / 1024).ceil();
@@ -135,21 +178,24 @@ class ManagersMedicalRecord {
     medicalRecord.medicalFiles.remove(medicalFile);
   }
 
-  int totalUsedMemory(List<MedicalRecord> myMedicalRecords) {
+  int totalUsedMemory(List<MedicalRecordData> myMedicalRecords) {
     return myMedicalRecords.fold(
       0,
-      (sum, record) => sum + record.totalSizeInKo,
+      (sum, record) => sum + record.medicalRecord.totalSizeInKo,
     );
   }
 
-  bool canAddFile(int size, List<MedicalRecord> myMedicalRecords) {
+  bool canAddFile(int size, List<MedicalRecordData> myMedicalRecords) {
     int currentMemory = totalUsedMemory(myMedicalRecords);
     return (currentMemory + size) <= maxMemory;
   }
 
-  List<String> getAllCategories(List<MedicalRecord> medicalRecords) {
+  List<String> getAllCategories(List<MedicalRecordData> medicalRecords) {
     final categories =
-        medicalRecords.map((r) => r.category.toUpperCase()).toSet().toList();
+        medicalRecords
+            .map((r) => r.medicalRecord.category.toUpperCase())
+            .toSet()
+            .toList();
     categories.sort();
 
     categories.insert(0, 'all'.tr());
@@ -234,10 +280,6 @@ class MedicalRecord {
   String get formattedDate {
     return DateFormat('EEE, d MMM yyyy').format(createdAt);
   }
-
-  Future<List<Doctor>> getDoctors() async {
-    return await DoctorService().getDoctorsByIds(doctorIDs);
-  }
 }
 
 class MedicalFile {
@@ -285,3 +327,10 @@ class MedicalFile {
 }
 
 enum CreatorType { doctor, patient }
+
+class MedicalRecordData {
+  final MedicalRecord medicalRecord;
+  final List<Doctor> doctors;
+
+  MedicalRecordData({required this.medicalRecord, required this.doctors});
+}

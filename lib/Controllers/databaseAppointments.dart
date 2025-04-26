@@ -46,7 +46,7 @@ class AppointmentService {
         );
   }
 
-  Future<List<Appointment>> getAppointmentsByIds(List<String> ids) async {
+  Future<List<Appointment>> getAppointmentsByIds({required List<String> ids}) async {
     if (ids.isEmpty) return [];
 
     final snapshots = await Future.wait(

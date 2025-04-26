@@ -59,6 +59,26 @@ class DatabaseService {
     }
   }
 
+  // Future<void> addElementToArray(String name, var value) async {
+  //   try {
+  //     await userCollection.doc(uid).update({
+  //       name: FieldValue.arrayUnion([value]),
+  //     });
+  //   } catch (e) {
+  //     throw Exception("Failed to add element to array: $e");
+  //   }
+  // }
+
+  // Future<void> removeElementFromArray(String name, var value) async {
+  //   try {
+  //     await userCollection.doc(uid).update({
+  //       name: FieldValue.arrayRemove([value]),
+  //     });
+  //   } catch (e) {
+  //     throw Exception("Failed to remove element from array: $e");
+  //   }
+  // }
+
   Future<void> updateTreatments(List<Treat> userTreatments) async {
     try {
       await userCollection.doc(uid).set({

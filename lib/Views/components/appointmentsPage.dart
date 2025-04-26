@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:med_assist/Models/doctor.dart';
 import 'package:med_assist/Views/components/AppointmentsView.dart';
@@ -14,7 +15,7 @@ class AppointmentsPage extends StatefulWidget {
 class _SchedulePageState extends State<AppointmentsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<Appointment> _appointments = [];
+  List<AppointmentData> _appointments = [];
 
   @override
   void initState() {
@@ -36,11 +37,11 @@ class _SchedulePageState extends State<AppointmentsPage>
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text('Planning des rendez-vous'),
+        title: Text('appointment_schedule'.tr()),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.calendar_today), text: "Aujourd'hui"),
+          tabs:  [
+            Tab(icon: Icon(Icons.calendar_today), text: 'today'.tr()),
             Tab(icon: Icon(Icons.calendar_month), text: "Global"),
           ],
         ),

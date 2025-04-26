@@ -26,12 +26,44 @@ class ManagersDoctors {
     return await DoctorService().getDoctorsByIds(doctors);
   }
 
-  Future<List<Appointment>> getAppointments() async {
-    return await AppointmentService().getAppointmentsByIds(appointments);
+  // Future<List<Appointment>> getAppointments() async {
+  //   return await AppointmentService().getAppointmentsByIds(appointments);
+  // }
+
+  Future<List<AppointmentData>> getAppointments() async {
+    final doctorService = DoctorService();
+
+    final appointmentsList = await AppointmentService().getAppointmentsByIds(
+      ids: appointments,
+    );
+
+    final doctorIds = appointmentsList.map((a) => a.doctorUid).toSet().toList();
+
+    final doctors = await doctorService.getDoctorsByIds(doctorIds);
+
+    final doctorMap = {for (var doc in doctors) doc.id: doc};
+
+    return appointmentsList.map((a) {
+      final doctor = doctorMap[a.doctorUid];
+      return AppointmentData(appointment: a, doctor: doctor!);
+    }).toList();
   }
 
-  Future<List<Request>> getRequests() async {
-    return await RequestService().getRequestsByIds(requests);
+  Future<List<RequestData>> getRequests() async {
+    final doctorService = DoctorService();
+
+    final requestsList = await RequestService().getRequestsByIds(ids: requests);
+
+    final doctorIds = requestsList.map((r) => r.doctorUid).toSet().toList();
+
+    final doctors = await doctorService.getDoctorsByIds(doctorIds);
+
+    final doctorMap = {for (var doc in doctors) doc.id: doc};
+
+    return requestsList.map((r) {
+      final doctor = doctorMap[r.doctorUid];
+      return RequestData(request: r, doctor: doctor!);
+    }).toList();
   }
 
   Future<String> checkSendJoinDoctorRequest(String doctorID) async {
@@ -45,7 +77,7 @@ class ManagersDoctors {
     if (alreadyExists) return 'exist_doctor'.tr();
 
     List<Request> myRequests = await RequestService().getRequestsByIds(
-      requests,
+      ids: requests,
     );
 
     bool alreadyRequest = myRequests.any(
@@ -85,7 +117,7 @@ class ManagersDoctors {
     DateTime startTime,
   ) async {
     List<Request> myRequests = await RequestService().getRequestsByIds(
-      requests,
+      ids: requests,
     );
     bool alreadyRequested = myRequests.any(
       (req) =>
@@ -304,6 +336,10 @@ class Doctor {
       hospital: map['hospital'],
     );
   }
+
+  String get doctorDescription {
+    return '$name $specialty ${'from'.tr()} $hospital';
+  }
 }
 
 class Appointment {
@@ -492,3 +528,17 @@ enum RequestType { doctor, appointment, treat }
 enum RequestStatus { pending, agreed, disagreed }
 
 enum SenderType { doctor, patient }
+
+class RequestData {
+  final Request request;
+  final Doctor doctor;
+
+  RequestData({required this.request, required this.doctor});
+}
+
+class AppointmentData {
+  final Appointment appointment;
+  final Doctor doctor;
+
+  AppointmentData({required this.appointment, required this.doctor});
+}

@@ -251,5 +251,10 @@
   "Light": "Light",
   "Dark": "Dark",
   "delete_account": "Delete The Account",
-  "confirm_delete_account_content": "Delete the Account"
+  "confirm_delete_account_content": "Delete the Account",
+  "appointment_schedule": "Appointment schedule",
+  "today": "Today",
+  "no_appointment_scheduled": "No appointment scheduled",
+  "created_at": "Create At",
+  "no_folder_found": "No Folder found"
 }

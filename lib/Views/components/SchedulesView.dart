@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
@@ -16,7 +17,7 @@ class SchedulesView extends StatelessWidget {
     if (schedules.isEmpty) {
       return Center(
         child: Text(
-          'Aucun planning disponible.',
+          'no_treatment'.tr(),
           style: GoogleFonts.poppins(color: Colors.grey.shade600),
         ),
       );
@@ -63,7 +64,7 @@ class DailyScheduleView extends StatelessWidget {
     if (todaySchedules.isEmpty) {
       return Center(
         child: Text(
-          'Aucun planning prévu pour aujourd\'hui.',
+          'no_treatment_today'.tr(),
           style: GoogleFonts.poppins(color: Colors.grey.shade600),
         ),
       );
@@ -132,7 +133,7 @@ Widget _buildScheduleCard({
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                'Aucun traitement prévu',
+                'no_treatment'.tr(),
                 style: GoogleFonts.poppins(color: Colors.grey.shade600),
               ),
             )

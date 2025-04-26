@@ -19,7 +19,7 @@ class TreatScreen extends StatefulWidget {
 }
 
 class _TreatScreenState extends State<TreatScreen> {
-  List<Treat> publicTreatments = [];
+  // List<Treat> publicTreatments = [];
   List<Medicine> medicines = [];
   TextEditingController titleController = TextEditingController();
   List<TextEditingController> nameControllers = [];
@@ -30,8 +30,8 @@ class _TreatScreenState extends State<TreatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final bottomPadding = mediaQuery.viewInsets.bottom;
+    // final mediaQuery = MediaQuery.of(context);
+    // final bottomPadding = mediaQuery.viewInsets.bottom;
     final user = Provider.of<AppUser?>(context);
     if (user == null) return const LoginScreen();
     final database = DatabaseService(user.uid);
@@ -52,104 +52,81 @@ class _TreatScreenState extends State<TreatScreen> {
             name: userData.name,
             treats: userData.treatments,
           );
-
-          return FutureBuilder<List<Treat>>(
-            future: TreatmentService().getPublicTreatments(),
-            builder: (context, treatSnapshot) {
-              if (treatSnapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
-                );
-              }
-
-              if (treatSnapshot.hasError) {
-                return Scaffold(
-                  body: Center(child: Text("Error: ${treatSnapshot.error}")),
-                );
-              }
-
-              publicTreatments = treatSnapshot.data ?? [];
-
-              return Padding(
-                padding: EdgeInsets.only(bottom: bottomPadding + 60),
-                child: Scaffold(
-                  backgroundColor: const Color(0xFFF5F7FB),
-                  body: CustomScrollView(
-                    slivers: [
-                      SliverAppBar(
-                        expandedHeight: 80,
-                        flexibleSpace: FlexibleSpaceBar(
-                          title: Text(
-                            'my_treatments'.tr(),
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 18,
-                              color: Colors.white,
-                            ),
-                          ),
-                          background: Container(
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [Color(0xFF00C853), Color(0xFFB2FF59)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                            ),
-                          ),
-                        ),
-                        actions: [
-                          IconButton(
-                            onPressed: () {},
-                            icon: Icon(
-                              Iconsax.search_status_1,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
+          return Scaffold(
+            resizeToAvoidBottomInset: true,
+            backgroundColor: const Color(0xFFF5F7FB),
+            body: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  pinned: true,
+                  expandedHeight: 80,
+                  flexibleSpace: FlexibleSpaceBar(
+                    title: Text(
+                      'my_treatments'.tr(),
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                        color: Colors.white,
                       ),
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 10,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildTreatmentStatusSection(
-                                title: 'active_treatments'.tr(),
-                                icon: Iconsax.health,
-                                treatments: managersTreats.activeTreatments(),
-                                statusColor: const Color(0xFF00C853),
-                                userData: userData,
-                                managersTreats: managersTreats,
-                                isTop: true,
-                              ),
-                              _buildTreatmentStatusSection(
-                                title: 'failed_treatments'.tr(),
-                                icon: Iconsax.close_circle,
-                                treatments: managersTreats.failedTreatments(),
-                                statusColor: Colors.red,
-                                userData: userData,
-                                managersTreats: managersTreats,
-                              ),
-                              _buildTreatmentStatusSection(
-                                title: 'completed_treatments'.tr(),
-                                icon: Iconsax.tick_circle,
-                                treatments: managersTreats.finishedTreatments(),
-                                statusColor: Colors.grey,
-                                userData: userData,
-                                managersTreats: managersTreats,
-                              ),
-                            ],
-                          ),
+                    ),
+                    background: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF00C853), Color(0xFFB2FF59)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
                       ),
-                    ],
+                    ),
+                  ),
+                  actions: [
+                    IconButton(
+                      onPressed: () {},
+                      icon: Icon(Iconsax.search_status_1, color: Colors.white),
+                    ),
+                  ],
+                ),
+
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTreatmentStatusSection(
+                          title: 'active_treatments'.tr(),
+                          icon: Iconsax.health,
+                          treatments: managersTreats.activeTreatments(),
+                          statusColor: const Color(0xFF00C853),
+                          userData: userData,
+                          managersTreats: managersTreats,
+                          isTop: true,
+                        ),
+                        _buildTreatmentStatusSection(
+                          title: 'failed_treatments'.tr(),
+                          icon: Iconsax.close_circle,
+                          treatments: managersTreats.failedTreatments(),
+                          statusColor: Colors.red,
+                          userData: userData,
+                          managersTreats: managersTreats,
+                        ),
+                        _buildTreatmentStatusSection(
+                          title: 'completed_treatments'.tr(),
+                          icon: Iconsax.tick_circle,
+                          treatments: managersTreats.finishedTreatments(),
+                          statusColor: Colors.grey,
+                          userData: userData,
+                          managersTreats: managersTreats,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              );
-            },
+              ],
+            ),
           );
         }
 
@@ -157,7 +134,6 @@ class _TreatScreenState extends State<TreatScreen> {
       },
     );
   }
-
 
   Widget _buildEmptyState() {
     return Container(
@@ -533,7 +509,9 @@ class _TreatScreenState extends State<TreatScreen> {
                 color: const Color(0xFF00CCFF),
                 onPressed: () {
                   Navigator.pop(context);
-                  _showJoinTreatmentModal(managersTreats: managersTreats);
+                  showJoinTreatmentModalWithData(
+                    managersTreats: managersTreats,
+                  );
                 },
               ),
               const SizedBox(height: 12),
@@ -1002,7 +980,31 @@ class _TreatScreenState extends State<TreatScreen> {
     );
   }
 
-  void _showJoinTreatmentModal({required ManagersTreats managersTreats}) {
+  void showJoinTreatmentModalWithData({
+    required ManagersTreats managersTreats,
+  }) async {
+    final publicTreatments = await TreatmentService().getPublicTreatments();
+
+    if (!context.mounted) return;
+
+    _showJoinTreatmentModal(
+      managersTreats: managersTreats,
+      publicTreatments: publicTreatments,
+    );
+  }
+
+  void showPlanningModalWithData({
+    required ManagersTreats managersTreats,
+  }) async {
+    if (!context.mounted) return;
+
+    _showScheduleModal(context, managersTreats: managersTreats);
+  }
+
+  void _showJoinTreatmentModal({
+    required ManagersTreats managersTreats,
+    required List<Treat> publicTreatments,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

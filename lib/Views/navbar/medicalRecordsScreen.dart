@@ -5,13 +5,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:med_assist/Controllers/database.dart';
 import 'package:med_assist/Controllers/databaseDoctors.dart';
 import 'package:med_assist/Models/doctor.dart';
 import 'package:med_assist/Models/medicalRecord.dart';
 import 'package:med_assist/Models/user.dart';
+import 'package:med_assist/Views/Auth/loginScreen.dart';
 import 'package:med_assist/Views/components/utils.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -26,196 +29,238 @@ class MedicalRecordsScreen extends StatefulWidget {
 }
 
 class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
-  late ManagersMedicalRecord managersMedicalRecord;
-  List<MedicalRecord> myMedicalRecords = [];
-  List<MedicalRecord> filteredRecords = [];
-  List<String> categories = [];
+  List<MedicalRecordData> filteredRecords = [];
   String selectedCategory = 'all'.tr();
-  double usedStorage = 0;
-  double maxStorage = 0;
   bool isLoading = true;
   bool isPickingFile = false;
   File? selectedFile;
   String? fileType;
 
-  void _loadMedicalRecords(ManagersMedicalRecord managersMedicalRecord) async {
-    List<MedicalRecord> records =
-        await managersMedicalRecord.getMedicalRecords();
-    int totalKB = managersMedicalRecord.totalUsedMemory(records);
-    double totalMB = totalKB / 1024;
+  // void _loadMedicalRecords() async {}
 
-    setState(() {
-      myMedicalRecords = records;
-      categories = managersMedicalRecord.getAllCategories(myMedicalRecords);
-      filteredRecords = _filterRecords(records, selectedCategory);
-      usedStorage = totalMB;
-      maxStorage = ManagersMedicalRecord.maxMemory / 1024;
-      isLoading = false;
-    });
-  }
-
-  @override
-  void initState() {
-    managersMedicalRecord = ManagersMedicalRecord(
-      uid: widget.userData.uid,
-      name: widget.userData.name,
-      medicalRecords: widget.userData.medicalRecords,
-    );
-    _loadMedicalRecords(managersMedicalRecord);
-    super.initState();
-  }
-
-  List<MedicalRecord> _filterRecords(
-    List<MedicalRecord> records,
+  List<MedicalRecordData> _filterRecords(
+    List<MedicalRecordData> records,
     String category,
   ) {
     if (category == 'all'.tr()) return records;
-    return records.where((r) => r.category.toUpperCase() == category).toList();
+    return records
+        .where((r) => r.medicalRecord.category.toUpperCase() == category)
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final size = MediaQuery.of(context).size;
+    final user = Provider.of<AppUser?>(context);
+    if (user == null) return const LoginScreen();
+    final database = DatabaseService(user.uid);
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomPadding + 60),
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF5F7FB),
-        body:
-            isLoading
-                ? Center(
-                  child: CircularProgressIndicator(color: Colors.green[800]),
-                )
-                : CustomScrollView(
-                  slivers: [
-                    SliverAppBar(
-                      pinned: true,
-                      expandedHeight: 80,
-                      flexibleSpace: FlexibleSpaceBar(
-                        title: Text(
-                          'my_medical_records'.tr(),
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
+    return StreamBuilder<AppUserData>(
+      stream: database.user,
+      builder: (context, userSnapshot) {
+        if (userSnapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
 
-                        background: Container(
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Color(0xFF00C853), Color(0xFFB2FF59)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                          ),
-                        ),
+        if (userSnapshot.hasError) {
+          return Scaffold(
+            body: Center(
+              child: Text('Erreur utilisateur : ${userSnapshot.error}'),
+            ),
+          );
+        }
+
+        if (!userSnapshot.hasData) {
+          return const Scaffold(
+            body: Center(child: Text("Utilisateur non trouvé.")),
+          );
+        }
+
+        final userData = userSnapshot.data!;
+        final ManagersMedicalRecord managersMedicalRecord =
+            ManagersMedicalRecord(
+              uid: userData.uid,
+              name: userData.name,
+              medicalRecords: userData.medicalRecords,
+            );
+
+        return Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                pinned: true,
+                expandedHeight: 80,
+                flexibleSpace: FlexibleSpaceBar(
+                  title: Text(
+                    'my_medical_records'.tr(),
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+
+                  background: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF00C853), Color(0xFFB2FF59)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      actions: [
-                        IconButton(
-                          onPressed: () {},
-                          icon: Icon(
-                            Iconsax.search_status_1,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
                     ),
-                    SliverToBoxAdapter(
-                      child: SizedBox(height: size.height * 0.03),
-                    ),
-                    SliverToBoxAdapter(
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    onPressed: () {},
+                    icon: Icon(Iconsax.search_status_1, color: Colors.white),
+                  ),
+                ],
+              ),
+              SliverToBoxAdapter(child: SizedBox(height: size.height * 0.03)),
+
+              StreamBuilder<List<MedicalRecordData>>(
+                stream: managersMedicalRecord.streamMedicalRecords(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return SliverToBoxAdapter(
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return SliverToBoxAdapter(
+                      child: Center(child: Text('Erreur : ${snapshot.error}')),
+                    );
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: _buildCategoryFilter(categories),
+                        child: _buildEmptyState(),
                       ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: SizedBox(height: size.height * 0.03),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Padding(
+                    );
+                  }
+
+                  final myMedicalRecords = snapshot.data!;
+                  int totalKB = managersMedicalRecord.totalUsedMemory(
+                    myMedicalRecords,
+                  );
+                  double usedStorage = totalKB / 1024;
+                  double maxStorage = ManagersMedicalRecord.maxMemory / 1024;
+                  List<String> categories = managersMedicalRecord
+                      .getAllCategories(myMedicalRecords);
+
+                  if (filteredRecords.isEmpty ||
+                      selectedCategory == 'all'.tr()) {
+                    filteredRecords = _filterRecords(
+                      myMedicalRecords,
+                      selectedCategory,
+                    );
+                    filteredRecords.sort(
+                      (a, b) => b.medicalRecord.createdAt.compareTo(
+                        a.medicalRecord.createdAt,
+                      ),
+                    );
+                  }
+
+                  return SliverList(
+                    delegate: SliverChildListDelegate([
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: _buildCategoryFilter(
+                          categories,
+                          myMedicalRecords,
+                        ),
+                      ),
+                      SizedBox(height: size.height * 0.03),
+                      Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: _buildStorageIndicator(
+                          managersMedicalRecord: managersMedicalRecord,
                           medicalRecords: myMedicalRecords,
+                          usedStorage: usedStorage,
+                          maxStorage: maxStorage,
                         ),
                       ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: SizedBox(height: size.height * 0.03),
-                    ),
-                    filteredRecords.isEmpty
-                        ? SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: _buildEmptyState(),
-                          ),
-                        )
-                        : SliverToBoxAdapter(
-                          child: AnimatedSwitcher(
-                            duration: Duration(milliseconds: 400),
-                            switchInCurve: Curves.easeOutBack,
-                            switchOutCurve: Curves.easeIn,
-                            transitionBuilder: (child, animation) {
-                              final inAnimation = Tween<double>(
-                                begin: 0.8,
-                                end: 1.0,
-                              ).animate(animation);
-                              final outAnimation = Tween<double>(
-                                begin: 1.0,
-                                end: 0.0,
-                              ).animate(animation);
+                      SizedBox(height: size.height * 0.03),
+                      AnimatedSwitcher(
+                        duration: Duration(milliseconds: 400),
+                        switchInCurve: Curves.easeOutBack,
+                        switchOutCurve: Curves.easeIn,
+                        transitionBuilder: (child, animation) {
+                          final inAnimation = Tween<double>(
+                            begin: 0.8,
+                            end: 1.0,
+                          ).animate(animation);
+                          final outAnimation = Tween<double>(
+                            begin: 1.0,
+                            end: 0.0,
+                          ).animate(animation);
 
-                              return AnimatedBuilder(
-                                animation: animation,
-                                builder: (context, childWidget) {
-                                  final isIncoming =
-                                      animation.status !=
-                                      AnimationStatus.reverse;
+                          return AnimatedBuilder(
+                            animation: animation,
+                            builder: (context, childWidget) {
+                              final isIncoming =
+                                  animation.status != AnimationStatus.reverse;
 
-                                  return Opacity(
-                                    opacity:
-                                        isIncoming
-                                            ? animation.value.clamp(0.0, 1.0)
-                                            : outAnimation.value.clamp(
-                                              0.0,
-                                              1.0,
-                                            ),
-                                    child: Transform.scale(
-                                      scale:
-                                          isIncoming ? inAnimation.value : 1.0,
-                                      child: childWidget,
-                                    ),
-                                  );
-                                },
-                                child: child,
+                              return Opacity(
+                                opacity:
+                                    isIncoming
+                                        ? animation.value.clamp(0.0, 1.0)
+                                        : outAnimation.value.clamp(0.0, 1.0),
+                                child: Transform.scale(
+                                  scale: isIncoming ? inAnimation.value : 1.0,
+                                  child: childWidget,
+                                ),
                               );
                             },
-                            child: Wrap(
-                              key: ValueKey<String>(selectedCategory),
-                              spacing: 15,
-                              runSpacing: 15,
-                              children:
-                                  filteredRecords.map((record) {
-                                    return SizedBox(
-                                      width:
-                                          (MediaQuery.of(context).size.width -
-                                              55) /
-                                          2,
-                                      child: _buildMedicalRecordCard(record),
-                                    );
-                                  }).toList(),
-                            ),
+                            child: child,
+                          );
+                        },
+
+                        child: Padding(
+                          key: ValueKey<String>(selectedCategory),
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Wrap(
+                            spacing: 15,
+                            runSpacing: 15,
+                            children:
+                                filteredRecords.map((record) {
+                                  return SizedBox(
+                                    width:
+                                        (MediaQuery.of(context).size.width -
+                                            55) /
+                                        2,
+                                    child: _buildMedicalRecordCard(
+                                      managersMedicalRecord:
+                                          managersMedicalRecord,
+                                      record: record,
+                                      myMedicalRecords: myMedicalRecords,
+                                    ),
+                                  );
+                                }).toList(),
                           ),
                         ),
-                  ],
-                ),
-      ),
+                      ),
+                    ]),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildCategoryFilter(List<String> categories) {
+  Widget _buildCategoryFilter(
+    List<String> categories,
+    List<MedicalRecordData> myMedicalRecords,
+  ) {
     return SizedBox(
       height: 40,
       child: ListView.separated(
@@ -226,11 +271,22 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
             (_, index) => ChoiceChip(
               label: Text(categories[index]),
               selected: selectedCategory == categories[index],
-              onSelected:
-                  (selected) => setState(() {
+              onSelected: (selected) {
+                if (selected) {
+                  setState(() {
                     selectedCategory = categories[index];
-                    _loadMedicalRecords(managersMedicalRecord);
-                  }),
+                    filteredRecords = _filterRecords(
+                      myMedicalRecords,
+                      selectedCategory,
+                    );
+                    filteredRecords.sort(
+                      (a, b) => b.medicalRecord.createdAt.compareTo(
+                        a.medicalRecord.createdAt,
+                      ),
+                    );
+                  });
+                }
+              },
               backgroundColor: Colors.white,
               selectedColor: Colors.green[100],
               labelStyle: TextStyle(
@@ -244,7 +300,12 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     );
   }
 
-  Widget _buildStorageIndicator({required List<MedicalRecord> medicalRecords}) {
+  Widget _buildStorageIndicator({
+    required ManagersMedicalRecord managersMedicalRecord,
+    required List<MedicalRecordData> medicalRecords,
+    required double usedStorage,
+    required double maxStorage,
+  }) {
     final double usedPercentage = usedStorage / maxStorage;
 
     return Container(
@@ -311,6 +372,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                   child: IconButton(
                     onPressed: () {
                       _showAddMedicalRecordModal(
+                        managersMedicalRecord: managersMedicalRecord,
                         medicalRecords: medicalRecords,
                       );
                     },
@@ -344,6 +406,131 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
               style: GoogleFonts.poppins(
                 color: Colors.blueGrey[300],
                 fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMedicalRecordCard({
+    required ManagersMedicalRecord managersMedicalRecord,
+    required MedicalRecordData record,
+    required List<MedicalRecordData> myMedicalRecords,
+  }) {
+    final totalSizeMB = record.medicalRecord.totalSizeInKo / 1024;
+    final progressValue = (totalSizeMB / 50) * myMedicalRecords.length;
+
+    return GestureDetector(
+      onTap:
+          () => _showMedicalRecordInfosModal(
+            managersMedicalRecord: managersMedicalRecord,
+            medicalRecord: record,
+            myMedicalRecords: myMedicalRecords,
+          ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 100,
+              decoration: BoxDecoration(
+                color: const Color(0xFF00C853).withOpacity(0.1),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
+              ),
+              padding: const EdgeInsets.only(
+                top: 8,
+                bottom: 0,
+                right: 16,
+                left: 16,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            record.medicalRecord.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              color: const Color(0xFF00C853),
+                            ),
+                          ),
+                        ),
+                        _buildRecordStatus(record),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: progressValue,
+                      backgroundColor: Colors.grey[200],
+                      color:
+                          progressValue > 0.9
+                              ? Colors.red
+                              : const Color(0xFF00C853),
+                      minHeight: 8,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${totalSizeMB.toStringAsFixed(1)} Mo',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 50,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    record.medicalRecord.medicalFiles.isNotEmpty
+                        ? Text(
+                          '+ ${record.medicalRecord.medicalFiles.length} ${'files'.tr()}...',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey.shade600,
+                          ),
+                        )
+                        : Center(
+                          child: Text(
+                            'no_file'.tr(),
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -387,7 +574,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   }
 
   void _showAddMedicalRecordModal({
-    required List<MedicalRecord> medicalRecords,
+    required List<MedicalRecordData> medicalRecords,
+    required ManagersMedicalRecord managersMedicalRecord,
   }) {
     final titleController = TextEditingController();
     final categoryController = TextEditingController();
@@ -515,11 +703,9 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                         .addMedicalRecord(title, category);
                                   },
                                   action2: () {
-                                    setState(() {
-                                      _loadMedicalRecords(
-                                        managersMedicalRecord,
-                                      );
-                                    });
+                                    // setState(() {
+                                    //   _loadMedicalRecords();
+                                    // });
                                   },
                                 );
                               } else {
@@ -579,170 +765,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     );
   }
 
-  Widget _buildMedicalRecordCard(MedicalRecord record) {
-    final totalSizeMB = record.totalSizeInKo / 1024;
-    final progressValue = (totalSizeMB / 50) * myMedicalRecords.length;
-
-    return GestureDetector(
-      onTap: () => _showMedicalRecordInfosModal(medicalRecord: record),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 100,
-              decoration: BoxDecoration(
-                color: const Color(0xFF00C853).withOpacity(0.1),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
-              ),
-              padding: const EdgeInsets.only(
-                top: 8,
-                bottom: 0,
-                right: 16,
-                left: 16,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            record.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              color: const Color(0xFF00C853),
-                            ),
-                          ),
-                        ),
-                        _buildRecordStatus(record),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      value: progressValue,
-                      backgroundColor: Colors.grey[200],
-                      color:
-                          progressValue > 0.9
-                              ? Colors.red
-                              : const Color(0xFF00C853),
-                      minHeight: 8,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${totalSizeMB.toStringAsFixed(1)} Mo',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 50,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    record.medicalFiles.isNotEmpty
-                        ? Text(
-                          '+ ${record.medicalFiles.length} ${'files'.tr()}...',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey.shade600,
-                          ),
-                        )
-                        : Center(
-                          child: Text(
-                            'no_file'.tr(),
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ),
-                    // const SizedBox(height: 8),
-                    // ...record.medicalFiles
-                    //     .take(1)
-                    //     .map(
-                    //       (file) => Padding(
-                    //         padding: const EdgeInsets.only(bottom: 4),
-                    //         child: Row(
-                    //           children: [
-                    //             Icon(
-                    //               Iconsax.document,
-                    //               color: Colors.green.shade400,
-                    //               size: 14,
-                    //             ),
-                    //             const SizedBox(width: 8),
-                    //             Flexible(
-                    //               child: Text(
-                    //                 '${file.title} (${file.FSize} Ko)',
-                    //                 style: GoogleFonts.poppins(fontSize: 12),
-                    //                 overflow: TextOverflow.ellipsis,
-                    //               ),
-                    //             ),
-                    //             const SizedBox(width: 8),
-                    //             Text(
-                    //               DateFormat('dd/MM').format(
-                    //                 record.medicalFiles.last.createdAt,
-                    //               ),
-                    //               style: GoogleFonts.poppins(
-                    //                 fontSize: 10,
-                    //                 color: Colors.grey,
-                    //               ),
-                    //             ),
-                    //           ],
-                    //         ),
-                    //       ),
-                    //     ),
-                    // if (record.medicalFiles.length > 2)
-                    //   Padding(
-                    //     padding: const EdgeInsets.only(top: 4),
-                    //     child: Text(
-                    //       '+ ${record.medicalFiles.length - 1} autres...',
-                    //       style: GoogleFonts.poppins(
-                    //         fontSize: 10,
-                    //         color: Colors.grey,
-                    //       ),
-                    //     ),
-                    //   ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecordStatus(MedicalRecord record) {
-    final isUpdated = record.createdAt.isAfter(
+  Widget _buildRecordStatus(MedicalRecordData record) {
+    final isUpdated = record.medicalRecord.createdAt.isAfter(
       DateTime.now().subtract(Duration(days: 7)),
     );
 
@@ -762,9 +786,16 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     );
   }
 
-  void _showMedicalRecordInfosModal({required MedicalRecord medicalRecord}) {
-    final totalSizeMB = medicalRecord.totalSizeInKo / 1024;
-    bool isFromMe = medicalRecord.creatorType == CreatorType.patient;
+  void _showMedicalRecordInfosModal({
+    required ManagersMedicalRecord managersMedicalRecord,
+    required MedicalRecordData medicalRecord,
+    required List<MedicalRecordData> myMedicalRecords,
+  }) {
+    final totalSizeMB = medicalRecord.medicalRecord.totalSizeInKo / 1024;
+    bool isFromMe =
+        medicalRecord.medicalRecord.creatorType == CreatorType.patient;
+    String creator =
+        isFromMe ? 'me'.tr() : medicalRecord.doctors[0].doctorDescription;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -830,233 +861,18 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                             color: Colors.white,
                             itemBuilder:
                                 (context) => [
-                                  if (medicalRecord.canBeShared)
+                                  if (medicalRecord.medicalRecord.canBeShared)
                                     PopupMenuItem(
                                       child: ListTile(
                                         leading: const Icon(Iconsax.share),
                                         title: Text('share'.tr()),
                                         onTap: () {
                                           Navigator.pop(context);
-                                          showModalBottomSheet(
-                                            context: context,
-                                            isScrollControlled: true,
-                                            backgroundColor: Colors.white,
-                                            shape: const RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.vertical(
-                                                    top: Radius.circular(25),
-                                                  ),
-                                            ),
-                                            builder: (
-                                              BuildContext contextParent,
-                                            ) {
-                                              ManagersDoctors managersDoctors =
-                                                  ManagersDoctors(
-                                                    uid: widget.userData.uid,
-                                                    name: widget.userData.name,
-                                                    doctors:
-                                                        widget.userData.doctors,
-                                                    appointments:
-                                                        widget
-                                                            .userData
-                                                            .appointments,
-                                                    requests:
-                                                        widget
-                                                            .userData
-                                                            .requests,
-                                                  );
-
-                                              final availableDoctors =
-                                                  managersDoctors.doctors
-                                                      .where(
-                                                        (doctor) =>
-                                                            !medicalRecord
-                                                                .doctorIDs
-                                                                .contains(
-                                                                  doctor,
-                                                                ),
-                                                      )
-                                                      .toList();
-
-                                              return GestureDetector(
-                                                onTap:
-                                                    () =>
-                                                        Navigator.pop(context),
-                                                child: Container(
-                                                  height:
-                                                      MediaQuery.of(
-                                                        context,
-                                                      ).size.height *
-                                                      .5,
-                                                  color: Color(0x66000000),
-                                                  child: GestureDetector(
-                                                    onTap: () {},
-                                                    child: Container(
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius:
-                                                            BorderRadius.vertical(
-                                                              top:
-                                                                  Radius.circular(
-                                                                    0,
-                                                                  ),
-                                                            ),
-                                                      ),
-                                                      padding: EdgeInsets.only(
-                                                        top: 24,
-                                                        bottom:
-                                                            MediaQuery.of(
-                                                                  context,
-                                                                )
-                                                                .viewInsets
-                                                                .bottom +
-                                                            75,
-                                                        right: 24,
-                                                        left: 24,
-                                                      ),
-                                                      child: Column(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        children: [
-                                                          Container(
-                                                            width: 48,
-                                                            height: 4,
-                                                            decoration: BoxDecoration(
-                                                              color:
-                                                                  Colors
-                                                                      .grey[300],
-                                                              borderRadius:
-                                                                  BorderRadius.circular(
-                                                                    2,
-                                                                  ),
-                                                            ),
-                                                          ),
-                                                          SizedBox(height: 24),
-
-                                                          Row(
-                                                            children: [
-                                                              Icon(
-                                                                Iconsax.share,
-                                                                color: Color(
-                                                                  0xFF00C853,
-                                                                ),
-                                                                size: 28,
-                                                              ),
-                                                              const SizedBox(
-                                                                width: 8,
-                                                              ),
-                                                              Expanded(
-                                                                child: Row(
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .spaceBetween,
-                                                                  children: [
-                                                                    Text(
-                                                                      'select_doctor'
-                                                                          .tr(),
-                                                                      style: GoogleFonts.poppins(
-                                                                        fontSize:
-                                                                            20,
-                                                                        fontWeight:
-                                                                            FontWeight.w600,
-                                                                        color:
-                                                                            Colors.black87,
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          SizedBox(height: 16),
-
-                                                          FutureBuilder<
-                                                            List<Doctor>
-                                                          >(
-                                                            future: DoctorService()
-                                                                .getDoctorsByIds(
-                                                                  availableDoctors,
-                                                                ),
-                                                            builder: (
-                                                              context,
-                                                              snapshot,
-                                                            ) {
-                                                              if (snapshot
-                                                                      .connectionState ==
-                                                                  ConnectionState
-                                                                      .waiting) {
-                                                                return const Center(
-                                                                  child:
-                                                                      CircularProgressIndicator(),
-                                                                );
-                                                              } else if (snapshot
-                                                                  .hasError) {
-                                                                return Center(
-                                                                  child: Text(
-                                                                    'Erreur: ${snapshot.error}',
-                                                                  ),
-                                                                );
-                                                              } else if (!snapshot
-                                                                      .hasData ||
-                                                                  snapshot
-                                                                      .data!
-                                                                      .isEmpty) {
-                                                                return Center(
-                                                                  child: Text(
-                                                                    'no_doctor_found'
-                                                                        .tr(),
-                                                                  ),
-                                                                );
-                                                              }
-
-                                                              final doctors =
-                                                                  snapshot
-                                                                      .data!;
-
-                                                              return Expanded(
-                                                                child: GridView.builder(
-                                                                  shrinkWrap:
-                                                                      true,
-                                                                  physics:
-                                                                      const ClampingScrollPhysics(),
-                                                                  itemCount:
-                                                                      doctors
-                                                                          .length,
-                                                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                                                    crossAxisCount:
-                                                                        2,
-                                                                    mainAxisSpacing:
-                                                                        15,
-                                                                    crossAxisSpacing:
-                                                                        15,
-                                                                    childAspectRatio:
-                                                                        1,
-                                                                  ),
-                                                                  itemBuilder: (
-                                                                    context,
-                                                                    index,
-                                                                  ) {
-                                                                    final doctor =
-                                                                        doctors[index];
-
-                                                                    return _buildDoctorCardMove(
-                                                                      doctor:
-                                                                          doctor,
-                                                                      medicalRecord:
-                                                                          medicalRecord,
-                                                                    );
-                                                                  },
-                                                                ),
-                                                              );
-                                                            },
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            },
+                                          shareAction(
+                                            managersMedicalRecord:
+                                                managersMedicalRecord,
+                                            medicalRecord:
+                                                medicalRecord.medicalRecord,
                                           );
                                         },
                                       ),
@@ -1086,6 +902,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                       onTap: () {
                                         Navigator.pop(context);
                                         deleteMedicalRecord(
+                                          managersMedicalRecord:
+                                              managersMedicalRecord,
                                           medicalRecord: medicalRecord,
                                           contextParent: contextParent,
                                         );
@@ -1107,12 +925,12 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                     _buildDetailItem(
                       Iconsax.activity,
                       '${'title'.tr()} : ',
-                      medicalRecord.title,
+                      medicalRecord.medicalRecord.title,
                     ),
                     _buildDetailItem(
                       Iconsax.category,
                       '${'category'.tr()} : ',
-                      medicalRecord.category.toUpperCase(),
+                      medicalRecord.medicalRecord.category.toUpperCase(),
                     ),
                     _buildDetailItem(
                       Iconsax.size,
@@ -1143,52 +961,35 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                FutureBuilder<List<Doctor>>(
-                  future: medicalRecord.getDoctors(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Erreur: ${snapshot.error}'));
-                    }
+                _buildInfoSection(
+                  children: [
+                    _buildDetailItem(
+                      Iconsax.personalcard,
+                      '${'create_by'.tr()} : ',
+                      creator,
+                    ),
 
-                    final doctors = snapshot.data!;
-                    String creator =
-                        isFromMe
-                            ? 'me'.tr()
-                            : '${doctors[0].name} ${doctors[0].specialty} ${'from'.tr()} ${doctors[0].hospital}';
-
-                    return _buildInfoSection(
-                      children: [
+                    _buildDetailItem(
+                      Iconsax.timer,
+                      '${'created_at'.tr()} : ',
+                      medicalRecord.medicalRecord.formattedDate,
+                    ),
+                    if (isFromMe) ...[
+                      for (int i = 0; i < medicalRecord.doctors.length; i++)
                         _buildDetailItem(
                           Iconsax.personalcard,
-                          '${'create_by'.tr()} : ',
-                          creator,
+                          '${'share_with'.tr()} : ',
+                          medicalRecord.doctors[i].doctorDescription,
                         ),
-
+                    ] else ...[
+                      for (int i = 1; i < medicalRecord.doctors.length; i++)
                         _buildDetailItem(
-                          Iconsax.timer,
-                          '${'created_at'.tr()} : ',
-                          medicalRecord.formattedDate,
+                          Iconsax.personalcard,
+                          '${'share_with'.tr()} : ',
+                          medicalRecord.doctors[i].doctorDescription,
                         ),
-                        if (isFromMe) ...[
-                          for (int i = 0; i < doctors.length; i++)
-                            _buildDetailItem(
-                              Iconsax.personalcard,
-                              '${'share_with'.tr()} : ',
-                              '${doctors[i].name} ${doctors[i].specialty} ${'from'.tr()} ${doctors[i].hospital}',
-                            ),
-                        ] else ...[
-                          for (int i = 1; i < doctors.length; i++)
-                            _buildDetailItem(
-                              Iconsax.personalcard,
-                              '${'share_with'.tr()} : ',
-                              '${doctors[i].name} ${doctors[i].specialty} ${'from'.tr()} ${doctors[i].hospital}',
-                            ),
-                        ],
-                      ],
-                    );
-                  },
+                    ],
+                  ],
                 ),
 
                 const SizedBox(height: 10),
@@ -1229,13 +1030,17 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                         ),
                         onPressed: () {
                           _showAddMedicalFileModal(
+                            managersMedicalRecord: managersMedicalRecord,
+                            myMedicalRecords: myMedicalRecords,
                             medicalRecord: medicalRecord,
                             onFileAdded: () {
-                              _loadMedicalRecords(managersMedicalRecord);
-                              setState(() {});
+                              // _loadMedicalRecords();
+                              // setState(() {});
 
                               Future.delayed(Duration(milliseconds: 10), () {
                                 _showMedicalRecordInfosModal(
+                                  managersMedicalRecord: managersMedicalRecord,
+                                  myMedicalRecords: myMedicalRecords,
                                   medicalRecord: medicalRecord,
                                 );
                               });
@@ -1249,17 +1054,21 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
 
                 const SizedBox(height: 20),
 
-                medicalRecord.medicalFiles.isEmpty
+                medicalRecord.medicalRecord.medicalFiles.isEmpty
                     ? _buildEmptyStateMedicalFile()
                     : _buildDocumentsList(
+                      managersMedicalRecord: managersMedicalRecord,
+                      myMedicalRecords: myMedicalRecords,
                       isFromMe: isFromMe,
                       medicalRecord: medicalRecord,
-                      medicalFiles: medicalRecord.medicalFiles,
+                      medicalFiles: medicalRecord.medicalRecord.medicalFiles,
                       onFileAdded: () {
-                        _loadMedicalRecords(managersMedicalRecord);
-                        setState(() {});
+                        // _loadMedicalRecords();
+                        // setState(() {});
                         Future.delayed(Duration(milliseconds: 10), () {
                           _showMedicalRecordInfosModal(
+                            managersMedicalRecord: managersMedicalRecord,
+                            myMedicalRecords: myMedicalRecords,
                             medicalRecord: medicalRecord,
                           );
                         });
@@ -1310,6 +1119,161 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     );
   }
 
+  void shareAction({
+    required MedicalRecord medicalRecord,
+    required ManagersMedicalRecord managersMedicalRecord,
+  }) async {
+    final allDoctors = widget.userData.doctors;
+    final availableDoctors =
+        allDoctors
+            .where((doctor) => !medicalRecord.doctorIDs.contains(doctor))
+            .toList();
+    final doctors = await DoctorService().getDoctorsByIds(availableDoctors);
+    if (!context.mounted) return;
+    showShareModal(
+      doctors: doctors,
+      medicalRecord: medicalRecord,
+      managersMedicalRecord: managersMedicalRecord,
+    );
+  }
+
+  void showShareModal({
+    required ManagersMedicalRecord managersMedicalRecord,
+    required List<Doctor> doctors,
+    required MedicalRecord medicalRecord,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (BuildContext contextParent) {
+        return GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            height: MediaQuery.of(context).size.height * .5,
+            color: Color(0x66000000),
+            child: GestureDetector(
+              onTap: () {},
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+                ),
+                padding: EdgeInsets.only(
+                  top: 24,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 75,
+                  right: 24,
+                  left: 24,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    SizedBox(height: 24),
+
+                    Row(
+                      children: [
+                        Icon(Iconsax.share, color: Color(0xFF00C853), size: 28),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'select_doctor'.tr(),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+
+                    if (doctors.isNotEmpty) ...[
+                      Expanded(
+                        child: GridView.builder(
+                          shrinkWrap: true,
+                          physics: const ClampingScrollPhysics(),
+                          itemCount: doctors.length,
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 15,
+                                crossAxisSpacing: 15,
+                                childAspectRatio: 1,
+                              ),
+                          itemBuilder: (context, index) {
+                            final doctor = doctors[index];
+
+                            return _buildDoctorCardMove(
+                              managersMedicalRecord: managersMedicalRecord,
+                              doctor: doctor,
+                              medicalRecord: medicalRecord,
+                            );
+                          },
+                        ),
+                      ),
+                    ] else ...[
+                      _buildEmptyStateMoveAndShare(
+                        icon: Iconsax.user_cirlce_add,
+                        title: 'no_doctor_found'.tr(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyStateMoveAndShare({
+    required IconData icon,
+    required String title,
+  }) {
+    return Container(
+      height: 120,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey[50],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 40, color: Colors.blueGrey[200]),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                color: Colors.blueGrey[300],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildInfoSection({required List<Widget> children}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
@@ -1335,10 +1299,12 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   }
 
   Widget _buildDocumentsList({
+    required ManagersMedicalRecord managersMedicalRecord,
     required bool isFromMe,
-    required MedicalRecord medicalRecord,
+    required MedicalRecordData medicalRecord,
     required List<MedicalFile> medicalFiles,
     required VoidCallback onFileAdded,
+    required List<MedicalRecordData> myMedicalRecords,
   }) {
     return ListView.separated(
       shrinkWrap: true,
@@ -1347,19 +1313,23 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder:
           (_, index) => _buildDocumentCard(
+            managersMedicalRecord: managersMedicalRecord,
             isFromMe: isFromMe,
             medicalRecord: medicalRecord,
             medicalFile: medicalFiles[index],
             onFileAdded: onFileAdded,
+            myMedicalRecords: myMedicalRecords,
           ),
     );
   }
 
   Widget _buildDocumentCard({
+    required ManagersMedicalRecord managersMedicalRecord,
     required bool isFromMe,
-    required MedicalRecord medicalRecord,
+    required MedicalRecordData medicalRecord,
     required MedicalFile medicalFile,
     required VoidCallback onFileAdded,
+    required List<MedicalRecordData> myMedicalRecords,
   }) {
     return Card(
       color: Colors.white,
@@ -1386,7 +1356,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${medicalRecord.category} • ${medicalFile.formattedDate}',
+              '${medicalRecord.medicalRecord.category} • ${medicalFile.formattedDate}',
               style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
             Text(
@@ -1444,7 +1414,8 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                     .where(
                                       (f) =>
                                           f != currentFolder &&
-                                          f.creatorType == CreatorType.patient,
+                                          f.medicalRecord.creatorType ==
+                                              CreatorType.patient,
                                     )
                                     .toList();
 
@@ -1535,6 +1506,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                                 final folder =
                                                     availableFolders[index];
                                                 return _buildMedicalRecordCardMove(
+                                                  managersMedicalRecord:
+                                                      managersMedicalRecord,
+                                                  myMedicalRecords:
+                                                      myMedicalRecords,
                                                   record: folder,
                                                   medicalRecordOld:
                                                       medicalRecord,
@@ -1546,7 +1521,11 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                             ),
                                           ),
                                         ] else ...[
-                                          Text('no_doctor_found'.tr()),
+                                          // Text('no_doctor_found'.tr()),
+                                          _buildEmptyStateMoveAndShare(
+                                            icon: Iconsax.folder,
+                                            title: 'no_folder_found'.tr(),
+                                          ),
                                         ],
                                       ],
                                     ),
@@ -1600,7 +1579,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                 "${'delete_medical_file'.tr()} : ${medicalFile.title} ?",
                             action1: () async {
                               await managersMedicalRecord.removeMedicalFile(
-                                medicalRecord,
+                                medicalRecord.medicalRecord,
                                 medicalFile,
                               );
                             },
@@ -1619,13 +1598,15 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   }
 
   Widget _buildMedicalRecordCardMove({
-    required MedicalRecord record,
-    required MedicalRecord medicalRecordOld,
+    required ManagersMedicalRecord managersMedicalRecord,
+    required List<MedicalRecordData> myMedicalRecords,
+    required MedicalRecordData record,
+    required MedicalRecordData medicalRecordOld,
     required MedicalFile medicalFile,
     required VoidCallback onFileAdded,
     required BuildContext contextParent,
   }) {
-    final totalSizeMB = record.totalSizeInKo / 1024;
+    final totalSizeMB = record.medicalRecord.totalSizeInKo / 1024;
     final progressValue = (totalSizeMB / 50) * myMedicalRecords.length;
 
     return GestureDetector(
@@ -1634,13 +1615,13 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           context: context,
           contextParent: contextParent,
           msg:
-              "${'move_medical_file'.tr()} : ${medicalFile.title} ${'to'.tr()} ${record.title} ?",
+              "${'move_medical_file'.tr()} : ${medicalFile.title} ${'to'.tr()} ${record.medicalRecord.title} ?",
           action1: () async {
             await managersMedicalRecord.moveMedicalFile(
               medicalFile,
-              medicalRecordOld,
-              record.id,
-              record.title,
+              medicalRecordOld.medicalRecord,
+              record.medicalRecord.id,
+              record.medicalRecord.title,
             );
           },
           action2: () {
@@ -1686,7 +1667,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       children: [
                         Flexible(
                           child: Text(
-                            record.title,
+                            record.medicalRecord.title,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(
@@ -1729,9 +1710,9 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    record.medicalFiles.isNotEmpty
+                    record.medicalRecord.medicalFiles.isNotEmpty
                         ? Text(
-                          '+ ${record.medicalFiles.length} ${'files'.tr()}...',
+                          '+ ${record.medicalRecord.medicalFiles.length} ${'files'.tr()}...',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -1811,7 +1792,9 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   }
 
   void _showAddMedicalFileModal({
-    required MedicalRecord medicalRecord,
+    required ManagersMedicalRecord managersMedicalRecord,
+    required List<MedicalRecordData> myMedicalRecords,
+    required MedicalRecordData medicalRecord,
     required VoidCallback onFileAdded,
   }) {
     final titleController = TextEditingController();
@@ -1951,7 +1934,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                               if (selectedFile != null && fileType != null) {
                                 String exist = managersMedicalRecord
                                     .checkCanAddMedicalFile(
-                                      medicalRecord,
+                                      medicalRecord.medicalRecord,
                                       title,
                                     );
                                 if (exist == 'Success') {
@@ -1969,7 +1952,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                       action1: () async {
                                         await managersMedicalRecord
                                             .addMedicalFile(
-                                              medicalRecord,
+                                              medicalRecord.medicalRecord,
                                               title,
                                               fileType!,
                                               selectedFile!,
@@ -2109,7 +2092,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   }
 
   Future<void> _downloadFile({
-    required MedicalRecord medicalRecord,
+    required MedicalRecordData medicalRecord,
     required MedicalFile medicalFile,
   }) async {
     if (!await _requestPermission()) {
@@ -2132,7 +2115,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   }
 
   // Future<void> _downloadFile({
-  //   required MedicalRecord medicalRecord,
+  //   required MedicalRecordData medicalRecord,
   //   required MedicalFile medicalFile,
   // }) async {
   //   if (!await _requestPermission()) {
@@ -2159,31 +2142,38 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   // }
 
   void deleteMedicalRecord({
-    required MedicalRecord medicalRecord,
+    required ManagersMedicalRecord managersMedicalRecord,
+    required MedicalRecordData medicalRecord,
     required BuildContext contextParent,
   }) {
     showDialogConfirm(
+      isAlert: true,
       context: context,
       contextParent: contextParent,
-      msg: "${'delete_medical_record'.tr()} : ${medicalRecord.title} ?",
+      msg:
+          "${'delete_medical_record'.tr()} : ${medicalRecord.medicalRecord.title} ?",
       action1: () async {
-        await managersMedicalRecord.removeMedicalRecord(medicalRecord);
+        await managersMedicalRecord.removeMedicalRecord(
+          medicalRecord.medicalRecord,
+        );
       },
       action2: () {
-        setState(() {
-          _loadMedicalRecords(managersMedicalRecord);
-        });
+        // setState(() {
+        //   _loadMedicalRecords();
+        // });
       },
     );
   }
 
   Widget _buildDoctorCardMove({
+    required ManagersMedicalRecord managersMedicalRecord,
     required Doctor doctor,
     required MedicalRecord medicalRecord,
   }) {
     return GestureDetector(
       onTap: () {
         shareMedicalRecord(
+          managersMedicalRecord: managersMedicalRecord,
           contextParent: context,
           doctor: doctor,
           medicalRecord: medicalRecord,
@@ -2249,6 +2239,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
   }
 
   void shareMedicalRecord({
+    required ManagersMedicalRecord managersMedicalRecord,
     required MedicalRecord medicalRecord,
     required Doctor doctor,
     required BuildContext contextParent,
@@ -2265,9 +2256,9 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
         );
       },
       action2: () {
-        setState(() {
-          _loadMedicalRecords(managersMedicalRecord);
-        });
+        // setState(() {
+        //   _loadMedicalRecords();
+        // });
       },
     );
   }

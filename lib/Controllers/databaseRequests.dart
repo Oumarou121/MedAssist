@@ -54,7 +54,7 @@ class RequestService {
         );
   }
 
-  Future<List<Request>> getRequestsByIds(List<String> ids) async {
+  Future<List<Request>> getRequestsByIds({required List<String> ids}) async {
     if (ids.isEmpty) return [];
 
     final snapshots = await Future.wait(
