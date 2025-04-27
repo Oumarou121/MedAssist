@@ -26,7 +26,7 @@ class ManagersTreats {
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
-  void addTreatment(Treat treat) async {
+  Future<void> addTreatment(Treat treat) async {
     treats.add(treat);
 
     //Firebase && Alarm
@@ -35,7 +35,7 @@ class ManagersTreats {
     await checkAlarm();
   }
 
-  void removeTreatment(Treat treat) async {
+  Future<void> removeTreatment(Treat treat) async {
     treats.remove(treat);
 
     //Firebase && Alarm

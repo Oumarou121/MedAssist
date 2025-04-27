@@ -5,7 +5,6 @@ import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Models/doctor.dart';
 import 'package:med_assist/Models/message.dart';
 import 'package:med_assist/Models/user.dart';
-import 'package:provider/provider.dart';
 
 class MedicalMessagingScreen extends StatelessWidget {
   final Stream<AppUserData> userDataStream;
@@ -14,6 +13,7 @@ class MedicalMessagingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
     return StreamBuilder<AppUserData>(
       stream: userDataStream,
@@ -47,101 +47,106 @@ class MedicalMessagingScreen extends StatelessWidget {
             );
 
         return Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                pinned: true,
-                expandedHeight: 80,
-                backgroundColor: const Color(0xFF00C853),
-                automaticallyImplyLeading: false,
-                flexibleSpace: FlexibleSpaceBar(
-                  titlePadding: const EdgeInsets.symmetric(horizontal: 10),
-                  title: Row(
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        icon: const Icon(
-                          Icons.arrow_back_ios_new,
-                          color: Colors.white,
-                          size: 18,
+          body: Padding(
+            padding: EdgeInsets.only(bottom: bottomPadding + 60),
+            child: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  pinned: true,
+                  expandedHeight: 80,
+                  backgroundColor: const Color(0xFF00C853),
+                  automaticallyImplyLeading: false,
+                  flexibleSpace: FlexibleSpaceBar(
+                    titlePadding: const EdgeInsets.symmetric(horizontal: 10),
+                    title: Row(
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 0),
-                      Text(
-                        'my_medical_messages'.tr(),
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 18,
+                        const SizedBox(width: 0),
+                        Text(
+                          'my_medical_messages'.tr(),
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  background: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF00C853), Color(0xFFB2FF59)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                      ],
+                    ),
+                    background: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF00C853), Color(0xFFB2FF59)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                       ),
                     ),
                   ),
+                  actions: [
+                    IconButton(
+                      onPressed: () {},
+                      icon: Icon(Iconsax.search_status_1, color: Colors.white),
+                    ),
+                  ],
                 ),
-                actions: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(Iconsax.search_status_1, color: Colors.white),
-                  ),
-                ],
-              ),
 
-              SliverToBoxAdapter(child: SizedBox(height: size.height * 0.02)),
+                SliverToBoxAdapter(child: SizedBox(height: size.height * 0.02)),
 
-              StreamBuilder<List<MedicalMessageData>>(
-                stream: managersMedicalMessage.getMedicalMessagesStream(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return SliverToBoxAdapter(
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                  if (snapshot.hasError) {
-                    return SliverToBoxAdapter(
-                      child: Center(child: Text('Erreur : ${snapshot.error}')),
-                    );
-                  }
-
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: _buildEmptyState(),
-                      ),
-                    );
-                  }
-
-                  final medicalMessageDatas =
-                      snapshot.data!..sort(
-                        (a, b) => b.medicalMessage.createdAt.compareTo(
-                          a.medicalMessage.createdAt,
+                StreamBuilder<List<MedicalMessageData>>(
+                  stream: managersMedicalMessage.getMedicalMessagesStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return SliverToBoxAdapter(
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    if (snapshot.hasError) {
+                      return SliverToBoxAdapter(
+                        child: Center(
+                          child: Text('Erreur : ${snapshot.error}'),
                         ),
                       );
+                    }
 
-                  return SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final messageData = medicalMessageDatas[index];
-                      return _ModernMessageCard(
-                        medicalMessage: messageData.medicalMessage,
-                        doctor: messageData.doctor,
-                        managersMedicalMessage: managersMedicalMessage,
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildEmptyState(),
+                        ),
                       );
-                    }, childCount: medicalMessageDatas.length),
-                  );
-                },
-              ),
-            ],
+                    }
+
+                    final medicalMessageDatas =
+                        snapshot.data!..sort(
+                          (a, b) => b.medicalMessage.createdAt.compareTo(
+                            a.medicalMessage.createdAt,
+                          ),
+                        );
+
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final messageData = medicalMessageDatas[index];
+                        return _ModernMessageCard(
+                          medicalMessage: messageData.medicalMessage,
+                          doctor: messageData.doctor,
+                          managersMedicalMessage: managersMedicalMessage,
+                        );
+                      }, childCount: medicalMessageDatas.length),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },

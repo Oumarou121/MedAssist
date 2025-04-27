@@ -7,6 +7,7 @@ import 'package:med_assist/Controllers/databaseTreatments.dart';
 import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
 import 'package:med_assist/Views/Auth/loginScreen.dart';
+import 'package:med_assist/Views/components/joinTreatmentPage.dart';
 import 'package:med_assist/Views/components/schedulePage.dart';
 import 'package:med_assist/Views/components/utils.dart';
 import 'package:provider/provider.dart';
@@ -30,8 +31,8 @@ class _TreatScreenState extends State<TreatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final mediaQuery = MediaQuery.of(context);
-    // final bottomPadding = mediaQuery.viewInsets.bottom;
+    final mediaQuery = MediaQuery.of(context);
+    final bottomPadding = mediaQuery.viewInsets.bottom;
     final user = Provider.of<AppUser?>(context);
     if (user == null) return const LoginScreen();
     final database = DatabaseService(user.uid);
@@ -53,79 +54,100 @@ class _TreatScreenState extends State<TreatScreen> {
             treats: userData.treatments,
           );
           return Scaffold(
-            resizeToAvoidBottomInset: true,
             backgroundColor: const Color(0xFFF5F7FB),
-            body: CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  pinned: true,
-                  expandedHeight: 80,
-                  flexibleSpace: FlexibleSpaceBar(
-                    title: Text(
-                      'my_treatments'.tr(),
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 18,
-                        color: Colors.white,
+            body: Padding(
+              padding: EdgeInsets.only(bottom: bottomPadding + 60),
+              child: CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    pinned: true,
+                    expandedHeight: 80,
+                    flexibleSpace: FlexibleSpaceBar(
+                      title: Text(
+                        'my_treatments'.tr(),
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    background: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF00C853), Color(0xFFB2FF59)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                      background: Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF00C853), Color(0xFFB2FF59)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  actions: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(Iconsax.search_status_1, color: Colors.white),
-                    ),
-                  ],
-                ),
+                    actions: [
+                      IconButton(
+                        onPressed: () async {
+                          final selectedTreat = await showSearch<Treat?>(
+                            context: context,
+                            delegate: TreatSearch(
+                              allTreatments: managersTreats.treats,
+                            ),
+                          );
 
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTreatmentStatusSection(
-                          title: 'active_treatments'.tr(),
-                          icon: Iconsax.health,
-                          treatments: managersTreats.activeTreatments(),
-                          statusColor: const Color(0xFF00C853),
-                          userData: userData,
-                          managersTreats: managersTreats,
-                          isTop: true,
+                          if (selectedTreat != null) {
+                            _showTreatmentInfosModal(
+                              contextParent: context,
+                              treat: selectedTreat,
+                              userData: userData,
+                              managersTreats: managersTreats,
+                            );
+                          }
+                        },
+                        icon: Icon(
+                          Iconsax.search_status_1,
+                          color: Colors.white,
                         ),
-                        _buildTreatmentStatusSection(
-                          title: 'failed_treatments'.tr(),
-                          icon: Iconsax.close_circle,
-                          treatments: managersTreats.failedTreatments(),
-                          statusColor: Colors.red,
-                          userData: userData,
-                          managersTreats: managersTreats,
-                        ),
-                        _buildTreatmentStatusSection(
-                          title: 'completed_treatments'.tr(),
-                          icon: Iconsax.tick_circle,
-                          treatments: managersTreats.finishedTreatments(),
-                          statusColor: Colors.grey,
-                          userData: userData,
-                          managersTreats: managersTreats,
-                        ),
-                      ],
+                      ),
+                    ],
+                  ),
+
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildTreatmentStatusSection(
+                            title: 'active_treatments'.tr(),
+                            icon: Iconsax.health,
+                            treatments: managersTreats.activeTreatments(),
+                            statusColor: const Color(0xFF00C853),
+                            userData: userData,
+                            managersTreats: managersTreats,
+                            isTop: true,
+                          ),
+                          _buildTreatmentStatusSection(
+                            title: 'failed_treatments'.tr(),
+                            icon: Iconsax.close_circle,
+                            treatments: managersTreats.failedTreatments(),
+                            statusColor: Colors.red,
+                            userData: userData,
+                            managersTreats: managersTreats,
+                          ),
+                          _buildTreatmentStatusSection(
+                            title: 'completed_treatments'.tr(),
+                            icon: Iconsax.tick_circle,
+                            treatments: managersTreats.finishedTreatments(),
+                            statusColor: Colors.grey,
+                            userData: userData,
+                            managersTreats: managersTreats,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         }
@@ -267,7 +289,7 @@ class _TreatScreenState extends State<TreatScreen> {
             Container(
               height: 120,
               decoration: BoxDecoration(
-                color: const Color(0xFF3366FF).withOpacity(0.1),
+                color: const Color(0xFF00C853).withOpacity(0.1),
                 // color: const Color(0xFF00C853).withOpacity(0.1),
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(20),
@@ -287,7 +309,7 @@ class _TreatScreenState extends State<TreatScreen> {
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
                             //  color: const Color(0xFF00C853),
-                            color: const Color(0xFF3366FF),
+                            color: const Color(0xFF00C853),
                           ),
                         ),
                       ),
@@ -299,7 +321,7 @@ class _TreatScreenState extends State<TreatScreen> {
                     value: progressValue,
                     backgroundColor: Colors.grey[200],
                     color:
-                        treat.isMissing ? Colors.red : const Color(0xFF3366FF),
+                        treat.isMissing ? Colors.red : const Color(0xFF00C853),
                     minHeight: 8,
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -378,7 +400,10 @@ class _TreatScreenState extends State<TreatScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.1),
+        color:
+            treat.isActive() || treat.isMissing
+                ? Colors.green[50]
+                : Colors.green[200],
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -393,7 +418,7 @@ class _TreatScreenState extends State<TreatScreen> {
                   ? Colors.red
                   : treat.isActive()
                   ? const Color(0xFF00C853)
-                  : Colors.grey,
+                  : Colors.grey[600],
           fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
@@ -511,6 +536,7 @@ class _TreatScreenState extends State<TreatScreen> {
                   Navigator.pop(context);
                   showJoinTreatmentModalWithData(
                     managersTreats: managersTreats,
+                    userData: userData,
                   );
                 },
               ),
@@ -700,14 +726,14 @@ class _TreatScreenState extends State<TreatScreen> {
                                         ? "${'delete_treatment'.tr} ${treat.title} ?"
                                         : "${'leave_treatment'.tr()} ${treat.title} ${'of'.tr()} ${treat.authorName} ?",
                                 action1: () async {
-                                  setState(() {
-                                    managersTreats.removeTreatment(treat);
-                                    TreatmentService()
-                                        .removeFollowerFromTreatment(
-                                          treat.code,
-                                          managersTreats.uid,
-                                        );
-                                  });
+                                  // setState(() {
+                                  await managersTreats.removeTreatment(treat);
+                                  await TreatmentService()
+                                      .removeFollowerFromTreatment(
+                                        treat.code,
+                                        managersTreats.uid,
+                                      );
+                                  // });
                                 },
                                 action2: () {},
                               );
@@ -744,7 +770,7 @@ class _TreatScreenState extends State<TreatScreen> {
                         color:
                             treat.isMissing
                                 ? Colors.red
-                                : const Color(0xFF3366FF),
+                                : const Color(0xFF00C853),
                         minHeight: 12,
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -812,7 +838,7 @@ class _TreatScreenState extends State<TreatScreen> {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3366FF),
+                          backgroundColor: const Color(0xFF00C853),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -927,7 +953,7 @@ class _TreatScreenState extends State<TreatScreen> {
         children: [
           Row(
             children: [
-              Icon(Iconsax.health, color: Color(0xFF00CCFF), size: 20),
+              Icon(Iconsax.health, color: Color(0xFF00C853), size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -951,7 +977,7 @@ class _TreatScreenState extends State<TreatScreen> {
           LinearProgressIndicator(
             value: medicine.count / medicine.maxCount,
             backgroundColor: Colors.grey.shade200,
-            color: isMissing ? Colors.red : const Color(0xFF3366FF),
+            color: isMissing ? Colors.red : const Color(0xFF00C853),
             minHeight: 8,
             borderRadius: BorderRadius.circular(10),
           ),
@@ -982,14 +1008,48 @@ class _TreatScreenState extends State<TreatScreen> {
 
   void showJoinTreatmentModalWithData({
     required ManagersTreats managersTreats,
-  }) async {
-    final publicTreatments = await TreatmentService().getPublicTreatments();
+    required AppUserData userData,
+  }) {
+    // final publicTreatments = await TreatmentService().getPublicTreatments();
 
-    if (!context.mounted) return;
+    // if (!context.mounted) return;
 
-    _showJoinTreatmentModal(
-      managersTreats: managersTreats,
-      publicTreatments: publicTreatments,
+    // _showJoinTreatmentDialog(
+    //   managersTreats: managersTreats,
+    //   publicTreatments: publicTreatments,
+    // );
+
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder:
+    //         (context) => JoinTreatmentPage(
+    //           managersTreats: managersTreats,
+    //           publicTreatments: publicTreatments,
+    //         ),
+    //   ),
+    // );
+    Navigator.of(context, rootNavigator: true).push(
+      PageRouteBuilder(
+        pageBuilder:
+            (context, animation, secondaryAnimation) => JoinTreatmentPage(
+              managersTreats: managersTreats,
+              userData: userData,
+            ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+      ),
     );
   }
 
@@ -1001,303 +1061,600 @@ class _TreatScreenState extends State<TreatScreen> {
     _showScheduleModal(context, managersTreats: managersTreats);
   }
 
-  void _showJoinTreatmentModal({
-    required ManagersTreats managersTreats,
-    required List<Treat> publicTreatments,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      builder: (BuildContext context) {
-        TextEditingController _controller = TextEditingController();
-        String error1 = "";
-        String error2 = "";
-        bool isError1 = false;
-        bool isError2 = false;
-        bool isLoading = false;
+  // void _showJoinTreatmentDialog({
+  //   required ManagersTreats managersTreats,
+  //   required List<Treat> publicTreatments,
+  // }) {
+  //   TextEditingController _controller = TextEditingController();
+  //   String error1 = "";
+  //   String error2 = "";
+  //   bool isError1 = false;
+  //   bool isError2 = false;
+  //   bool isLoading = false;
 
-        return StatefulBuilder(
-          builder: (BuildContext contextParent, StateSetter setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(contextParent).viewInsets.bottom + 75,
-                left: 24,
-                right: 24,
-                top: 24,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Handle
-                  Center(
-                    child: Container(
-                      width: 60,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: true,
+  //     builder: (BuildContext contextParent) {
+  //       return StatefulBuilder(
+  //         builder: (BuildContext context, StateSetter setDialogState) {
+  //           return AlertDialog(
+  //             shape: RoundedRectangleBorder(
+  //               borderRadius: BorderRadius.circular(20),
+  //             ),
+  //             contentPadding: const EdgeInsets.all(24),
+  //             content: SingleChildScrollView(
+  //               child: Column(
+  //                 mainAxisSize: MainAxisSize.min,
+  //                 children: [
+  //                   // Titre
+  //                   Text(
+  //                     'join_treatment2'.tr(),
+  //                     style: GoogleFonts.poppins(
+  //                       fontSize: 20,
+  //                       fontWeight: FontWeight.w600,
+  //                       color: Colors.black87,
+  //                     ),
+  //                   ),
+  //                   const SizedBox(height: 14),
 
-                  // Titre
-                  Text(
-                    'join_treatment2'.tr(),
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
+  //                   // Champ de code
+  //                   TextField(
+  //                     controller: _controller,
+  //                     decoration: InputDecoration(
+  //                       labelText: 'treatment_code'.tr(),
+  //                       prefixIcon: Icon(
+  //                         Iconsax.code,
+  //                         color: Colors.grey.shade600,
+  //                       ),
+  //                       border: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(15),
+  //                       ),
+  //                       errorText: isError1 ? error1 : null,
+  //                       errorStyle: GoogleFonts.poppins(color: Colors.red),
+  //                       filled: true,
+  //                       fillColor: Colors.grey.shade100,
+  //                     ),
+  //                     style: GoogleFonts.poppins(),
+  //                   ),
 
-                  // Champ de code
-                  TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      labelText: 'treatment_code'.tr(),
-                      prefixIcon: Icon(
-                        Iconsax.code,
-                        color: Colors.grey.shade600,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      errorText: isError1 ? error1 : null,
-                      errorStyle: GoogleFonts.poppins(color: Colors.red),
-                      filled: true,
-                      fillColor: Colors.grey.shade100,
-                    ),
-                    style: GoogleFonts.poppins(),
-                  ),
+  //                   const SizedBox(height: 16),
 
-                  const SizedBox(height: 16),
+  //                   // Bouton Rejoindre
+  //                   SizedBox(
+  //                     width: double.infinity,
+  //                     child: ElevatedButton.icon(
+  //                       icon:
+  //                           isLoading
+  //                               ? const SizedBox.shrink()
+  //                               : Icon(
+  //                                 Iconsax.link,
+  //                                 size: 20,
+  //                                 color: Colors.white,
+  //                               ),
+  //                       label:
+  //                           isLoading
+  //                               ? const SizedBox(
+  //                                 height: 20,
+  //                                 width: 20,
+  //                                 child: CircularProgressIndicator(
+  //                                   color: Colors.white,
+  //                                   strokeWidth: 2,
+  //                                 ),
+  //                               )
+  //                               : Text(
+  //                                 'join'.tr(),
+  //                                 style: GoogleFonts.poppins(
+  //                                   color: Colors.white,
+  //                                 ),
+  //                               ),
+  //                       style: ElevatedButton.styleFrom(
+  //                         backgroundColor: const Color(0xFF00C853),
+  //                         padding: const EdgeInsets.symmetric(vertical: 16),
+  //                         shape: RoundedRectangleBorder(
+  //                           borderRadius: BorderRadius.circular(15),
+  //                         ),
+  //                       ),
+  //                       onPressed: () {
+  //                         setDialogState(() {
+  //                           isLoading = true;
+  //                           isError1 = false;
+  //                           isError2 = false;
+  //                         });
+  //                         String code = _controller.text.trim();
+  //                         if (code.isEmpty) {
+  //                           setDialogState(() {
+  //                             error1 = 'required_field'.tr();
+  //                             isError1 = true;
+  //                             isLoading = false;
+  //                           });
+  //                           return;
+  //                         }
 
-                  // Bouton Rejoindre
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon:
-                          isLoading
-                              ? const SizedBox.shrink()
-                              : Icon(
-                                Iconsax.link,
-                                size: 20,
-                                color: Colors.white,
-                              ),
-                      label:
-                          isLoading
-                              ? const CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              )
-                              : Text(
-                                'join'.tr(),
-                                style: GoogleFonts.poppins(color: Colors.white),
-                              ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00C853),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                      onPressed: () {
-                        setModalState(() {
-                          isLoading = true;
-                          isError1 = false;
-                          isError2 = false;
-                        });
-                        String code = _controller.text.trim();
-                        if (code.isEmpty) {
-                          setModalState(() {
-                            error1 = 'required_field'.tr();
-                            isError1 = true;
-                            isLoading = false;
-                          });
-                          return;
-                        }
+  //                         bool exists = publicTreatments.any(
+  //                           (treat) => treat.code == code,
+  //                         );
 
-                        bool exists = publicTreatments.any(
-                          (treat) => treat.code == code,
-                        );
+  //                         if (!exists) {
+  //                           setDialogState(() {
+  //                             error1 = 'invalid_treatment_code'.tr();
+  //                             isError1 = true;
+  //                             isLoading = false;
+  //                           });
+  //                           return;
+  //                         }
 
-                        if (!exists) {
-                          setModalState(() {
-                            error1 = 'invalid_treatment_code'.tr();
-                            isError1 = true;
-                            isLoading = false;
-                          });
-                          return;
-                        }
+  //                         Treat treatment = publicTreatments.firstWhere(
+  //                           (treat) => treat.code == code,
+  //                         );
 
-                        Treat treatment = publicTreatments.firstWhere(
-                          (treat) => treat.code == code,
-                        );
+  //                         bool alreadyExists = managersTreats.alreadyExists(
+  //                           code,
+  //                         );
 
-                        bool alreadyExists = managersTreats.alreadyExists(code);
+  //                         if (alreadyExists) {
+  //                           setDialogState(() {
+  //                             error1 = 'treatment_already_added'.tr();
+  //                             isError1 = true;
+  //                             isLoading = false;
+  //                           });
+  //                           return;
+  //                         }
 
-                        if (alreadyExists) {
-                          setModalState(() {
-                            error1 = 'treatment_already_added'.tr();
-                            isError1 = true;
-                            isLoading = false;
-                          });
-                          return;
-                        }
+  //                         Navigator.of(
+  //                           context,
+  //                         ).pop(); // Fermer le dialog avant le confirm
 
-                        showDialogConfirm(
-                          context: context,
-                          contextParent: contextParent,
-                          msg: "${'add_treatment'.tr()} ${treatment.title} ?",
-                          action1: () async {
-                            setState(() {
-                              List<Medicine> ms = [];
+  //                         showDialogConfirm(
+  //                           context: context,
+  //                           contextParent: contextParent,
+  //                           msg: "${'add_treatment'.tr()} ${treatment.title} ?",
+  //                           action1: () async {
+  //                             setState(() {
+  //                               List<Medicine> ms = [];
 
-                              Treat t = Treat(
-                                authorName: treatment.authorName,
-                                authorUid: treatment.authorName,
-                                code: treatment.code,
-                                title: treatment.title,
-                                medicines: ms,
-                                createdAt: DateTime.now(),
-                                isPublic: treatment.isPublic,
-                                followers: [],
-                              );
+  //                               Treat t = Treat(
+  //                                 authorName: treatment.authorName,
+  //                                 authorUid: treatment.authorName,
+  //                                 code: treatment.code,
+  //                                 title: treatment.title,
+  //                                 medicines: ms,
+  //                                 createdAt: DateTime.now(),
+  //                                 isPublic: treatment.isPublic,
+  //                                 followers: [],
+  //                               );
 
-                              for (Medicine m in treatment.medicines) {
-                                t.addMedicineWithoutSave(m);
-                              }
+  //                               for (Medicine m in treatment.medicines) {
+  //                                 t.addMedicineWithoutSave(m);
+  //                               }
 
-                              managersTreats.addTreatment(t);
+  //                               managersTreats.addTreatment(t);
 
-                              TreatmentService().addFollowerToTreatment(
-                                treatment.code,
-                                managersTreats.uid,
-                              );
-                            });
-                          },
-                          action2: () {},
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 14),
+  //                               TreatmentService().addFollowerToTreatment(
+  //                                 treatment.code,
+  //                                 managersTreats.uid,
+  //                               );
+  //                             });
+  //                           },
+  //                           action2: () {},
+  //                         );
+  //                       },
+  //                     ),
+  //                   ),
+  //                   const SizedBox(height: 14),
 
-                  // Séparateur
-                  Row(
-                    children: [
-                      Expanded(child: Divider(color: Colors.grey.shade400)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Text('or'.tr(), style: GoogleFonts.poppins()),
-                      ),
-                      Expanded(child: Divider(color: Colors.grey.shade400)),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
+  //                   // Séparateur
+  //                   Row(
+  //                     children: [
+  //                       Expanded(child: Divider(color: Colors.grey.shade400)),
+  //                       Padding(
+  //                         padding: const EdgeInsets.symmetric(horizontal: 8),
+  //                         child: Text('or'.tr(), style: GoogleFonts.poppins()),
+  //                       ),
+  //                       Expanded(child: Divider(color: Colors.grey.shade400)),
+  //                     ],
+  //                   ),
+  //                   const SizedBox(height: 14),
 
-                  // Dropdown stylisé
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: DropdownButton<Treat>(
-                      isExpanded: true,
-                      hint: Text(
-                        'select_treatment'.tr(),
-                        style: GoogleFonts.poppins(),
-                      ),
-                      underline: const SizedBox(),
-                      items:
-                          publicTreatments.map((Treat treat) {
-                            return DropdownMenuItem<Treat>(
-                              value: treat,
-                              child: ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: Icon(
-                                  Iconsax.health,
-                                  color: const Color(0xFF00C853),
-                                ),
-                                title: Text(
-                                  treat.title,
-                                  style: GoogleFonts.poppins(),
-                                ),
-                                subtitle: Text(
-                                  treat.authorName,
-                                  style: GoogleFonts.poppins(fontSize: 12),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                      onChanged: (Treat? selected) {
-                        if (selected == null) return;
-                        if (managersTreats.alreadyExists(selected.code)) {
-                          setModalState(() {
-                            error2 = 'treatment_already_added'.tr();
-                            isError2 = true;
-                          });
-                          return;
-                        }
+  //                   // Dropdown stylisé
+  //                   Container(
+  //                     decoration: BoxDecoration(
+  //                       color: Colors.grey.shade100,
+  //                       borderRadius: BorderRadius.circular(15),
+  //                     ),
+  //                     padding: const EdgeInsets.symmetric(horizontal: 16),
+  //                     child: DropdownButton<Treat>(
+  //                       isExpanded: true,
+  //                       hint: Text(
+  //                         'select_treatment'.tr(),
+  //                         style: GoogleFonts.poppins(),
+  //                       ),
+  //                       underline: const SizedBox(),
+  //                       items:
+  //                           publicTreatments.map((Treat treat) {
+  //                             return DropdownMenuItem<Treat>(
+  //                               value: treat,
+  //                               child: ListTile(
+  //                                 contentPadding: EdgeInsets.zero,
+  //                                 leading: Icon(
+  //                                   Iconsax.health,
+  //                                   color: const Color(0xFF00C853),
+  //                                 ),
+  //                                 title: Text(
+  //                                   treat.title,
+  //                                   style: GoogleFonts.poppins(),
+  //                                 ),
+  //                                 // subtitle: Text(
+  //                                 //   treat.authorName,
+  //                                 //   style: GoogleFonts.poppins(fontSize: 12),
+  //                                 // ),
+  //                               ),
+  //                             );
+  //                           }).toList(),
+  //                       onChanged: (Treat? selected) {
+  //                         if (selected == null) return;
+  //                         if (managersTreats.alreadyExists(selected.code)) {
+  //                           setDialogState(() {
+  //                             error2 = 'treatment_already_added'.tr();
+  //                             isError2 = true;
+  //                           });
+  //                           return;
+  //                         }
 
-                        showDialogConfirm(
-                          context: context,
-                          contextParent: contextParent,
-                          msg: "${'add_treatment'.tr()} ${selected.title} ?",
-                          action1: () async {
-                            setState(() {
-                              List<Medicine> ms = [];
+  //                         Navigator.of(
+  //                           context,
+  //                         ).pop(); // Fermer le dialog avant le confirm
 
-                              Treat t = Treat(
-                                authorName: selected.authorName,
-                                authorUid: selected.authorName,
-                                code: selected.code,
-                                title: selected.title,
-                                medicines: ms,
-                                createdAt: DateTime.now(),
-                                isPublic: selected.isPublic,
-                                followers: [],
-                              );
+  //                         showDialogConfirm(
+  //                           context: context,
+  //                           contextParent: contextParent,
+  //                           msg: "${'add_treatment'.tr()} ${selected.title} ?",
+  //                           action1: () async {
+  //                             setState(() {
+  //                               List<Medicine> ms = [];
 
-                              for (Medicine m in selected.medicines) {
-                                t.addMedicineWithoutSave(m);
-                              }
-                              managersTreats.addTreatment(t);
-                              TreatmentService().addFollowerToTreatment(
-                                selected.code,
-                                managersTreats.uid,
-                              );
-                            });
-                          },
-                          action2: () {},
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  if (isError2 && error2.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Text(
-                        error2,
-                        style: GoogleFonts.poppins(color: Colors.red),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
+  //                               Treat t = Treat(
+  //                                 authorName: selected.authorName,
+  //                                 authorUid: selected.authorName,
+  //                                 code: selected.code,
+  //                                 title: selected.title,
+  //                                 medicines: ms,
+  //                                 createdAt: DateTime.now(),
+  //                                 isPublic: selected.isPublic,
+  //                                 followers: [],
+  //                               );
+
+  //                               for (Medicine m in selected.medicines) {
+  //                                 t.addMedicineWithoutSave(m);
+  //                               }
+  //                               managersTreats.addTreatment(t);
+  //                               TreatmentService().addFollowerToTreatment(
+  //                                 selected.code,
+  //                                 managersTreats.uid,
+  //                               );
+  //                             });
+  //                           },
+  //                           action2: () {},
+  //                         );
+  //                       },
+  //                     ),
+  //                   ),
+  //                   const SizedBox(height: 5),
+  //                   if (isError2 && error2.isNotEmpty)
+  //                     Padding(
+  //                       padding: const EdgeInsets.only(top: 16),
+  //                       child: Text(
+  //                         error2,
+  //                         style: GoogleFonts.poppins(color: Colors.red),
+  //                       ),
+  //                     ),
+  //                 ],
+  //               ),
+  //             ),
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
+
+  // void _showJoinTreatmentModal({
+  //   required ManagersTreats managersTreats,
+  //   required List<Treat> publicTreatments,
+  // }) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: Colors.white,
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+  //     ),
+  //     builder: (BuildContext context) {
+  //       TextEditingController _controller = TextEditingController();
+  //       String error1 = "";
+  //       String error2 = "";
+  //       bool isError1 = false;
+  //       bool isError2 = false;
+  //       bool isLoading = false;
+
+  //       return StatefulBuilder(
+  //         builder: (BuildContext contextParent, StateSetter setModalState) {
+  //           return Padding(
+  //             padding: EdgeInsets.only(
+  //               bottom: MediaQuery.of(contextParent).viewInsets.bottom + 75,
+  //               left: 24,
+  //               right: 24,
+  //               top: 24,
+  //             ),
+  //             child: Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 // Handle
+  //                 Center(
+  //                   child: Container(
+  //                     width: 60,
+  //                     height: 4,
+  //                     decoration: BoxDecoration(
+  //                       color: Colors.grey.shade300,
+  //                       borderRadius: BorderRadius.circular(2),
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 10),
+
+  //                 // Titre
+  //                 Text(
+  //                   'join_treatment2'.tr(),
+  //                   style: GoogleFonts.poppins(
+  //                     fontSize: 20,
+  //                     fontWeight: FontWeight.w600,
+  //                     color: Colors.black87,
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 14),
+
+  //                 // Champ de code
+  //                 TextField(
+  //                   controller: _controller,
+  //                   decoration: InputDecoration(
+  //                     labelText: 'treatment_code'.tr(),
+  //                     prefixIcon: Icon(
+  //                       Iconsax.code,
+  //                       color: Colors.grey.shade600,
+  //                     ),
+  //                     border: OutlineInputBorder(
+  //                       borderRadius: BorderRadius.circular(15),
+  //                     ),
+  //                     errorText: isError1 ? error1 : null,
+  //                     errorStyle: GoogleFonts.poppins(color: Colors.red),
+  //                     filled: true,
+  //                     fillColor: Colors.grey.shade100,
+  //                   ),
+  //                   style: GoogleFonts.poppins(),
+  //                 ),
+
+  //                 const SizedBox(height: 16),
+
+  //                 // Bouton Rejoindre
+  //                 SizedBox(
+  //                   width: double.infinity,
+  //                   child: ElevatedButton.icon(
+  //                     icon:
+  //                         isLoading
+  //                             ? const SizedBox.shrink()
+  //                             : Icon(
+  //                               Iconsax.link,
+  //                               size: 20,
+  //                               color: Colors.white,
+  //                             ),
+  //                     label:
+  //                         isLoading
+  //                             ? const CircularProgressIndicator(
+  //                               color: Colors.white,
+  //                               strokeWidth: 2,
+  //                             )
+  //                             : Text(
+  //                               'join'.tr(),
+  //                               style: GoogleFonts.poppins(color: Colors.white),
+  //                             ),
+  //                     style: ElevatedButton.styleFrom(
+  //                       backgroundColor: const Color(0xFF00C853),
+  //                       padding: const EdgeInsets.symmetric(vertical: 16),
+  //                       shape: RoundedRectangleBorder(
+  //                         borderRadius: BorderRadius.circular(15),
+  //                       ),
+  //                     ),
+  //                     onPressed: () {
+  //                       setModalState(() {
+  //                         isLoading = true;
+  //                         isError1 = false;
+  //                         isError2 = false;
+  //                       });
+  //                       String code = _controller.text.trim();
+  //                       if (code.isEmpty) {
+  //                         setModalState(() {
+  //                           error1 = 'required_field'.tr();
+  //                           isError1 = true;
+  //                           isLoading = false;
+  //                         });
+  //                         return;
+  //                       }
+
+  //                       bool exists = publicTreatments.any(
+  //                         (treat) => treat.code == code,
+  //                       );
+
+  //                       if (!exists) {
+  //                         setModalState(() {
+  //                           error1 = 'invalid_treatment_code'.tr();
+  //                           isError1 = true;
+  //                           isLoading = false;
+  //                         });
+  //                         return;
+  //                       }
+
+  //                       Treat treatment = publicTreatments.firstWhere(
+  //                         (treat) => treat.code == code,
+  //                       );
+
+  //                       bool alreadyExists = managersTreats.alreadyExists(code);
+
+  //                       if (alreadyExists) {
+  //                         setModalState(() {
+  //                           error1 = 'treatment_already_added'.tr();
+  //                           isError1 = true;
+  //                           isLoading = false;
+  //                         });
+  //                         return;
+  //                       }
+
+  //                       showDialogConfirm(
+  //                         context: context,
+  //                         contextParent: contextParent,
+  //                         msg: "${'add_treatment'.tr()} ${treatment.title} ?",
+  //                         action1: () async {
+  //                           setState(() {
+  //                             List<Medicine> ms = [];
+
+  //                             Treat t = Treat(
+  //                               authorName: treatment.authorName,
+  //                               authorUid: treatment.authorName,
+  //                               code: treatment.code,
+  //                               title: treatment.title,
+  //                               medicines: ms,
+  //                               createdAt: DateTime.now(),
+  //                               isPublic: treatment.isPublic,
+  //                               followers: [],
+  //                             );
+
+  //                             for (Medicine m in treatment.medicines) {
+  //                               t.addMedicineWithoutSave(m);
+  //                             }
+
+  //                             managersTreats.addTreatment(t);
+
+  //                             TreatmentService().addFollowerToTreatment(
+  //                               treatment.code,
+  //                               managersTreats.uid,
+  //                             );
+  //                           });
+  //                         },
+  //                         action2: () {},
+  //                       );
+  //                     },
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 14),
+
+  //                 // Séparateur
+  //                 Row(
+  //                   children: [
+  //                     Expanded(child: Divider(color: Colors.grey.shade400)),
+  //                     Padding(
+  //                       padding: const EdgeInsets.symmetric(horizontal: 8),
+  //                       child: Text('or'.tr(), style: GoogleFonts.poppins()),
+  //                     ),
+  //                     Expanded(child: Divider(color: Colors.grey.shade400)),
+  //                   ],
+  //                 ),
+  //                 const SizedBox(height: 14),
+
+  //                 // Dropdown stylisé
+  //                 Container(
+  //                   decoration: BoxDecoration(
+  //                     color: Colors.grey.shade100,
+  //                     borderRadius: BorderRadius.circular(15),
+  //                   ),
+  //                   padding: const EdgeInsets.symmetric(horizontal: 16),
+  //                   child: DropdownButton<Treat>(
+  //                     isExpanded: true,
+  //                     hint: Text(
+  //                       'select_treatment'.tr(),
+  //                       style: GoogleFonts.poppins(),
+  //                     ),
+  //                     underline: const SizedBox(),
+  //                     items:
+  //                         publicTreatments.map((Treat treat) {
+  //                           return DropdownMenuItem<Treat>(
+  //                             value: treat,
+  //                             child: ListTile(
+  //                               contentPadding: EdgeInsets.zero,
+  //                               leading: Icon(
+  //                                 Iconsax.health,
+  //                                 color: const Color(0xFF00C853),
+  //                               ),
+  //                               title: Text(
+  //                                 treat.title,
+  //                                 style: GoogleFonts.poppins(),
+  //                               ),
+  //                               subtitle: Text(
+  //                                 treat.authorName,
+  //                                 style: GoogleFonts.poppins(fontSize: 12),
+  //                               ),
+  //                             ),
+  //                           );
+  //                         }).toList(),
+  //                     onChanged: (Treat? selected) {
+  //                       if (selected == null) return;
+  //                       if (managersTreats.alreadyExists(selected.code)) {
+  //                         setModalState(() {
+  //                           error2 = 'treatment_already_added'.tr();
+  //                           isError2 = true;
+  //                         });
+  //                         return;
+  //                       }
+
+  //                       showDialogConfirm(
+  //                         context: context,
+  //                         contextParent: contextParent,
+  //                         msg: "${'add_treatment'.tr()} ${selected.title} ?",
+  //                         action1: () async {
+  //                           setState(() {
+  //                             List<Medicine> ms = [];
+
+  //                             Treat t = Treat(
+  //                               authorName: selected.authorName,
+  //                               authorUid: selected.authorName,
+  //                               code: selected.code,
+  //                               title: selected.title,
+  //                               medicines: ms,
+  //                               createdAt: DateTime.now(),
+  //                               isPublic: selected.isPublic,
+  //                               followers: [],
+  //                             );
+
+  //                             for (Medicine m in selected.medicines) {
+  //                               t.addMedicineWithoutSave(m);
+  //                             }
+  //                             managersTreats.addTreatment(t);
+  //                             TreatmentService().addFollowerToTreatment(
+  //                               selected.code,
+  //                               managersTreats.uid,
+  //                             );
+  //                           });
+  //                         },
+  //                         action2: () {},
+  //                       );
+  //                     },
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 5),
+  //                 if (isError2 && error2.isNotEmpty)
+  //                   Padding(
+  //                     padding: const EdgeInsets.only(top: 16),
+  //                     child: Text(
+  //                       error2,
+  //                       style: GoogleFonts.poppins(color: Colors.red),
+  //                     ),
+  //                   ),
+  //               ],
+  //             ),
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
 
   void _showAddMedicineModal({
     required Treat treat,
@@ -1948,4 +2305,167 @@ class _TreatScreenState extends State<TreatScreen> {
   //     ),
   //   );
   // }
+}
+
+class TreatSearch extends SearchDelegate<Treat?> {
+  final List<Treat> allTreatments;
+
+  TreatSearch({required this.allTreatments});
+
+  @override
+  ThemeData appBarTheme(BuildContext context) {
+    return Theme.of(context).copyWith(
+      appBarTheme: AppBarTheme(
+        backgroundColor: Color(0xFF00C853),
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        hintStyle: TextStyle(color: Colors.white70),
+        border: InputBorder.none,
+      ),
+    );
+  }
+
+  @override
+  List<Widget> buildActions(BuildContext context) => [
+    IconButton(
+      icon: Icon(Icons.clear, color: Colors.white),
+      onPressed: () => query = '',
+    ),
+  ];
+
+  @override
+  Widget buildLeading(BuildContext context) => IconButton(
+    icon: Icon(Icons.arrow_back, color: Colors.white),
+    onPressed: () => close(context, null),
+  );
+
+  @override
+  Widget buildResults(BuildContext context) => _buildSearchResults(context);
+
+  @override
+  Widget buildSuggestions(BuildContext context) => _buildSearchResults(context);
+
+  Widget _buildSearchResults(BuildContext context) {
+    final results =
+        query.isEmpty
+            ? allTreatments
+            : allTreatments
+                .where(
+                  (r) => r.title.toLowerCase().contains(query.toLowerCase()),
+                )
+                .toList();
+
+    return results.isEmpty
+        ? Center(
+          child: Text(
+            'no_result_found'.tr(),
+            style: TextStyle(color: Color(0xFF00C853), fontSize: 18),
+          ),
+        )
+        : ListView.separated(
+          padding: EdgeInsets.all(16),
+          itemCount: results.length,
+          separatorBuilder: (_, __) => SizedBox(height: 8),
+          itemBuilder:
+              (_, index) => InkWell(
+                borderRadius: BorderRadius.circular(15),
+                onTap: () => close(context, results[index]),
+                child: _buildTreatmentCard(results[index]),
+              ),
+        );
+  }
+
+  Widget _buildTreatmentCard(Treat treat) {
+    final bool isActive = treat.isActive();
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      elevation: 4,
+      shadowColor: Color(0xFF00C853).withOpacity(0.2),
+      child: Ink(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          gradient: LinearGradient(
+            colors: [Colors.white, Color(0xFF00C853).withOpacity(0.05)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      treat.title,
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF00C853),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color:
+                          isActive
+                              ? Color(0xFF00C853).withOpacity(0.2)
+                              : Colors.red.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isActive ? Icons.check_circle : Icons.highlight_off,
+                          color: isActive ? Color(0xFF00C853) : Colors.red,
+                          size: 16,
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          isActive ? "Actif" : "Terminé",
+                          style: TextStyle(
+                            color: isActive ? Color(0xFF00C853) : Colors.red,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.person_outline, size: 16, color: Colors.grey),
+                  SizedBox(width: 4),
+                  Text(
+                    treat.authorName,
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                  SizedBox(width: 12),
+                  Icon(Icons.today_outlined, size: 16, color: Colors.grey),
+                  SizedBox(width: 4),
+                  Text(
+                    DateFormat('dd/MM/yyyy').format(treat.createdAt),
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

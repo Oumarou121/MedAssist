@@ -27,11 +27,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-    final mediaQuery = MediaQuery.of(context);
-    final bottomPadding = mediaQuery.viewInsets.bottom;
+    final size = MediaQuery.of(context).size;
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final user = Provider.of<AppUser?>(context);
+
     if (user == null) return const LoginScreen();
+
     final database = DatabaseService(user.uid);
 
     return StreamBuilder<AppUserData>(
@@ -44,113 +45,53 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         if (snapshot.hasData) {
-          AppUserData? userData = snapshot.data;
-          if (userData == null) return const LoginScreen();
-          ManagersTreats managersTreats = ManagersTreats(
+          final userData = snapshot.data!;
+          final managersTreats = ManagersTreats(
             uid: userData.uid,
             name: userData.name,
             treats: userData.treatments,
           );
-
-          ManagersDoctors managersDoctors = ManagersDoctors(
+          final managersDoctors = ManagersDoctors(
             uid: userData.uid,
             name: userData.name,
             doctors: userData.doctors,
             appointments: userData.appointments,
             requests: userData.requests,
           );
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Scaffold(
-              body: Padding(
-                padding: EdgeInsets.only(bottom: bottomPadding + 40),
-                child: SafeArea(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: <Widget>[
-                        _top(userData: userData, userDataStream: database.user),
-                        SizedBox(height: size.height * 0.03),
-                        _searchBar(),
-                        SizedBox(height: size.height * 0.03),
-                        MedicationScheduleList(managersTreats: managersTreats),
-                        SizedBox(height: size.height * 0.03),
-                        MyAppointmentsList(managersDoctors: managersDoctors),
-                        SizedBox(height: size.height * 0.03),
-                        MyDoctorsList(
-                          managersDoctors: managersDoctors,
-                          persistentTabController:
-                              widget.persistentTabController,
-                        ),
-                      ],
+
+          return Scaffold(
+            backgroundColor: const Color(0xFFF5F7FB),
+            body: SafeArea(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: EdgeInsets.fromLTRB(20, 10, 20, bottomPadding + 60),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _top(userData: userData, userDataStream: database.user),
+                    SizedBox(height: size.height * 0.03),
+                    _searchBar(),
+                    SizedBox(height: size.height * 0.03),
+                    MedicationScheduleList(managersTreats: managersTreats),
+                    SizedBox(height: size.height * 0.03),
+                    MyAppointmentsList(managersDoctors: managersDoctors),
+                    SizedBox(height: size.height * 0.03),
+                    MyDoctorsList(
+                      managersDoctors: managersDoctors,
+                      persistentTabController: widget.persistentTabController,
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
           );
         }
+
         return const LoginScreen();
       },
     );
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   final Size size = MediaQuery.of(context).size;
-  //   final mediaQuery = MediaQuery.of(context);
-  //   final bottomPadding = mediaQuery.viewInsets.bottom;
-
-  //   final user = Provider.of<AppUser?>(context);
-  //   final userData = Provider.of<AppUserData?>(context);
-
-  //   if (user == null) return const LoginScreen();
-  //   if (userData == null) {
-  //     return const Scaffold(body: Center(child: CircularProgressIndicator()));
-  //   }
-
-  //   ManagersTreats managersTreats = ManagersTreats(
-  //     uid: userData.uid,
-  //     name: userData.name,
-  //     treats: userData.treatments,
-  //   );
-
-  //   ManagersDoctors managersDoctors = ManagersDoctors(
-  //     uid: userData.uid,
-  //     name: userData.name,
-  //     doctors: userData.doctors,
-  //     appointments: userData.appointments,
-  //     requests: userData.requests,
-  //   );
-
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-  //     child: Scaffold(
-  //       body: Padding(
-  //         padding: EdgeInsets.only(bottom: bottomPadding + 40),
-  //         child: SafeArea(
-  //           child: SingleChildScrollView(
-  //             child: Column(
-  //               children: <Widget>[
-  //                 _top(userData: userData),
-  //                 SizedBox(height: size.height * 0.03),
-  //                 _searchBar(),
-  //                 SizedBox(height: size.height * 0.03),
-  //                 MedicationScheduleList(managersTreats: managersTreats),
-  //                 SizedBox(height: size.height * 0.03),
-  //                 MyAppointmentsList(managersDoctors: managersDoctors),
-  //                 SizedBox(height: size.height * 0.03),
-  //                 MyDoctorsList(
-  //                   managersDoctors: managersDoctors,
-  //                   persistentTabController: widget.persistentTabController,
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Widget _top({
     required AppUserData userData,
@@ -292,23 +233,61 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildProfileHeader({required AppUserData userData}) {
-    return userData.userSettings.profileUrl != ''
-        ? CircleAvatar(
-          radius: 25,
-          backgroundImage: NetworkImage(userData.userSettings.profileUrl),
-        )
-        : CircleAvatar(
-          radius: 25,
-          backgroundColor: Color(0xFF00C853),
-          child: Text(
-            userData.name[0],
-            style: TextStyle(fontSize: 25, color: Colors.white),
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: 55,
+          height: 55,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [Colors.green.shade100, Colors.green.shade50],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-        );
+        ),
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 4),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 12,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: ClipOval(
+            child:
+                userData.userSettings.profileUrl.isNotEmpty
+                    ? Image.network(
+                      userData.userSettings.profileUrl,
+                      fit: BoxFit.cover,
+                    )
+                    : Center(
+                      child: Text(
+                        userData.name.isNotEmpty ? userData.name[0] : '?',
+                        style: TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green.shade800,
+                        ),
+                      ),
+                    ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _searchBar() {
     return TextField(
+      readOnly: true,
       onChanged: (text) {},
       decoration: InputDecoration(
         hintText: 'search'.tr(),

@@ -12,6 +12,7 @@ import 'package:med_assist/Views/splash.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 void main() {
   runZonedGuarded(
@@ -21,20 +22,21 @@ void main() {
       await Alarm.init();
       NotiService().initNotification();
 
-      // Initialisez Firebase
-      await Firebase.initializeApp();
-
-      // await Firebase.initializeApp(
-      //   options: FirebaseOptions(
-      //     apiKey: "AIzaSyAsWLuoq_8-46L8hFGhzXrJp7qRv9qCffI",
-      //     authDomain: "med-assist-53cba.firebaseapp.com",
-      //     projectId: "med-assist-53cba",
-      //     storageBucket: "med-assist-53cba.firebasestorage.app",
-      //     messagingSenderId: "441831269862",
-      //     appId: "1:441831269862:web:2145e79e8b05be0d4e6227",
-      //     measurementId: "G-X3DPNG80D1",
-      //   ),
-      // );
+      if (kIsWeb) {
+        await Firebase.initializeApp(
+          options: FirebaseOptions(
+            apiKey: "AIzaSyAsWLuoq_8-46L8hFGhzXrJp7qRv9qCffI",
+            authDomain: "med-assist-53cba.firebaseapp.com",
+            projectId: "med-assist-53cba",
+            storageBucket: "med-assist-53cba.firebasestorage.app",
+            messagingSenderId: "441831269862",
+            appId: "1:441831269862:web:2145e79e8b05be0d4e6227",
+            measurementId: "G-X3DPNG80D1",
+          ),
+        );
+      } else {
+        await Firebase.initializeApp();
+      }
 
       await Supabase.initialize(
         url: 'https://fxwpdqnowtwmckklipve.supabase.co',

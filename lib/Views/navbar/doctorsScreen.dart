@@ -7,9 +7,11 @@ import 'package:med_assist/Models/doctor.dart';
 import 'package:med_assist/Models/treat.dart';
 import 'package:med_assist/Models/user.dart';
 import 'package:med_assist/Views/Auth/loginScreen.dart';
+import 'package:med_assist/Views/components/JoinDcotorPage.dart';
 import 'package:med_assist/Views/components/appointmentsPage.dart';
 import 'package:med_assist/Views/components/utils.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DoctorsScreen extends StatefulWidget {
   const DoctorsScreen({super.key});
@@ -29,6 +31,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     'Sam',
     'Dim',
   ];
+  late List<Doctor> allDoctors;
 
   @override
   Widget build(BuildContext context) {
@@ -62,11 +65,11 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
             name: userData.name,
             treats: userData.treatments,
           );
-          return Padding(
-            padding: EdgeInsets.only(bottom: bottomPadding + 60),
-            child: Scaffold(
-              backgroundColor: const Color(0xFFF5F7FB),
-              body: CustomScrollView(
+          return Scaffold(
+            backgroundColor: const Color(0xFFF5F7FB),
+            body: Padding(
+              padding: EdgeInsets.only(bottom: bottomPadding + 60),
+              child: CustomScrollView(
                 slivers: [
                   SliverAppBar(
                     pinned: true,
@@ -92,7 +95,20 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                     ),
                     actions: [
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          print(allDoctors);
+                          final selectedDoctor = await showSearch<Doctor?>(
+                            context: context,
+                            delegate: DoctorSearch(allDoctors: allDoctors),
+                          );
+
+                          if (selectedDoctor != null) {
+                            _showDoctorInfosModal(
+                              doctor: selectedDoctor,
+                              managersDoctors: managersDoctors,
+                            );
+                          }
+                        },
                         icon: Icon(Iconsax.user_search, color: Colors.white),
                       ),
                     ],
@@ -112,6 +128,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                             true,
                             context,
                             managersDoctors,
+                            userData,
                           ),
                           _buildDoctorsList(managersDoctors: managersDoctors),
                           const SizedBox(height: 24),
@@ -121,6 +138,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                             false,
                             context,
                             managersDoctors,
+                            userData,
                           ),
                           _buildQueriesList(
                             managersDoctors: managersDoctors,
@@ -146,6 +164,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     bool isDoc,
     BuildContext context,
     ManagersDoctors managersDoctors,
+    AppUserData userData,
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -174,7 +193,10 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                       ),
                       child: IconButton(
                         onPressed: () {
-                          _showJoinDoctorModal(managersDoctors);
+                          _showJoinDoctorModal(
+                            managersDoctors: managersDoctors,
+                            userData: userData,
+                          );
                         },
                         icon: Icon(Iconsax.add, color: Colors.black),
                       ),
@@ -187,6 +209,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                         );
                       },
                       child: Text(
+                        overflow: TextOverflow.ellipsis,
                         'show_appointments'.tr(),
                         style: TextStyle(color: Colors.blue),
                       ),
@@ -270,6 +293,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
         }
 
         final doctors = snapshot.data!;
+        allDoctors = snapshot.data!;
 
         return SizedBox(
           height: 200,
@@ -1181,6 +1205,8 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     );
     String error = "";
     bool isError = false;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final maxModalHeight = screenHeight * .95;
 
     showModalBottomSheet(
       context: context,
@@ -1193,6 +1219,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return Container(
+              height: maxModalHeight,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -1512,158 +1539,31 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     );
   }
 
-  void _showJoinDoctorModal(ManagersDoctors managersDoctors) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+  void _showJoinDoctorModal({
+    required ManagersDoctors managersDoctors,
+    required AppUserData userData,
+  }) {
+    Navigator.of(context, rootNavigator: true).push(
+      PageRouteBuilder(
+        pageBuilder:
+            (context, animation, secondaryAnimation) => JoinDoctorPage(
+              managersDoctors: managersDoctors,
+              userData: userData,
+            ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
       ),
-      builder: (BuildContext context) {
-        TextEditingController _controller = TextEditingController();
-        String error1 = "";
-        bool isError1 = false;
-        bool isLoading = false;
-
-        return StatefulBuilder(
-          builder: (BuildContext contextParent, StateSetter setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(contextParent).viewInsets.bottom + 75,
-                left: 24,
-                right: 24,
-                top: 24,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Handle
-                  Center(
-                    child: Container(
-                      width: 60,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Titre
-                  Text(
-                    'send_request_title'.tr(),
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Champ de code
-                  TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      labelText: 'doctor_id'.tr(),
-                      prefixIcon: Icon(
-                        Iconsax.code,
-                        color: Colors.grey.shade600,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      errorText: isError1 ? error1 : null,
-                      errorStyle: GoogleFonts.poppins(color: Colors.red),
-                      filled: true,
-                      fillColor: Colors.grey.shade100,
-                    ),
-                    style: GoogleFonts.poppins(),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Bouton Rejoindre
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon:
-                          isLoading
-                              ? const SizedBox.shrink()
-                              : Icon(
-                                Iconsax.link,
-                                size: 20,
-                                color: Colors.white,
-                              ),
-                      label:
-                          isLoading
-                              ? const CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              )
-                              : Text(
-                                'send'.tr(),
-                                style: GoogleFonts.poppins(color: Colors.white),
-                              ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00C853),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                      onPressed: () async {
-                        setModalState(() {
-                          isLoading = true;
-                          isError1 = false;
-                        });
-                        String code = _controller.text.trim();
-                        if (code.isEmpty) {
-                          setModalState(() {
-                            error1 = 'required_doctor_id'.tr();
-                            isError1 = true;
-                            isLoading = false;
-                          });
-                          return;
-                        }
-                        String result = await managersDoctors
-                            .checkSendJoinDoctorRequest(code);
-                        List<String> parts = result.split('/');
-
-                        if (parts.isNotEmpty && parts[0] == "Success") {
-                          String doctorName =
-                              parts.length > 1 ? parts[1] : "Inconnu";
-                          setModalState(() {
-                            isLoading = false;
-                          });
-                          showDialogConfirm(
-                            context: context,
-                            contextParent: contextParent,
-                            msg: "${'tracking_request'.tr()} $doctorName ?",
-                            action1: () async {
-                              await managersDoctors.sendJoinDoctorRequest(code);
-                            },
-                            action2: () {
-                              // setState(() {});
-                            },
-                          );
-                        } else {
-                          setModalState(() {
-                            error1 = result;
-                            isError1 = true;
-                            isLoading = false;
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
     );
   }
 
@@ -1714,6 +1614,256 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class DoctorSearch extends SearchDelegate<Doctor?> {
+  final List<Doctor> allDoctors;
+
+  DoctorSearch({required this.allDoctors});
+
+  @override
+  ThemeData appBarTheme(BuildContext context) {
+    return Theme.of(context).copyWith(
+      appBarTheme: AppBarTheme(
+        backgroundColor: Color(0xFF00C853),
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        hintStyle: TextStyle(color: Colors.white70),
+        border: InputBorder.none,
+      ),
+    );
+  }
+
+  @override
+  List<Widget> buildActions(BuildContext context) => [
+    IconButton(
+      icon: Icon(Icons.clear, color: Colors.white),
+      onPressed: () => query = '',
+    ),
+  ];
+
+  @override
+  Widget buildLeading(BuildContext context) => IconButton(
+    icon: Icon(Icons.arrow_back, color: Colors.white),
+    onPressed: () => close(context, null),
+  );
+
+  @override
+  Widget buildResults(BuildContext context) => _buildSearchResults(context);
+
+  @override
+  Widget buildSuggestions(BuildContext context) => _buildSearchResults(context);
+
+  Widget _buildSearchResults(BuildContext context) {
+    final results =
+        query.isEmpty
+            ? allDoctors
+            : allDoctors
+                .where(
+                  (d) => d.name.toLowerCase().contains(query.toLowerCase()),
+                )
+                .toList();
+
+    return results.isEmpty
+        ? Center(
+          child: Text(
+            'no_result_found'.tr(),
+            style: TextStyle(color: Color(0xFF00C853), fontSize: 18),
+          ),
+        )
+        : ListView.separated(
+          padding: EdgeInsets.all(16),
+          itemCount: results.length,
+          separatorBuilder: (_, __) => SizedBox(height: 8),
+          itemBuilder:
+              (_, index) => InkWell(
+                borderRadius: BorderRadius.circular(15),
+                onTap: () => close(context, results[index]),
+                child: _buildDoctorCard(results[index]),
+              ),
+        );
+  }
+
+  Widget _buildDoctorCard(Doctor doctor) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      elevation: 4,
+      shadowColor: Color(0xFF00C853).withOpacity(0.2),
+      child: Ink(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          gradient: LinearGradient(
+            colors: [Colors.white, Color(0xFF00C853).withOpacity(0.05)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundImage: NetworkImage(doctor.imageUrl),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          doctor.name,
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF00C853),
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          doctor.specialty,
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.medical_services,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              doctor.hospital,
+                              style: TextStyle(color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
+              Row(
+                children: [
+                  _buildInfoChip(
+                    icon: Icons.star,
+                    value: doctor.rating.toStringAsFixed(1),
+                    color: Colors.amber,
+                  ),
+                  SizedBox(width: 8),
+                  _buildInfoChip(
+                    icon: Icons.work,
+                    value: '${doctor.experience} ans exp',
+                    color: Color(0xFF00C853),
+                  ),
+                  SizedBox(width: 8),
+                  _buildInfoChip(
+                    icon: Icons.translate,
+                    value: doctor.languages.join(', '),
+                    color: Colors.blue,
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (doctor.availableDays.isNotEmpty)
+                    _buildAvailabilityBadge(
+                      '${doctor.availableDays.join(', ')} • ${doctor.availableHours.join(' - ')}',
+                    ),
+                  _buildContactButton(
+                    icon: Icons.phone,
+                    onPressed: () => launch('tel:${doctor.phoneNumber}'),
+                  ),
+                  _buildContactButton(
+                    icon: Icons.email,
+                    onPressed: () => launch('mailto:${doctor.email}'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoChip({
+    required IconData icon,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Icon(icon, size: 16, color: color),
+          SizedBox(width: 6),
+          Text(
+            value,
+            style: TextStyle(color: color, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAvailabilityBadge(String text) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Color(0xFF00C853).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.access_time, size: 16, color: Color(0xFF00C853)),
+          SizedBox(width: 6),
+          Text(text, style: TextStyle(color: Color(0xFF00C853), fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContactButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onPressed,
+      child: Container(
+        padding: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, size: 20, color: Color(0xFF00C853)),
+      ),
     );
   }
 }

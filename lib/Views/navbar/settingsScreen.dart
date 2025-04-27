@@ -45,11 +45,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           if (userData == null) return const LoginScreen();
           final DatabaseService db = DatabaseService(userData.uid);
 
-          return Padding(
-            padding: EdgeInsets.only(bottom: bottomPadding + 60),
-            child: Scaffold(
-              backgroundColor: const Color(0xFFF5F7FB),
-              body: CustomScrollView(
+          return Scaffold(
+            backgroundColor: const Color(0xFFF5F7FB),
+            body: Padding(
+              padding: EdgeInsets.only(bottom: bottomPadding + 60),
+              child: CustomScrollView(
                 slivers: [
                   SliverAppBar(
                     pinned: true,
@@ -119,19 +119,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildProfileHeader({required AppUserData userData}) {
     return Row(
       children: [
-        userData.userSettings.profileUrl != ''
-            ? CircleAvatar(
-              radius: 30,
-              backgroundImage: NetworkImage(userData.userSettings.profileUrl),
-            )
-            : CircleAvatar(
-              radius: 30,
-              backgroundColor: Color(0xFF00C853),
-              child: Text(
-                userData.name[0],
-                style: TextStyle(fontSize: 25, color: Colors.white),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 65,
+              height: 65,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Colors.green.shade100, Colors.green.shade50],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
             ),
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 4),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child:
+                    userData.userSettings.profileUrl.isNotEmpty
+                        ? Image.network(
+                          userData.userSettings.profileUrl,
+                          fit: BoxFit.cover,
+                        )
+                        : Center(
+                          child: Text(
+                            userData.name.isNotEmpty ? userData.name[0] : '?',
+                            style: TextStyle(
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green.shade800,
+                            ),
+                          ),
+                        ),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(width: 16),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
