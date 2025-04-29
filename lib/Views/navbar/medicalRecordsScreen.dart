@@ -161,14 +161,14 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                       );
                     }
 
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: _buildEmptyState(),
-                        ),
-                      );
-                    }
+                    // if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    //   return SliverToBoxAdapter(
+                    //     child: Padding(
+                    //       padding: const EdgeInsets.symmetric(horizontal: 20),
+                    //       child: _buildEmptyState(),
+                    //     ),
+                    //   );
+                    // }
 
                     allMedicalRecords = snapshot.data!;
 
@@ -199,29 +199,38 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                           ),
                         ),
                         SizedBox(height: size.height * 0.03),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Wrap(
-                            spacing: 15,
-                            runSpacing: 15,
-                            children:
-                                allMedicalRecords.map((record) {
-                                  return SizedBox(
-                                    width:
-                                        (MediaQuery.of(context).size.width -
-                                            55) /
-                                        2,
-                                    child: _buildMedicalRecordCard(
-                                      userData: userData,
-                                      managersMedicalRecord:
-                                          managersMedicalRecord,
-                                      record: record,
-                                      myMedicalRecords: allMedicalRecords,
-                                    ),
-                                  );
-                                }).toList(),
-                          ),
-                        ),
+                        allMedicalRecords.isEmpty
+                            ? Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
+                              child: _buildEmptyState(),
+                            )
+                            : Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
+                              child: Wrap(
+                                spacing: 15,
+                                runSpacing: 15,
+                                children:
+                                    allMedicalRecords.map((record) {
+                                      return SizedBox(
+                                        width:
+                                            (MediaQuery.of(context).size.width -
+                                                55) /
+                                            2,
+                                        child: _buildMedicalRecordCard(
+                                          userData: userData,
+                                          managersMedicalRecord:
+                                              managersMedicalRecord,
+                                          record: record,
+                                          myMedicalRecords: allMedicalRecords,
+                                        ),
+                                      );
+                                    }).toList(),
+                              ),
+                            ),
                       ]),
                     );
                   },

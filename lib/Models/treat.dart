@@ -317,7 +317,7 @@ class ManagersTreats {
               doseTime.month,
               doseTime.day,
               doseTime.hour,
-              doseTime.minute + 10,
+              doseTime.minute,
             ),
           )) {
             item.treat.updateStatus(uid, treats);

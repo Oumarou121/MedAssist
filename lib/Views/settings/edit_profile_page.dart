@@ -79,12 +79,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
           }
         },
         action2: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MainScreen(initialIndex: 4),
-            ),
-          );
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (context) => MainScreen(initialIndex: 4),
+          //   ),
+          // );
+          Navigator.pop(context);
         },
       );
     }

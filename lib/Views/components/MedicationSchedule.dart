@@ -50,7 +50,7 @@ class _MedicationScheduleListState extends State<MedicationScheduleList> {
           now.month,
           now.day,
           time.time.hour,
-          time.time.minute + 1,
+          time.time.minute,
         );
         final diff = now.difference(scheduledTime).inMinutes;
         final isActive = !time.isTaken && diff >= 0 && diff <= 10;
