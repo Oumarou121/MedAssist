@@ -283,15 +283,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
           password: _password,
           phoneNumber: _phoneNumber,
         );
-        if (result != 'false') {
+        List<String> parts = result.split('/');
+        if (parts.isNotEmpty && parts[0] == "success") {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => CreateCodePin(uid: result)),
+            MaterialPageRoute(
+              builder: (context) => CreateCodePin(uid: parts[1]),
+            ),
           );
-          ;
         } else {
           Fluttertoast.showToast(
-            msg: 'failed_register'.tr(),
+            msg: result,
+            timeInSecForIosWeb: 2,
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
             backgroundColor: Colors.red,

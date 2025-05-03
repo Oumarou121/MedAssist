@@ -23,10 +23,13 @@ class AuthenticationService {
         email: email,
         password: password,
       );
-      User? user = result.user;
-      return _userFromFirebase(user);
+      print(result);
+      // User? user = result.user;
+      // return _userFromFirebase(user);
+      return null;
     } on FirebaseAuthException catch (e) {
-      return e.message;
+      String message = getErrorMessage(e.code);
+      return message;
     } catch (exception) {
       return exception.toString();
     }
@@ -45,17 +48,19 @@ class AuthenticationService {
       );
       User? user = result.user;
 
-      if (user == null) {
-        return 'false';
-      }
+      // if (user == null) {
+      //   return 'false';
+      // }
 
       await DatabaseService(
-        user.uid,
+        user!.uid,
       ).saveUser(name, email, password, phoneNumber, "");
 
-      return user.uid;
+      return "success/${user.uid}";
     } on FirebaseAuthException catch (e) {
-      return e.message ?? 'Une erreur est survenue lors de l’inscription.';
+      // return e.message ?? 'Une erreur est survenue lors de l’inscription.';
+      String message = getErrorMessage(e.code);
+      return message;
     } catch (exception) {
       return exception.toString();
     }
@@ -100,6 +105,33 @@ class AuthenticationService {
       }
     } catch (e) {
       print("Erreur : $e");
+    }
+  }
+
+  String getErrorMessage(String code) {
+    switch (code) {
+      case 'invalid-email':
+        return 'L’adresse email saisie est invalide.';
+      case 'user-disabled':
+        return 'Ce compte a été désactivé.';
+      case 'user-not-found':
+        return 'Aucun utilisateur trouvé avec cet email.';
+      case 'wrong-password':
+        return 'Mot de passe incorrect.';
+      case 'too-many-requests':
+        return 'Trop de tentatives. Réessayez plus tard.';
+      case 'network-request-failed':
+        return 'Problème de connexion Internet.';
+      case 'email-already-in-use':
+        return 'Cet email est déjà utilisé.';
+      case 'weak-password':
+        return 'Le mot de passe est trop faible.';
+      case 'operation-not-allowed':
+        return 'Connexion par email non activée.';
+      case 'invalid-credential':
+        return 'Identifiants incorrects ou expirés.';
+      default:
+        return 'Une erreur est survenue. Veuillez réessayer.';
     }
   }
 }

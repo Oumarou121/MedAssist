@@ -6,7 +6,6 @@ import 'package:iconsax/iconsax.dart';
 import 'package:med_assist/Views/Auth/forgotPasswordScreen.dart';
 import 'package:med_assist/Views/Auth/registerScreen.dart';
 import 'package:med_assist/Controllers/authentication.dart';
-import 'package:med_assist/Views/security/codePin.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -229,20 +228,14 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _password,
         );
 
-        if (result is String) {
-          Fluttertoast.showToast(
-            msg: 'failed_login'.tr(),
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.red,
-            textColor: Colors.white,
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => CodePin()),
-          );
-        }
+        Fluttertoast.showToast(
+          msg: result,
+          timeInSecForIosWeb: 2,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       } catch (e) {
         setState(() => _isSigning = false);
         Fluttertoast.showToast(
